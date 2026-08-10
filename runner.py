@@ -56,7 +56,7 @@ def main():
         else:
             logger.info(f'There is no Data to run for this day')
 
-
+    logger.info(f'Execution Results: {execution_results}')
     try:
         slack_service.send_execution_summary(channel=slack_channel,
                                              execution_results=execution_results,
