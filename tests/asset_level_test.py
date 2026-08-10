@@ -21,7 +21,7 @@ def validate_time(programs, key):
 
     pattern = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{4}$"
     if programs:
-                if isinstance(programs, list):
+        if isinstance(programs, list):
             for program in programs:
                 asset_id = ''
                 if isinstance(program.get('episode-num'), list):
