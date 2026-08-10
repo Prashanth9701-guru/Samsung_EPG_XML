@@ -49,8 +49,8 @@ logger = logging.getLogger(__name__)
 
 _BUCKET              = "onbqa-s3-automation"
 _CLOUDFRONT_BASE     = "https://d1b4xlmaxnswax.cloudfront.net"
-_S3_PREFIX           = "roku/summary-reports"
-_S3_JSON_PREFIX      = "roku/json-snapshots"
+_S3_PREFIX           = "samsung/summary-reports"
+_S3_JSON_PREFIX      = "samsung/json-snapshots"
 _CONTENT_TYPE        = "text/html; charset=utf-8"
 _JSON_CONTENT_TYPE   = "application/json"
 
@@ -336,67 +336,67 @@ def _extract_json_name_from_snapshot_filename(filename: str) -> str:
     return "unknown"
 
 
-def upload_json_snapshot(local_json_path: str) -> dict:
-    """Upload a timestamped JSON validation snapshot to S3 via Roles Anywhere.
-
-    Parameters
-    ----------
-    local_json_path : str
-        Absolute (or relative) path to the JSON snapshot file to upload.
-        Expected filename pattern: ``<YYYYMMDD_HHMMSS>_<original_basename>.json``
-
-    Returns
-    -------
-    dict with keys:
-        bucket     – S3 bucket name
-        key        – S3 object key  (roku/json-snapshots/…)
-        report_url – CloudFront URL to the uploaded snapshot
-
-    Raises
-    ------
-    FileNotFoundError  – if the JSON file or credentials are missing.
-    ValueError         – if the credentials config is incomplete.
-    RuntimeError       – if aws_signing_helper fails.
-    """
-    # 1. Validate source file
-    local_json_path = os.path.abspath(local_json_path)
-    if not os.path.isfile(local_json_path):
-        raise FileNotFoundError(
-            f"JSON snapshot file not found: {local_json_path}"
-        )
-
-    filename  = os.path.basename(local_json_path)
-    json_name = _extract_json_name_from_snapshot_filename(filename)
-    upload_dt = datetime.utcnow()
-    s3_key    = _build_s3_key(json_name, filename, upload_dt, prefix=_S3_JSON_PREFIX)
-
-    logger.info(
-        "Preparing to upload JSON snapshot '%s' → s3://%s/%s",
-        filename, _BUCKET, s3_key,
-    )
-
-    # 2. Load credentials config and build S3 client (reuses existing helpers)
-    cfg       = _load_roles_anywhere_config()
-    s3_client = _build_s3_client(cfg)
-
-    # 3. Upload
-    with open(local_json_path, "rb") as fh:
-        s3_client.put_object(
-            Bucket      = _BUCKET,
-            Key         = s3_key,
-            Body        = fh,
-            ContentType = _JSON_CONTENT_TYPE,
-        )
-
-    report_url = f"{_CLOUDFRONT_BASE.rstrip('/')}/{s3_key}"
-
-    logger.info(
-        "JSON snapshot upload complete. URL: %s",
-        report_url,
-    )
-
-    return {
-        "bucket":     _BUCKET,
-        "key":        s3_key,
-        "report_url": report_url,
-    }
+# def upload_json_snapshot(local_json_path: str) -> dict:
+#     """Upload a timestamped JSON validation snapshot to S3 via Roles Anywhere.
+#
+#     Parameters
+#     ----------
+#     local_json_path : str
+#         Absolute (or relative) path to the JSON snapshot file to upload.
+#         Expected filename pattern: ``<YYYYMMDD_HHMMSS>_<original_basename>.json``
+#
+#     Returns
+#     -------
+#     dict with keys:
+#         bucket     – S3 bucket name
+#         key        – S3 object key  (roku/json-snapshots/…)
+#         report_url – CloudFront URL to the uploaded snapshot
+#
+#     Raises
+#     ------
+#     FileNotFoundError  – if the JSON file or credentials are missing.
+#     ValueError         – if the credentials config is incomplete.
+#     RuntimeError       – if aws_signing_helper fails.
+#     """
+#     # 1. Validate source file
+#     local_json_path = os.path.abspath(local_json_path)
+#     if not os.path.isfile(local_json_path):
+#         raise FileNotFoundError(
+#             f"JSON snapshot file not found: {local_json_path}"
+#         )
+#
+#     filename  = os.path.basename(local_json_path)
+#     json_name = _extract_json_name_from_snapshot_filename(filename)
+#     upload_dt = datetime.utcnow()
+#     s3_key    = _build_s3_key(json_name, filename, upload_dt, prefix=_S3_JSON_PREFIX)
+#
+#     logger.info(
+#         "Preparing to upload JSON snapshot '%s' → s3://%s/%s",
+#         filename, _BUCKET, s3_key,
+#     )
+#
+#     # 2. Load credentials config and build S3 client (reuses existing helpers)
+#     cfg       = _load_roles_anywhere_config()
+#     s3_client = _build_s3_client(cfg)
+#
+#     # 3. Upload
+#     with open(local_json_path, "rb") as fh:
+#         s3_client.put_object(
+#             Bucket      = _BUCKET,
+#             Key         = s3_key,
+#             Body        = fh,
+#             ContentType = _JSON_CONTENT_TYPE,
+#         )
+#
+#     report_url = f"{_CLOUDFRONT_BASE.rstrip('/')}/{s3_key}"
+#
+#     logger.info(
+#         "JSON snapshot upload complete. URL: %s",
+#         report_url,
+#     )
+#
+#     return {
+#         "bucket":     _BUCKET,
+#         "key":        s3_key,
+#         "report_url": report_url,
+#     }

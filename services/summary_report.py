@@ -312,15 +312,15 @@ details[open] .chevron { transform: rotate(90deg); }
 # HTML component builders
 # ---------------------------------------------------------------------------
 
-def _kpi_card(value, label, color, border_top, sub=''):
-    sub_html = f'<div class="kpi-sub">{_esc(sub)}</div>' if sub else ''
-    return (
-        f'<div class="kpi-card" style="border-top:3px solid {border_top};">'
-        f'<div class="kpi-value" style="color:{color};">{value}</div>'
-        f'<div class="kpi-label">{label}</div>'
-        f'{sub_html}'
-        f'</div>'
-    )
+# def _kpi_card(value, label, color, border_top, sub=''):
+#     sub_html = f'<div class="kpi-sub">{_esc(sub)}</div>' if sub else ''
+#     return (
+#         f'<div class="kpi-card" style="border-top:3px solid {border_top};">'
+#         f'<div class="kpi-value" style="color:{color};">{value}</div>'
+#         f'<div class="kpi-label">{label}</div>'
+#         f'{sub_html}'
+#         f'</div>'
+#     )
 
 
 def _stat_pill(count, label, dot, text, bg):
@@ -1351,7 +1351,7 @@ def summary_report_writer(
         # Hero
         '<div class="hero">'
         '<div class="hero-inner">'
-        '<div class="hero-eyebrow">Roku EPG Quality Report</div>'
+        '<div class="hero-eyebrow">Samsung EPG Quality Report</div>'
         '<div class="hero-title">Test Summary Report</div>'
         f'<div class="hero-meta">'
         f'<span>&#128225;&nbsp;{_esc(_effective_url)}</span>'
@@ -1368,7 +1368,7 @@ def summary_report_writer(
 
         # Footer
         '<div class="footer">'
-        f'<strong>Roku EPG Validation Framework</strong>'
+        f'<strong>Samsung EPG Validation Framework</strong>'
         f'&ensp;&middot;&ensp;Source: {_esc(os.path.basename(excel_path))}'
         f'&ensp;&middot;&ensp;{_esc(ts)}'
         '</div>'

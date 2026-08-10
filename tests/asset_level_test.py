@@ -244,13 +244,13 @@ def validate_thumbnail(programs, key, channel_level_language, content_type, expe
                     except requests.exceptions.RequestException as _req_exc:
                         # Network-level failure (connection reset, timeout, DNS, etc.)
                         # Record as a status-code failure and continue to the next asset.
-                        logger.warning(f"Thumbnail fetch failed — asset_id={id!r}, "
+                        logger.warning(f"Thumbnail fetch failed — asset_id={asset_id!r}, "
                                        f"url={thumbnail_url!r}: {_req_exc}")
 
                         thum_status_code.append({asset_id: [f'network error: {_req_exc}', thumbnail_url]})
                     except Exception as _img_exc:
                         # Image parsing or other unexpected error for this asset.
-                        logger.warning(f"Thumbnail processing error — asset_id={id!r}, "
+                        logger.warning(f"Thumbnail processing error — asset_id={asset_id!r}, "
                                        f"url={thumbnail_url!r}: {_img_exc}")
 
                         thum_status_code.append({asset_id: [f'processing error: {_img_exc}', thumbnail_url]})
