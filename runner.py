@@ -46,11 +46,13 @@ def main():
 
             today_date = datetime.today().strftime("%d-%b-%Y")
             if results.get('status') == 'SUCCESS':
-                work_sheet.update_cell(1, new_column_number, today_date)
-                work_sheet.update_cell(inx+2, new_column_number, "✔")
+                if new_column_number:
+                    work_sheet.update_cell(1, new_column_number, today_date)
+                work_sheet.update_cell(inx+2, today_date, "✔")
             else:
-                work_sheet.update_cell(1, new_column_number, today_date)
-                work_sheet.update_cell(inx + 2, new_column_number, "❌")
+                if new_column_number:
+                    work_sheet.update_cell(1, new_column_number, today_date)
+                work_sheet.update_cell(inx + 2, today_date, "❌")
         else:
             logger.info(f'There is no Data to run for this day')
 
