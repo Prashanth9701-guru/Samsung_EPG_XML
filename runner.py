@@ -34,7 +34,7 @@ def main():
                       results.get('s3_html_url'),
                       data.get('RUN/STOP')]
 
-            execution_results.append(output)
+            execution_results.extend(output)
 
             work_sheet_2 = sheet_service.get_worksheet_by_id('653083829')
             print(work_sheet_2.get_all_records())
