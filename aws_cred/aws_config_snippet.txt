@@ -1,0 +1,3 @@
+[profile onbqa-rolesanywhere-runtime]
+region = ap-south-1
+credential_process = aws_signing_helper credential-process --certificate /Users/muditg/Documents/Cursor/Scratchpad/8. Setup AWS for external s3 upload/rolesanywhere_output/client.crt --private-key /Users/muditg/Documents/Cursor/Scratchpad/8. Setup AWS for external s3 upload/rolesanywhere_output/client.key --trust-anchor-arn arn:aws:rolesanywhere:ap-south-1:984678972753:trust-anchor/890f61be-3733-4fc2-9190-20a39f9fffbd --profile-arn arn:aws:rolesanywhere:ap-south-1:984678972753:profile/9c621d18-f9ea-41a9-97c0-ddabab1de44a --role-arn arn:aws:iam::984678972753:role/onbqa-rolesanywhere-s3-writer

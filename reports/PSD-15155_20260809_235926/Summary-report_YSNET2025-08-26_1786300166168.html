@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Summary Report &mdash; YSNET2025-08-26</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+               'Helvetica Neue', Arial, sans-serif;
+  background: #F1F5F9; color: #1E293B; line-height: 1.6; font-size: 14px;
+}
+
+/* ── Hero ── */
+.hero {
+  background: linear-gradient(140deg, #0F172A 0%, #1E293B 55%, #1a3a5c 100%);
+  padding: 52px 48px 44px; color: #fff;
+}
+.hero-inner        { max-width: 1080px; margin: 0 auto; }
+.hero-eyebrow      { font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+                     color: #64748B; margin-bottom: 12px; font-weight: 600; }
+.hero-title        { font-size: 32px; font-weight: 800; letter-spacing: -.5px; }
+.hero-meta         { font-size: 13px; color: #94A3B8; margin-top: 10px;
+                     display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
+.hero-meta span    { display: flex; align-items: center; gap: 6px; }
+.hero-pill         { display: inline-flex; align-items: center; gap: 9px;
+                     margin-top: 22px; border-radius: 30px; padding: 8px 20px;
+                     font-size: 13px; font-weight: 700; letter-spacing: .2px;
+                     border: 1px solid transparent; }
+.hero-dot          { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Layout ── */
+.container { max-width: 1080px; margin: 0 auto; padding: 36px 24px 52px; }
+
+/* ── Base card ── */
+.card {
+  background: #fff; border-radius: 14px; padding: 26px 30px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 6px 24px rgba(0,0,0,.06);
+  margin-bottom: 24px;
+}
+.card-label { font-size: 11px; font-weight: 700; text-transform: uppercase;
+              letter-spacing: 1.2px; color: #94A3B8; margin-bottom: 18px; }
+
+/* ── Inputs ── */
+.input-grid              { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+.input-item label        { display: block; font-size: 11px; text-transform: uppercase;
+                           letter-spacing: .8px; color: #94A3B8; font-weight: 700; }
+.input-item .val         { display: block; font-size: 13px; font-weight: 500; color: #1E293B;
+                           margin-top: 5px; word-break: break-all; }
+
+/* ── KPI row ── */
+.kpi-grid    { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px;
+               margin-bottom: 32px; }
+.kpi-card    { background: #fff; border-radius: 14px; padding: 22px 14px 20px; text-align: center;
+               box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 5px 18px rgba(0,0,0,.06); }
+.kpi-value   { font-size: 40px; font-weight: 800; line-height: 1.1; }
+.kpi-label   { font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+               color: #64748B; margin-top: 7px; font-weight: 700; }
+.kpi-sub     { font-size: 11px; color: #94A3B8; margin-top: 3px; }
+
+/* ── Status badges ── */
+.badge         { display: inline-block; padding: 3px 11px; border-radius: 20px;
+                 font-size: 11px; font-weight: 700; letter-spacing: .3px;
+                 border: 1px solid transparent; white-space: nowrap; }
+.badge-passed  { color: #166534; background: #DCFCE7; border-color: #86EFAC; }
+.badge-failed  { color: #991B1B; background: #FEE2E2; border-color: #FCA5A5; }
+.badge-nt      { color: #1E40AF; background: #DBEAFE; border-color: #93C5FD; }
+.badge-obs     { color: #854D0E; background: #FEF9C3; border-color: #FDE68A; }
+.badge-caveats { color: #92400E; background: #FEF3C7; border-color: #FCD34D; }
+
+/* ── Module cards ── */
+.module-card          { background: #fff; border-radius: 14px; overflow: hidden;
+                        margin-bottom: 14px;
+                        box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 5px 18px rgba(0,0,0,.06); }
+.module-card.bar-passed  { border-left: 5px solid #22C55E; }
+.module-card.bar-failed  { border-left: 5px solid #EF4444; }
+.module-card.bar-nt      { border-left: 5px solid #3B82F6; }
+.module-card.bar-obs     { border-left: 5px solid #F59E0B; }
+.module-card.bar-caveats { border-left: 5px solid #F59E0B; }
+
+.module-header  { display: flex; align-items: center; justify-content: space-between;
+                  padding: 18px 24px; border-bottom: 1px solid #F8FAFC; }
+.module-name    { font-size: 15px; font-weight: 700; }
+.module-meta-r  { display: flex; align-items: center; gap: 12px; }
+.check-count    { font-size: 12px; color: #94A3B8; font-weight: 500; }
+
+.module-body    { padding: 18px 24px 20px; }
+
+/* ── Stat pills ── */
+.stats-row  { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.stat-pill  { display: inline-flex; align-items: center; gap: 6px;
+              padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+.stat-dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Progress bar ── */
+.prog-wrap  { background: #F1F5F9; border-radius: 8px; height: 5px; overflow: hidden; }
+.prog-fill  { height: 100%; border-radius: 8px; }
+.prog-label { font-size: 11px; color: #94A3B8; text-align: right; margin-top: 5px; }
+
+/* ── Scenario details ── */
+details         { margin-top: 12px; border-radius: 8px; overflow: hidden; }
+details summary { cursor: pointer; font-size: 11px; font-weight: 700;
+                  text-transform: uppercase; letter-spacing: .7px; padding: 9px 14px;
+                  display: flex; align-items: center; gap: 8px;
+                  user-select: none; list-style: none; }
+details summary::-webkit-details-marker { display: none; }
+.sum-failed { background: #FEF2F2; color: #991B1B; }
+.sum-obs    { background: #FFFBEB; color: #92400E; }
+.sum-nt     { background: #EFF6FF; color: #1E40AF; }
+.chevron    { font-size: 9px; transition: transform .18s ease; flex-shrink: 0; }
+details[open] .chevron { transform: rotate(90deg); }
+
+.sc-list         { list-style: none; padding: 0 0 4px 0; }
+.sc-list li      { padding: 9px 16px 9px 14px; font-size: 13px; border-left: 3px solid; }
+.sc-list li + li { border-top: 1px solid transparent; }
+.sc-list li.fail { background: #FFF8F8; border-color: #FCA5A5; }
+.sc-list li.obs  { background: #FFFEF5; border-color: #FDE68A; }
+.sc-list li.nt   { background: #F5F9FF; border-color: #93C5FD; }
+.sc-name   { font-weight: 600; color: #1E293B; }
+.sc-result { font-size: 11.5px; color: #64748B; margin-top: 3px;
+             word-break: break-word; white-space: pre-wrap; line-height: 1.5; }
+
+/* ── Failure Summary ── */
+.fs-list         { margin-top: 4px; }
+.fs-item         { border-radius: 8px; overflow: hidden; margin-bottom: 6px; }
+.fs-summary      { display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+                   background: #FFF8F8; cursor: pointer; user-select: none; list-style: none; }
+.fs-summary::-webkit-details-marker { display: none; }
+.fs-sc-name      { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: #1E293B; }
+.fs-id-badge     { flex-shrink: 0; background: #FEE2E2; color: #991B1B;
+                   border: 1px solid #FCA5A5; border-radius: 20px;
+                   padding: 2px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.fs-ids-body     { padding: 8px 16px 10px 36px; font-size: 12px; color: #475569;
+                   background: #FFF2F2; border-left: 3px solid #FCA5A5;
+                   word-break: break-all; line-height: 1.6; }
+.fs-none         { font-size: 13px; color: #94A3B8; font-style: italic; }
+
+/* ── Failure Summary table ── */
+.fs-table          { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 4px;
+                     table-layout: fixed; }
+.fs-table th       { padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 700;
+                     text-transform: uppercase; letter-spacing: .8px; color: #64748B;
+                     background: #F8FAFC; border-bottom: 2px solid #E2E8F0; }
+.fs-table th.fs-col-id     { text-align: center; width: 18%; }
+.fs-table th.fs-col-field  { width: 14%; }
+.fs-table th.fs-col-issues { width: 68%; }
+.fs-table td       { padding: 9px 12px; border-bottom: 1px solid #F1F5F9; vertical-align: top;
+                     overflow-wrap: anywhere; }
+.fs-table td.fs-col-id    { text-align: left; font-weight: 700; color: #991B1B;
+                             font-size: 12px; font-family: 'Courier New', monospace;
+                             word-break: break-all; white-space: normal; max-width: 0; }
+.fs-table td.fs-col-field { color: #475569; font-weight: 600;
+                             word-break: break-word; max-width: 0; }
+.fs-table td.fs-col-issues { color: #1E293B; word-break: break-word; white-space: normal;
+                             line-height: 1.6; max-width: 0; }
+.fs-table tr:last-child td { border-bottom: none; }
+.fs-table tbody tr:hover td { background: #FFF8F8; }
+
+/* ── Coverage card ── */
+.cov-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.cov-section { }
+.cov-title  { font-size: 12px; font-weight: 700; text-transform: uppercase;
+               letter-spacing: .8px; color: #475569; margin-bottom: 12px;
+               display: flex; align-items: center; gap: 8px; }
+.cov-title-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.cov-table  { width: 100%; border-collapse: collapse; font-size: 12px; }
+.cov-table td { padding: 5px 8px; border-bottom: 1px solid #F1F5F9; }
+.cov-table td:first-child { color: #64748B; font-weight: 500; width: 60%; }
+.cov-table td:last-child  { font-weight: 700; text-align: right; color: #1E293B; }
+.cov-reasons { margin-top: 10px; }
+.cov-reasons-label { font-size: 11px; font-weight: 600; color: #94A3B8;
+                     text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+.cov-reason-pill { display: inline-flex; align-items: center; gap: 5px; margin: 2px 3px 2px 0;
+                   padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+                   background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
+.cov-skip-pill  { background: #FEF9C3; color: #854D0E; border-color: #FDE68A; }
+.cov-none { font-size: 12px; color: #94A3B8; font-style: italic; }
+
+/* ── Open Report button ── */
+.open-report-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 22px; background: #1E293B; color: #fff !important;
+  border-radius: 10px; font-size: 13px; font-weight: 700; letter-spacing: .3px;
+  text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,.18);
+  transition: background .15s ease, box-shadow .15s ease;
+}
+.open-report-btn:hover { background: #334155; box-shadow: 0 4px 14px rgba(0,0,0,.22); }
+.btn-row { text-align: right; margin-bottom: 22px; }
+
+/* ── Module blurb ── */
+.mod-blurb {
+  background: #F8FAFC; border-radius: 8px; padding: 11px 14px;
+  margin-bottom: 14px; font-size: 13px; line-height: 1.65;
+  border: 1px solid #E2E8F0;
+}
+.mod-blurb-item { display: block; }
+.mod-blurb-item + .mod-blurb-item { margin-top: 4px; }
+
+/* ── Section heading ── */
+.section-head { font-size: 11px; font-weight: 700; text-transform: uppercase;
+                letter-spacing: 1.2px; color: #94A3B8;
+                margin-bottom: 14px; margin-top: 4px; }
+
+/* ── Footer ── */
+.footer { text-align: center; padding: 36px 24px 28px; color: #94A3B8; font-size: 12px;
+          border-top: 1px solid #E2E8F0; margin-top: 8px; }
+.footer strong { color: #64748B; }
+
+@media (max-width: 720px) {
+  .kpi-grid   { grid-template-columns: repeat(2, 1fr); }
+  .input-grid { grid-template-columns: 1fr; }
+  .hero       { padding: 32px 20px 28px; }
+  .container  { padding: 20px 16px; }
+}
+
+/* ── Download button ── */
+.dl-btn { display:inline-block; margin-left:14px; padding:4px 14px; font-size:12px;
+          font-weight:600; color:#fff; background:#3B82F6; border:none; border-radius:6px;
+          cursor:pointer; vertical-align:middle; line-height:1.6; }
+.dl-btn:hover { background:#2563EB; }
+</style>
+<script>
+var _fsDlB64="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";
+var _fsDlName="YSN_failure summary_2026-08-09_23-59-26.xlsx";
+function downloadFailureSummary(){
+  var bin=atob(_fsDlB64),bytes=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+  var blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=_fsDlName;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(a.href);},0);
+}
+</script>
+</head>
+<body>
+<div class="hero"><div class="hero-inner"><div class="hero-eyebrow">Roku EPG Quality Report</div><div class="hero-title">Test Summary Report</div><div class="hero-meta"><span>&#128225;&nbsp;https://d3bd0tgyk368z1.cloudfront.net/feeds/epg/ysnet_samsungxml/YSNET2025-08-26.xml</span><span>&#128336;&nbsp;August 09, 2026  ·  23:59:26</span></div></div></div><div class="container"><div class="card"><div class="card-label">Run Configuration</div><div class="input-grid"><div class="input-item"><label>JSON Feed URL</label><span class="val">https://d3bd0tgyk368z1.cloudfront.net/feeds/epg/ysnet_samsungxml/YSNET2025-08-26.xml</span></div><div class="input-item"><label>Input JSON Name</label><span class="val">YSNET2025-08-26.xml</span></div><div class="input-item"><label>Feed / Channel ID</label><span class="val">YSNET2025-08-26</span></div><div class="input-item"><label>Execution Timestamp</label><span class="val">2026-08-09 23:59</span></div><div class="input-item"><label>Channel Name</label><span class="val">YSN</span></div><div class="input-item"><label>Content Partner</label><span class="val">C15 Media Networks Limited</span></div><div class="input-item"><label>PSD</label><span class="val">https://amagiengg.atlassian.net/browse/PSD-15155</span></div></div></div><div class="card"><div class="card-label">Failure Summary <button class="dl-btn" onclick="downloadFailureSummary()">Download as Excel</button></div><table class="fs-table"><thead><tr><th class="fs-col-id">Asset ID</th><th class="fs-col-field">Field / Root Property</th><th class="fs-col-issues">Issues</th></tr></thead><tbody><tr><td class="fs-col-id">2dd1a790-8abe-11f1-b133-0fcbf9ba3b3a</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-09 days, sub-title, episode-num-onscreen Fields are not available</li><li>In 2026-08-09 days, For some assets, having Live, Football categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">850124a0-8abe-11f1-b133-0fcbf9ba3b3a</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-09 days, sub-title, episode-num-onscreen Fields are not available</li><li>In 2026-08-09 days, For some assets, having Live, Football categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">dad16220-8bb6-11f1-82d5-bf92f3ef2427</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-10 days, sub-title, episode-num-onscreen Fields are not available</li><li>In 2026-08-10 days, For some assets, having sports talk, Live categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">e2fdf940-8bb6-11f1-82d5-bf92f3ef2427</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-10 days, sub-title, episode-num-onscreen Fields are not available</li><li>In 2026-08-10 days, For some assets, having sports talk, Live categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">1f529d60-8bb7-11f1-82d5-bf92f3ef2427</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-11 days, sub-title, episode-num-onscreen Fields are not available</li><li>In 2026-08-11 days, For some assets, having sports talk, Live categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">257de640-8bb7-11f1-82d5-bf92f3ef2427</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-11 days, sub-title, episode-num-onscreen Fields are not available</li><li>In 2026-08-11 days, For some assets, having sports talk, Live categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">437652e0-8bb7-11f1-82d5-bf92f3ef2427</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-12 days, sub-title, episode-num-onscreen Fields are not available</li><li>In 2026-08-12 days, For some assets, having sports talk, Live categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">4b4ba240-8bb7-11f1-82d5-bf92f3ef2427</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-12 days, sub-title, episode-num-onscreen Fields are not available</li><li>In 2026-08-12 days, For some assets, having sports talk, Live categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">73b035c0-8bb7-11f1-82d5-bf92f3ef2427</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-13 days, sub-title, episode-num-onscreen Fields are not available</li><li>In 2026-08-13 days, For some assets, having sports talk, Live categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">7aeceea0-8bb7-11f1-82d5-bf92f3ef2427</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-13 days, sub-title, episode-num-onscreen Fields are not available</li><li>In 2026-08-13 days, For some assets, having sports talk, Live categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">93d19ce0-8bb7-11f1-82d5-bf92f3ef2427</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-14 days, sub-title, episode-num-onscreen Fields are not available</li><li>In 2026-08-14 days, For some assets, having sports talk, Live categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">CFE_825_08062026_STAPLES_DELLENGER_GODFREY</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-09, 2026-08-10 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">080726_tds_duncan_jones_rev1</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-09 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">575162d0-86ff-11f1-ae0e-3d973648d331-Segmented-1</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-09 days, For some assets, having football categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">9ade7a10-86ff-11f1-ae0e-3d973648d331-Segmented-1</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-09 days, For some assets, having football categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">YSMW_025_20260731_VID_v01</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues">In 2026-08-09, 2026-08-10 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</td></tr><tr><td class="fs-col-id">PPRMock_v1</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues">In 2026-08-09 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</td></tr><tr><td class="fs-col-id">FB301-222-20260806-TiceWinks-VID-v01</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-09 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">344736e0-f8a5-11f0-91fb-31740536d0d4-Segmented-1</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-10, 2026-08-11, 2026-08-12, 2026-08-13 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">03_14_26_IFL_Quad_at_Fishers_Full</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-10, 2026-08-15 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">cf70f4a0-f623-11f0-a515-1f71a0abfb8a-Segmented-1</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-10, 2026-08-11, 2026-08-12, 2026-08-13, 2026-08-14 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">AAA-623-20250910-StaplesWasserman-v01</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-11, 2026-08-12, 2026-08-13, 2026-08-14, 2026-08-15 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">af7e1e80-70ac-11f1-bf5d-ffd414aa4144-Segmented-1</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues">In 2026-08-11, 2026-08-12, 2026-08-13, 2026-08-14 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</td></tr><tr><td class="fs-col-id">KOC-116-OConnorIkoBaneLevitan-VIDFULL-09232025</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-11, 2026-08-12, 2026-08-13, 2026-08-14 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">Baseball_Bar-B-Cast_placeholder_asset</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-11, 2026-08-13, 2026-08-15 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">YSMW_060526_VID_01</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues">In 2026-08-11, 2026-08-14, 2026-08-15 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</td></tr><tr><td class="fs-col-id">TDS-411-20251014-DuncanJones-VID-01</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-12, 2026-08-15 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">CFE-723-093025-StaplesDellengerGodfrey-VID-v01</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-12, 2026-08-13, 2026-08-14 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">TBN-045-HaberstrohDevine-VID-10012025v2</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-13 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">THC-435-20250917-PicKell-v01</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-14 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">091225_Hoops360_YT_FINAL</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues"><ul style="margin:0;padding-left:16px;line-height:1.7;"><li>In 2026-08-14 days, For some assets, having sports talk categories are not included in Samsung_Supported_Category_List</li><li>Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</li></ul></td></tr><tr><td class="fs-col-id">Josh_Pate_placeholder_asset</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues">Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</td></tr><tr><td class="fs-col-id">TIS-271-20250813-Newberg-v01</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues">Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</td></tr><tr><td class="fs-col-id">FB301-094-20250604-VID-v01</td><td class="fs-col-field">Asset_Level</td><td class="fs-col-issues">Asset Thumbnail are having PNG format. But, expected should be JPEG/JPG format</td></tr></tbody></table></div></div><div class="footer"><strong>Roku EPG Validation Framework</strong>&ensp;&middot;&ensp;Source: 1786300166168.xlsx&ensp;&middot;&ensp;August 09, 2026  ·  23:59:26</div></body>
+</html>

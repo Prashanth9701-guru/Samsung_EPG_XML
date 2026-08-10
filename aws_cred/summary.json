@@ -1,0 +1,18 @@
+{
+  "aws_region": "ap-south-1",
+  "aws_account_id": "984678972753",
+  "bucket_name": "onbqa-s3-automation",
+  "bucket_prefix": "",
+  "trust_anchor_arn": "arn:aws:rolesanywhere:ap-south-1:984678972753:trust-anchor/890f61be-3733-4fc2-9190-20a39f9fffbd",
+  "role_arn": "arn:aws:iam::984678972753:role/onbqa-rolesanywhere-s3-writer",
+  "profile_arn": "arn:aws:rolesanywhere:ap-south-1:984678972753:profile/9c621d18-f9ea-41a9-97c0-ddabab1de44a",
+  "files": {
+    "ca_cert": "/Users/muditg/Documents/Cursor/Scratchpad/8. Setup AWS for external s3 upload/rolesanywhere_output/ca.crt",
+    "ca_key": "/Users/muditg/Documents/Cursor/Scratchpad/8. Setup AWS for external s3 upload/rolesanywhere_output/ca.key",
+    "client_cert": "/Users/muditg/Documents/Cursor/Scratchpad/8. Setup AWS for external s3 upload/rolesanywhere_output/client.crt",
+    "client_key": "/Users/muditg/Documents/Cursor/Scratchpad/8. Setup AWS for external s3 upload/rolesanywhere_output/client.key",
+    "trust_policy": "/Users/muditg/Documents/Cursor/Scratchpad/8. Setup AWS for external s3 upload/rolesanywhere_output/trust_policy.json",
+    "s3_policy": "/Users/muditg/Documents/Cursor/Scratchpad/8. Setup AWS for external s3 upload/rolesanywhere_output/s3_policy.json",
+    "aws_config_snippet": "/Users/muditg/Documents/Cursor/Scratchpad/8. Setup AWS for external s3 upload/rolesanywhere_output/aws_config_snippet.txt"
+  }
+}

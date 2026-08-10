@@ -1,0 +1,25 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "RolesAnywhereTrust",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "rolesanywhere.amazonaws.com"
+      },
+      "Action": [
+        "sts:AssumeRole",
+        "sts:TagSession",
+        "sts:SetSourceIdentity"
+      ],
+      "Condition": {
+        "ArnEquals": {
+          "aws:SourceArn": "arn:aws:rolesanywhere:ap-south-1:984678972753:trust-anchor/890f61be-3733-4fc2-9190-20a39f9fffbd"
+        },
+        "StringEquals": {
+          "aws:SourceAccount": "984678972753"
+        }
+      }
+    }
+  ]
+}
