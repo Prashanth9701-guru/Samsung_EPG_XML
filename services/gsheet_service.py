@@ -52,11 +52,11 @@ def validation_data():
     headers = worksheet.row_values(1)
     logger.info(f'Headers: {headers}')
     today = datetime.now().strftime("%d-%b-%Y")
-    new_column_number = len(headers) + 1
+    new_column_number = len(headers) + 1 if today not in headers else len(headers)
     # today_date = datetime.today().strftime('%Y-%m-%d')
     # worksheet.update_cell(1, new_column_number, today)
 
 
-    return sheet_data, worksheet, new_column_number, sheet, today if today in headers else None
+    return sheet_data, worksheet, new_column_number, sheet, today
 
 
