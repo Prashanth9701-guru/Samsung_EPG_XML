@@ -11,14 +11,14 @@ import os
 logger = logging.getLogger("__name__")
 
 
-SPREADSHEET_ID = os.environ.get("GOOGLE_DATA_SPREADSHEET_ID",
+SPREADSHEET_ID = os.environ.get("CONTROL_SHEET_URL",
     "1tYuX0SLiNPl6Eg_fK9NwExsn2OIh1dNQCShCD9vdhxM")
 #SHEET_GID = os.environ.get("GOOGLE_DATA_GID", "1693805805")
 SHEET_GID = os.environ.get("CONTROL_SHEET_GID", "0")
 HISTORY_SHEET_GID = os.environ.get("HISTORY_SHEET_GID", "653083829")
 #SA_JSON = os.environ.get("GDRIVE_SA_JSON") or os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
 SA_JSON = os.environ.get("GDRIVE_SA_JSON") or os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
-DRIVE_FOLDER_ID = os.environ.get("DRIVE_FOLDER_ID")
+DRIVE_FOLDER_ID = os.environ.get("DRIVE_PARENT_FOLDER_ID")
 
 
 print(f'Service JSON: {SA_JSON}')
