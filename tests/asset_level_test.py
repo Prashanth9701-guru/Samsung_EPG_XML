@@ -23,7 +23,6 @@ def validate_time(programs, key):
 
     pattern = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{4}$"
     if program_data:
-        #if isinstance(programs, list):
         for program in program_data:
             asset_id = ''
             if isinstance(program.get('episode-num'), list):
@@ -42,26 +41,6 @@ def validate_time(programs, key):
                     no_value.append({asset_id : [timestamp]})
             else:
                 not_available.append({asset_id : [timestamp]})
-
-        # elif isinstance(programs, dict):
-        #     asset_id = ''
-        #     if isinstance(programs.get('episode-num'), list):
-        #         asset_id = next(episode.get('#text') for episode in programs.get('episode-num') if episode.get('@system') == 'assetID')
-        #     elif isinstance(programs.get('episode-num'), dict):
-        #         asset_id = (programs.get('episode-num')).get('#text') if (programs.get('episode-num')).get('@system') == 'assetID' else 'Asset_ID not available'
-        #
-        #     timestamp = programs.get(key, None)
-        #     if timestamp is not None:
-        #         if timestamp:
-        #             if not re.match(pattern, timestamp):
-        #                 status_fail.append({asset_id: [timestamp]})
-        #             else:
-        #                 status_pass.append({asset_id: [timestamp]})
-        #         else:
-        #             no_value.append({asset_id: [timestamp]})
-        #     else:
-        #         not_available.append({asset_id: [timestamp]})
-
 
     if status_fail:
         return False, status_fail
