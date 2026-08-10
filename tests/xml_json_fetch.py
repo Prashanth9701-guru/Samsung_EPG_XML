@@ -2,8 +2,6 @@ import requests
 import logging
 
 import xmltodict
-
-from input import *
 from utilities.helper import *
 
 logger = logging.getLogger(__name__)

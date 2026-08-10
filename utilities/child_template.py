@@ -7,7 +7,6 @@ from tests.asset_level_test import validate_time, validate_asset_title
 from tests.field_value_test import validate_fileds_value_availability
 from tests.fields_test import validate_fields_availability, validate_asset_fields_availability
 from tests.xml_json_fetch import *
-from input import *
 
 
 logger = logging.getLogger(__name__)

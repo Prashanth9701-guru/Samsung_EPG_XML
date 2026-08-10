@@ -2,8 +2,6 @@ import logging
 import re
 #from _pydatetime import timedelta
 from datetime import datetime, timedelta
-
-from input import *
 from runner import Validation_Output
 from utilities.helper import *
 

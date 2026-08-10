@@ -12,7 +12,6 @@ from services.xlsx_service import *
 from tests.xml_json_fetch import *
 from tests.xml_date_format import *
 from utilities.child_template import *
-from input import *
 from services.gsheet_service import *
 from services.upload_drive_service import *
 from src.failed_cases_seperator import *
