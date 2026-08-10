@@ -28,7 +28,7 @@ def validate_asset_fields_availability(programs, man_fields, mand_child_values, 
     status_fail = []
 
     if programs:
-                if isinstance(programs, list):
+        if isinstance(programs, list):
             for program in programs:
                 logger.info(f'{date} Entered program validation')
                 asset_id = ''
