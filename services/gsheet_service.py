@@ -57,6 +57,6 @@ def validation_data():
     # worksheet.update_cell(1, new_column_number, today)
 
 
-    return sheet_data, worksheet, new_column_number, sheet, today
+    return sheet_data, worksheet, new_column_number, sheet, today if today in headers else None
 
 
