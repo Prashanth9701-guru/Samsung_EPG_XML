@@ -20,6 +20,10 @@ HISTORY_SHEET_GID = os.environ.get("HISTORY_SHEET_GID", "653083829")
 SA_JSON = os.environ.get("GDRIVE_SA_JSON") or os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
 DRIVE_FOLDER_ID = os.environ.get("DRIVE_PARENT_FOLDER_ID")
 
+slack_channel = os.environ.get("SLACK_CHANNEL",         required=False)
+build_number  = os.environ.get("BUILD_NUMBER",          required=False)
+build_url     = os.environ.get("BUILD_URL",             required=False)
+
 
 print(f'Service JSON: {SA_JSON}')
 
