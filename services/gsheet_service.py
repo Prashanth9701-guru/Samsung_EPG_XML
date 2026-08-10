@@ -24,9 +24,9 @@ DRIVE_FOLDER_ID = os.environ.get("DRIVE_PARENT_FOLDER_ID")
 #build_number  = os.environ.get("BUILD_NUMBER",          required=False)
 #build_url     = os.environ.get("BUILD_URL",             required=False)
 
-slack_channel          = _env("SLACK_CHANNEL",         required=False)
-build_number           = _env("BUILD_NUMBER",          required=False)
-build_url              = _env("BUILD_URL",             required=False)
+slack_channel = os.environ.get("SLACK_CHANNEL")
+build_number = os.environ.get("BUILD_NUMBER")
+build_url = os.environ.get("BUILD_URL")
 
 
 print(f'Service JSON: {SA_JSON}')
