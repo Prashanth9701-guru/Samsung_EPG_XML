@@ -3,10 +3,10 @@ import logging
 from google.oauth2.service_account import Credentials
 from datetime import datetime, timedelta
 
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 import os
 
-load_dotenv(".env.local")
+#load_dotenv(".env.local")
 
 logger = logging.getLogger("__name__")
 
