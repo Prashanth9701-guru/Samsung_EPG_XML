@@ -23,7 +23,7 @@ def validate_fields_availability(data, man_fields):
 
 
 
-def validate_asset_fields_availability(programs, man_fields, mand_child_values, content_type, date):
+def validate_asset_fields_availability(programs, man_fields, mand_child_values, content_type):
     status_pass = []
     status_fail = []
 
