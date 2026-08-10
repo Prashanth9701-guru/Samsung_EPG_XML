@@ -356,14 +356,14 @@ def template(url,
                     except Exception as e:
                         logger.warning(f"Folder Upload to drive got failed: {e}")
 
-                    # try:
-                    #     s3_result = upload_html_report(html_path)
-                    #     s3_html_url = s3_result.get("report_url", "")
-                    # except Exception as exc:
-                    #     logger.warning(f"S3 HTML upload failed: {exc}")
-                    # logger.info(f"S3_HTML URL: {s3_html_url}")
-                    # filtered_list = failed_cases_seperator()
-                    # logger.info(f"filtered_list: {filtered_list}")
+                    try:
+                        s3_result = upload_html_report(html_path)
+                        s3_html_url = s3_result.get("report_url", "")
+                    except Exception as exc:
+                        logger.warning(f"S3 HTML upload failed: {exc}")
+                    logger.info(f"S3_HTML URL: {s3_html_url}")
+                    filtered_list = failed_cases_seperator()
+                    logger.info(f"filtered_list: {filtered_list}")
 
 
              except Exception as e:
