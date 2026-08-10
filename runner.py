@@ -34,7 +34,10 @@ def main():
                       results.get('s3_html_url'),
                       data.get('RUN/STOP')]
 
-            execution_results.extend(output)
+            execution_results.append({'status':results.get('status'),
+                                     'channel':data.get('Channel Name'),
+                                     'html_link':results.get('s3_html_url'),
+                                     'json_link':results.get('drive_link')})
 
             work_sheet_2 = sheet_service.get_worksheet_by_id('653083829')
             print(work_sheet_2.get_all_records())
