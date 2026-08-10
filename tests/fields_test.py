@@ -33,7 +33,7 @@ def validate_asset_fields_availability(programs, man_fields, mand_child_values, 
 
     if programs_data:
         for program in programs_data:
-            logger.info(f'{date} Entered program validation')
+            logger.info(f'Entered program validation')
             asset_id = ''
             if isinstance(program.get('episode-num'), list):
                 asset_id = next(episode.get('#text') for episode in program.get('episode-num') if episode.get('@system') == 'assetID')
