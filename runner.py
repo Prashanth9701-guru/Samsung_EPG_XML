@@ -4,7 +4,6 @@ from services import slack_service
 from services.gsheet_service import validation_data
 from utilities.helper import *
 from utilities.logger_setup import *
-from input import *
 from utilities.master_template import *
 
 Validation_Output = []
