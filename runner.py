@@ -32,7 +32,9 @@ def main():
                       results.get('status'),
                       results.get('drive_link'),
                       results.get('s3_html_url'),
-                      data.get('RUN/STOP')]
+                      data.get('RUN/STOP'),
+                      build_number,
+                      build_url]
 
             execution_results.append({'status':results.get('status'),
                                      'channel':data.get('Channel Name'),
