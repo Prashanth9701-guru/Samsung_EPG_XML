@@ -31,7 +31,7 @@ def main():
                       results.get('s3_html_url'),
                       data.get('RUN/STOP')]
 
-            work_sheet_2 = sheet_service.get_worksheet_by_id('653083829')
+            work_sheet_2 = sheet_service.get_worksheet_by_id(HISTORY_SHEET_GID)
             print(work_sheet_2.get_all_records())
             row = len(work_sheet_2.get_all_records())+2
             work_sheet_2.update(
