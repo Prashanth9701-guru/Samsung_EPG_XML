@@ -164,7 +164,7 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
             programs = root.findall('programme')
             if programs:
                 results = method_name(programs, filed, channel_level_language, content_type, expected_length)
-                logger.info(f'Results in Child File: {results}')
+                logger.info(f'Results in Child File {filed} : {results}')
 
                 if len(results) < 10:
                     logger.info(f'Entered less than 10')

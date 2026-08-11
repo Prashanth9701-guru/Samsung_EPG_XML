@@ -71,7 +71,7 @@ def template(url,
 
                     logger.info(f'{ticket_id} Started Asset Title validation')
                     results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'title', channel_level_language, content_type, 200)
-                    logger.info(f'Results in Master_template file: {results}')
+                    logger.info(f'Results in title Master_template file: {results}')
 
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title availability in all 7 days', f'Asset Title should be available for all Assets in all 7 days', 'Failed', f'Asset title not available for some assets', ','.join(map(str, results[2]))) if results[2] else
                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title availability in all 7 days', f'Asset Title should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else

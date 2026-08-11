@@ -146,7 +146,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
         if key == 'sub-title' and content_type.lower() == 'episode':
 
             results = common_function(asset_id)
-            logger.info(f'Results in Asset_Level_Test file: {results}')
+            logger.info(f'Results in Asset_Level_Test {key} file: {results}')
             for result, target_list in zip(results, lists):
                 if result:
                     target_list.extend(result)
@@ -157,7 +157,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
         elif key != 'sub-title':
 
             results = common_function(asset_id)
-            logger.info(f'Results in Asset_Level_Test file: {results}')
+            logger.info(f'Results in Asset_Level_Test {key} file: {results}')
             for result, target_list in zip(results, lists):
                 if result:
                     target_list.extend(result)
