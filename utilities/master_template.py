@@ -318,7 +318,7 @@ def template(url,
 
                     logger.info(f'{ticket_id} {report_path}')
                     os.makedirs(report_path, exist_ok=True)
-
+                    logger.info(f'{ticket_id} Validation Output: {Validation_Output}')
                     excel_path = xlsx_report(Validation_Output, report_path)
                     updated_summary_list = failed_cases_seperator()
                     logger.info(f"filtered_list: {updated_summary_list}")
