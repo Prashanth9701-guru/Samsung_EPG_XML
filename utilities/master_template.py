@@ -85,6 +85,20 @@ def template(url,
 
                     sequence_number = sequence_number + 1
 
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Asset Title in all 7 days', f'Length of Asset Title should not exceed 200 characters for all Assets in all 7 days', 'Failed', f'Length of Asset Title is in-correct-length which is more than expected limit of 200 characters', ','.join(map(str, results[6]))) if results[6] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Asset Title in all 7 days', f'Length of Asset Title should not exceed 200 characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Asset Title in all 7 days', f'Length of Asset Title should not exceed 200 characters for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Asset Title in all 7 days', f'Length of Asset Title should not exceed 200 characters for all Assets in all 7 days', 'Passed', f'Asset Title length of all assets is within the expected limit of 200 characters'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append( helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Asset Title in all 7 days', f'Asset Title should not have any special characters for all Assets in all 7 days', 'Failed', f'Asset Title having some special characters which is not expected as per platform standard', ','.join(map(str, results[7]))) if results[7] else
+                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Asset Title in all 7 days', f'Asset Title should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Asset Title in all 7 days', f'Asset Title should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
+                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Asset Title in all 7 days', f'Asset Title should not have any special characters for all Assets in all 7 days', 'Passed', f'Asset Title not having any special characters'))
+
+                    sequence_number = sequence_number + 1
+
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for title tag in all 7 days', f'Title tag should include language in all 7 days', 'Failed', f"For some assets, language node not available in title tag", ','.join(map(str, results[3]))) if results[3] else
                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for title tag in all 7 days', f'Title tag should include language in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for title tag in all 7 days', f'Title tag should include language in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
@@ -102,13 +116,27 @@ def template(url,
                     logger.info(f'{ticket_id} Finished Asset Title validation')
 
                     logger.info(f'{ticket_id} Started Sub-Title validation')
-                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'sub-title', channel_level_language, content_type)
+                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'sub-title', channel_level_language, content_type, 200)
                     logger.info(f'{ticket_id} Sub-Title Results: {results}')
 
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Sub-Title availability in all 7 days', f'Asset Sub-Title should be available for all Assets in all 7 days', 'Failed', f'Asset Sub-Title not available for some assets', ','.join(map(str, results[2]))) if results[2] else
                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Sub-Title availability in all 7 days', f'Asset Sub-Title should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Sub-Title availability in all 7 days', f'Asset Sub-Title should be available for all Assets in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets', ','.join(map(str, results[1]))) if results[1] else
                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Sub-Title availability in all 7 days', f'Asset Sub-Title should be available for all Assets in all 7 days', 'Passed', f'Asset Sub-Title is available for all assets'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Sub-Title in all 7 days', f'Length of Sub-Title should not exceed 200 characters for all Assets in all 7 days', 'Failed', f'Length of Sub-Title is in-correct-length which is more than expected limit of 200 characters', ','.join(map(str, results[6]))) if results[6] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Sub-Title in all 7 days', f'Length of Sub-Title should not exceed 200 characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Sub-Title in all 7 days', f'Length of Sub-Title should not exceed 200 characters for all Assets in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Sub-Title in all 7 days', f'Length of Sub-Title should not exceed 200 characters for all Assets in all 7 days', 'Passed', f'Sub-Title length of all assets is within the expected limit of 200 characters'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Sub-Title in all 7 days', f'Sub-Title should not have any special characters for all Assets in all 7 days', 'Failed', f'Sub-Title having some special characters which is not expected as per platform standard', ','.join(map(str, results[7]))) if results[7] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Sub-Title in all 7 days', f'Sub-Title should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Sub-Title in all 7 days', f'Sub-Title should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Sub-Title in all 7 days', f'Sub-Title should not have any special characters for all Assets in all 7 days', 'Passed', f'Sub-Title not having any special characters'))
 
                     sequence_number = sequence_number + 1
 
@@ -130,7 +158,7 @@ def template(url,
 
                     logger.info(f'{ticket_id} Started Description validation')
 
-                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'desc', channel_level_language, content_type)
+                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'desc', channel_level_language, content_type, 4000)
                     logger.info(f'{ticket_id} Description Results: {results}')
 
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Description availability in all 7 days', f'Asset Description should be available for all Assets in all 7 days', 'Failed', f'Asset Description not available for some assets', ','.join(map(str, results[2]))) if results[2] else
@@ -139,6 +167,21 @@ def template(url,
                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Description availability in all 7 days', f'Asset Description should be available for all Assets in all 7 days', 'Passed', f'Asset Description is available for all assets'))
 
                     sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Description in all 7 days', f'Length of Description should not exceed 4000 characters for all Assets in all 7 days', 'Failed', f'Length of Description is in-correct-length which is more than expected limit of 4000 characters', ','.join(map(str, results[6]))) if results[6] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Description in all 7 days', f'Length of Description should not exceed 4000 characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Description in all 7 days', f'Length of Description should not exceed 4000 characters for all Assets in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Description in all 7 days', f'Length of Description should not exceed 4000 characters for all Assets in all 7 days', 'Passed', f'Description length of all assets is within the expected limit of 4000 characters'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Description in all 7 days', f'Description should not have any special characters for all Assets in all 7 days', 'Failed', f'Description having some special characters which is not expected as per platform standard', ','.join(map(str, results[7]))) if results[7] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Description in all 7 days', f'Description should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Description in all 7 days', f'Description should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Description Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Description in all 7 days', f'Description should not have any special characters for all Assets in all 7 days', 'Passed', f'Description not having any special characters'))
+
+                    sequence_number = sequence_number + 1
+
 
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Description tag in all 7 days', f'Description tag should include language in all 7 days', 'Failed', f"For some assets, language node not available in Description tag", ','.join(map(str, results[3]))) if results[3] else
                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Description tag in all 7 days', f'Description tag should include language in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else

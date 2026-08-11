@@ -106,7 +106,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                             target="en"
                         ).translate(title)
                         if len(title) > expected_length:
-                            value_length.append({asset_id: title})
+                            value_length.append({asset_id: [len(title), title]})
 
                         if key == 'desc' and not re.search(r'''^[A-Za-z0-9 !\-?:;,'’&.%"]+$''', english_text):
                             value_spel_char.append({asset_id: title})
