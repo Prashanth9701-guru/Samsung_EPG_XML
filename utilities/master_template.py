@@ -37,9 +37,14 @@ def template(url,
         sequence_number = sequence_number + 1
         sequence_number, seven_days_urls, seven_days = validate_url_date_format(url, sequence_number)
         logger.info(f'{ticket_id} - {seven_days_urls}')
+        ticket = ticket_id.split('/')[len(ticket_id.split('/')) - 1]
+        timestamp = datetime.today().strftime("%Y%m%d_%H%M%S")
+        report_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "reports"), f'{ticket}_{timestamp}')
+        logger.info(f'{ticket_id} {report_path}')
+        os.makedirs(report_path, exist_ok=True)
         if seven_days_urls:
              try:
-                sequence_number, date_xml_data, date_json_data = validate_seven_days_data_fetch(seven_days_urls, seven_days, sequence_number, 'XML')
+                sequence_number, date_xml_data, date_json_data = validate_seven_days_data_fetch(seven_days_urls, seven_days, sequence_number, 'XML', report_path)
                 #logger.info(f'Data: {date_json_data}')
                 if date_xml_data:
                     logger.info(f'{ticket_id} - Started Channel Level Fields')
@@ -312,12 +317,12 @@ def template(url,
 
                     logger.info(f'{ticket_id} Finished Thumbnail validation')
 
-                    ticket = ticket_id.split('/')[len(ticket_id.split('/')) - 1]
-                    timestamp = datetime.today().strftime("%Y%m%d_%H%M%S")
-                    report_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "reports"), f'{ticket}_{timestamp}')
+                    # ticket = ticket_id.split('/')[len(ticket_id.split('/')) - 1]
+                    # timestamp = datetime.today().strftime("%Y%m%d_%H%M%S")
+                    #report_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "reports"), f'{ticket}_{timestamp}')
 
-                    logger.info(f'{ticket_id} {report_path}')
-                    os.makedirs(report_path, exist_ok=True)
+                    # logger.info(f'{ticket_id} {report_path}')
+                    # os.makedirs(report_path, exist_ok=True)
                     logger.info(f'{ticket_id} Validation Output: {Validation_Output}')
                     excel_path = xlsx_report(Validation_Output, report_path)
                     updated_summary_list = failed_cases_seperator()

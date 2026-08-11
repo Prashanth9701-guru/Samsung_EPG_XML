@@ -65,7 +65,9 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
              title_text_availability,
              lang_tag_availability,
              lang_match_channel,
-             category_expected_value]
+             category_expected_value,
+             value_length,
+             value_spel_char]
 
 
     def common_function(asset_id):
@@ -89,11 +91,11 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                         if not title_lang == channel_level_language:
                             lang_match_channel.append({asset_id: [title_lang, channel_level_language]})
                     else:
-                        lang_tag_availability.append(title_lang)
+                        lang_tag_availability.append({asset_id: f'{key} language node not available'})
 
                 title = child.text
                 if not title:
-                    title_text_availability.append({asset_id: title})
+                    title_text_availability.append({asset_id: f'{key} not available'})
 
                 else:
 

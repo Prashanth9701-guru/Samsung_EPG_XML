@@ -12,14 +12,14 @@ from utilities.helper import *
 
 logger = logging.getLogger(__name__)
 
-def validate_seven_days_data_fetch(seven_days_urls, seven_days, num, name) -> tuple[int, list, list] :
+def validate_seven_days_data_fetch(seven_days_urls, seven_days, num, name, report_path) -> tuple[int, list, list] :
     failed_cases = []
     date_xml = []
     date_json = []
 
     for date, urls in list(zip(seven_days, seven_days_urls)):
         logger.info(f'Fetching data for {name} from {date}')
-        status_code, xml_data, json_data = data_fetch(urls, name)
+        status_code, xml_data, json_data = data_fetch(urls, name, report_path)
 
         if status_code == 200:
             json_data= xmltodict.parse(json_data)
