@@ -52,12 +52,14 @@ def validate_time(programs, key) ->tuple[bool|str,list] :
         return True, status_pass
 
 
-def validate_asset_title(programs, key, channel_level_language, content_type, length) -> list:
+def validate_asset_title(programs, key, channel_level_language, content_type, expected_length) -> list:
     main_availability = []
     title_text_availability = []
     lang_tag_availability = []
     lang_match_channel = []
     category_expected_value = []
+    value_length = []
+    value_spel_char = []
 
     lists = [main_availability,
              title_text_availability,
@@ -72,6 +74,8 @@ def validate_asset_title(programs, key, channel_level_language, content_type, le
         lang_tag_availability = []
         lang_match_channel = []
         category_expected_value = []
+        value_length = []
+        value_spel_char = []
 
         main_node = program.findall(key)
         logger.info(f'main_node: {main_node}')
@@ -92,6 +96,14 @@ def validate_asset_title(programs, key, channel_level_language, content_type, le
                     title_text_availability.append({asset_id: title})
 
                 else:
+
+                    if key in ['title', 'sub-title', 'desc']:
+                        if len(title) > expected_length:
+                            value_length.append({asset_id: title})
+
+                        if not re.search(r'''^[A-Za-z0-9 !\-?:;,'’&.%"]+$''', title):
+                            value_spel_char.append({asset_id: title})
+
                     if key in ['category']:
                         categories = list(map(str.lower, config.get('categories')))
                         if title.lower() not in categories:
@@ -115,7 +127,9 @@ def validate_asset_title(programs, key, channel_level_language, content_type, le
                 title_text_availability,
                 lang_tag_availability,
                 lang_match_channel,
-                category_expected_value]
+                category_expected_value,
+                value_length,
+                value_spel_char]
 
 
 
@@ -132,6 +146,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, le
         if key == 'sub-title' and content_type.lower() == 'episode':
 
             results = common_function(asset_id)
+            logger.info(f'Results in Asset_Level_Test file: {results}')
             for result, target_list in zip(results, lists):
                 if result:
                     target_list.extend(result)
@@ -142,6 +157,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, le
         elif key != 'sub-title':
 
             results = common_function(asset_id)
+            logger.info(f'Results in Asset_Level_Test file: {results}')
             for result, target_list in zip(results, lists):
                 if result:
                     target_list.extend(result)
@@ -153,7 +169,9 @@ def validate_asset_title(programs, key, channel_level_language, content_type, le
             title_text_availability,
             lang_tag_availability,
             lang_match_channel,
-            category_expected_value]
+            category_expected_value,
+            value_length,
+            value_spel_char]
 
 
 

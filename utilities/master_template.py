@@ -44,8 +44,6 @@ def template(url,
                 if date_xml_data:
                     logger.info(f'{ticket_id} - Started Channel Level Fields')
                     sequence_number, channel_level_language = validate_seven_days_channel_level_data(date_xml_data, sequence_number, 'Channel_Level')
-                    #sequence_number = validate_seven_days_channel_level_fields_value(date_json_data, sequence_number, 'Channel_Level')
-                    #channel_level_language = capture_channel_level_lang(date_xml_data)
                     logger.info(f'{ticket_id} - Channel Level Language: {channel_level_language}')
                     sequence_number = validate_asset_fields_availability_seven_days(date_json_data, date_xml_data, sequence_number, channel_level_language, 'Asset_Level', content_type)
 
@@ -72,10 +70,8 @@ def template(url,
                     sequence_number = sequence_number + 1
 
                     logger.info(f'{ticket_id} Started Asset Title validation')
-                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'title', channel_level_language, content_type)
-                    #programme_tag_availability, not_available_cases, failed_cases_3, failed_cases_1, failed_cases_2, failed_cases_4 = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'title', channel_level_language)
-                    logger.info(f'{ticket_id} Title Results: {results}')
-
+                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'title', channel_level_language, content_type, 200)
+                    logger.info(f'Results in Master_template file: {results}')
 
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title availability in all 7 days', f'Asset Title should be available for all Assets in all 7 days', 'Failed', f'Asset title not available for some assets', ','.join(map(str, results[2]))) if results[2] else
                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title availability in all 7 days', f'Asset Title should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
@@ -102,7 +98,6 @@ def template(url,
 
                     logger.info(f'{ticket_id} Started Sub-Title validation')
                     results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'sub-title', channel_level_language, content_type)
-                    #programme_tag_availability, not_available_cases, failed_cases_3, failed_cases_1, failed_cases_2, failed_cases_4 = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'sub-title', channel_level_language, content_type)
                     logger.info(f'{ticket_id} Sub-Title Results: {results}')
 
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Sub-Title availability in all 7 days', f'Asset Sub-Title should be available for all Assets in all 7 days', 'Failed', f'Asset Sub-Title not available for some assets', ','.join(map(str, results[2]))) if results[2] else
@@ -131,7 +126,6 @@ def template(url,
                     logger.info(f'{ticket_id} Started Description validation')
 
                     results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'desc', channel_level_language, content_type)
-                    #programme_tag_availability, not_available_cases, failed_cases_3, failed_cases_1, failed_cases_2, failed_cases_4 = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'desc', channel_level_language)
                     logger.info(f'{ticket_id} Description Results: {results}')
 
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Description availability in all 7 days', f'Asset Description should be available for all Assets in all 7 days', 'Failed', f'Asset Description not available for some assets', ','.join(map(str, results[2]))) if results[2] else
@@ -159,7 +153,6 @@ def template(url,
 
                     logger.info(f'{ticket_id} Started Category validation')
                     results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'category', channel_level_language, content_type)
-                    #programme_tag_availability, not_available_cases, failed_cases_3, failed_cases_1, failed_cases_2, failed_cases_4 = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'category', channel_level_language)
                     logger.info(f'{ticket_id} Category Results: {results}')
 
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Category availability in all 7 days', f'Asset Category should be available for all Assets in all 7 days', 'Failed', f'Asset Category not available for some assets', ','.join(map(str, results[2]))) if results[2] else
@@ -196,7 +189,6 @@ def template(url,
 
                     logger.info(f'{ticket_id} Started Language validation')
                     results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'language', channel_level_language, content_type)
-                    #programme_tag_availability, not_available_cases, failed_cases_3, failed_cases_1, failed_cases_2, failed_cases_4 = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'language', channel_level_language)
                     logger.info(f'{ticket_id} Language Results: {results}')
 
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language availability in all 7 days', f'Asset Language should be available for all Assets in all 7 days', 'Failed', f'Asset Language not available for some assets', ','.join(map(str, results[2]))) if results[2] else
@@ -217,7 +209,6 @@ def template(url,
 
                     logger.info(f'{ticket_id} Started Orig_Language validation')
                     results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'orig-language', channel_level_language, content_type)
-                    #programme_tag_availability, not_available_cases, failed_cases_3, failed_cases_1, failed_cases_2, failed_cases_4 = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'orig-language', channel_level_language)
                     logger.info(f'{ticket_id} Orig_Language Results: {results}')
 
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Orig_Language availability in all 7 days', f'Asset Orig_Language should be available for all Assets in all 7 days', 'Failed', f'Asset Orig_Language not available for some assets', ','.join(map(str, results[2]))) if results[2] else
@@ -238,7 +229,6 @@ def template(url,
 
                     logger.info(f'{ticket_id} Started Thumbnail validation')
                     results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_thumbnail, 'icon', channel_level_language, content_type, expected_length = 2000)
-                    #programme_tag_availability, not_available_cases, failed_cases_3, failed_cases_1, failed_cases_2, failed_cases_4 = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_thumbnail, 'icon', channel_level_language)
                     logger.info(f'{ticket_id} Thumbnail Results: {results}')
 
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail availability in all 7 days', f'Asset Thumbnail should be available for all Assets in all 7 days', 'Failed', f'Asset Thumbnail not available for some assets', ','.join(map(str, results[2]))) if results[2] else
@@ -322,13 +312,10 @@ def template(url,
 
                     logger.info(f'{ticket_id} Finished Thumbnail validation')
 
-                    #sequence_number = validate_title_seven_days(date_json_data, date_xml_data, sequence_number, channel_level_language, 'Asset_Level')
-
                     ticket = ticket_id.split('/')[len(ticket_id.split('/')) - 1]
                     timestamp = datetime.today().strftime("%Y%m%d_%H%M%S")
-                    report_path = os.path.join(
-                        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "reports"),
-                        f'{ticket}_{timestamp}')
+                    report_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "reports"), f'{ticket}_{timestamp}')
+
                     logger.info(f'{ticket_id} {report_path}')
                     os.makedirs(report_path, exist_ok=True)
 
