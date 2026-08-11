@@ -8,6 +8,7 @@ import requests
 import math
 from PIL import Image
 from io import BytesIO
+from deep_translator import GoogleTranslator
 
 logger = logging.getLogger(__name__)
 
@@ -100,13 +101,17 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                 else:
 
                     if key in ['title', 'sub-title', 'desc']:
+                        english_text = GoogleTranslator(
+                            source="auto",
+                            target="en"
+                        ).translate(title)
                         if len(title) > expected_length:
                             value_length.append({asset_id: title})
 
-                        if key == 'desc' and not re.search(r'''^[A-Za-z0-9 !\-?:;,'’&.%"]+$''', title):
+                        if key == 'desc' and not re.search(r'''^[A-Za-z0-9 !\-?:;,'’&.%"]+$''', english_text):
                             value_spel_char.append({asset_id: title})
 
-                        elif key in ['title', 'sub-title'] and not re.search(r'''^[A-Za-z0-9 _\-?:;,.’"!&/()']+$''', title):
+                        elif key in ['title', 'sub-title'] and not re.search(r'''^[A-Za-z0-9 _\-?:;,.’"!&/()']+$''', english_text):
                             value_spel_char.append({asset_id: title})
 
                     if key in ['category']:
