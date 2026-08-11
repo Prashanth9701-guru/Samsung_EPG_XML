@@ -1,6 +1,6 @@
+Validation_Output = []
 
-
-def helper_fuc(num, module, summary, expected_result, status, result, Ids=''):
+def helper_fuc(num, module, summary, expected_result, status, result, Ids:str=''):
     return {'S.No': num,
             'Module': f'{module}',
             'Scenario': summary,

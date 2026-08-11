@@ -1,12 +1,12 @@
 import requests
 import logging
 
-import xmltodict
+
 from utilities.helper import *
 
 logger = logging.getLogger(__name__)
 
-def data_fetch(url, name):
+def data_fetch(url, name) -> tuple[int, bytes|str, bytes|str]:
     xml_data = ''
     json_data = ''
     logger.info('Requesting JSON/XML URL')

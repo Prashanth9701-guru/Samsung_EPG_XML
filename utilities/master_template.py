@@ -1,10 +1,9 @@
 import os.path
-import xmltodict
+
 import requests
 import yaml
 import logging
 
-from runner import Validation_Output
 from tests.asset_level_test import validate_thumbnail
 from tests.channel_level_test import capture_channel_level_lang
 from utilities.helper import *
@@ -27,9 +26,8 @@ def template(url,
              ticket_id,
              channel_name,
              content_partner_name,
-             sequence_number = 1):
+             sequence_number = 1) -> dict:
 
-    #Validation_Output = []
     drive_link: str = ""
     s3_html_url: str = ""
 
@@ -67,7 +65,7 @@ def template(url,
 
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate end time format for Assets in all 7 days', f'End Time format should be in expected format for all Assets in all 7 days', 'Failed', f'Some assets are having wrong datetime format', ','.join(map(str, failed_cases))) if failed_cases else
                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate end time format for Assets in all 7 days', f'End Time format should be in expected format for all Assets in all 7 days', 'Not Tested', f'End Time not available', ','.join(map(str, not_available_cases))) if not_available_cases else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate end time format for Assets in all 7 days', f'End Time format should be in expected format for all Assets in all 7 days', ','.join(map(str, no_value))) if no_value else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate end time format for Assets in all 7 days', f'End Time format should be in expected format for all Assets in all 7 days', 'Not Tested', 'End Time value not available', ','.join(map(str, no_value))) if no_value else
                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate end time format for Assets in all 7 days', f'End Time format should be in expected format for all Assets in all 7 days', 'Passed', f'All assets are having expected datetime format'))
                     logger.info(f'{ticket_id} Finished Asset End time format validation')
 

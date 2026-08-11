@@ -2,14 +2,14 @@ import logging
 import re
 #from _pydatetime import timedelta
 from datetime import datetime, timedelta
-from runner import Validation_Output
+
 from utilities.helper import *
 
 
 logger = logging.getLogger(__name__)
 
 
-def validate_url_date_format(url, num):
+def validate_url_date_format(url, num) -> tuple[int, list, list] :
 
     urls = []
     date = []
@@ -67,4 +67,4 @@ def validate_url_date_format(url, num):
 
 
     else:
-        return "Failed", urls, date
+        return num, urls, date

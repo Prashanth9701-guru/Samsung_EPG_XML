@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 config = yaml.safe_load(open('config.yaml'))
 
-def validate_time(programs, key):
+def validate_time(programs, key) ->tuple[bool|str,list] :
     status_fail = []
     status_pass = []
     not_available = []
@@ -26,7 +26,7 @@ def validate_time(programs, key):
         for program in program_data:
             asset_id = ''
             if isinstance(program.get('episode-num'), list):
-                asset_id = next(episode.get('#text') for episode in program.get('episode-num') if episode.get('@system') == 'assetID')
+                asset_id = next((episode.get('#text') for episode in program.get('episode-num') if episode.get('@system') == 'assetID'), 'Asset_ID not available')
             elif isinstance(program.get('episode-num'), dict):
                 asset_id = (program.get('episode-num')).get('#text') if (program.get('episode-num')).get('@system') == 'assetID' else 'Asset_ID not available'
 
@@ -52,7 +52,7 @@ def validate_time(programs, key):
         return True, status_pass
 
 
-def validate_asset_title(programs, key, channel_level_language, content_type, length):
+def validate_asset_title(programs, key, channel_level_language, content_type, length) -> list:
     main_availability = []
     title_text_availability = []
     lang_tag_availability = []
@@ -79,8 +79,6 @@ def validate_asset_title(programs, key, channel_level_language, content_type, le
         if main_node:
             for child in main_node:
                 logger.info(f'child node: {child.text}')
-                #if child is not None:
-                #title_lang = child.attrib.get('lang')
                 if key in ['title', 'desc', 'sub-title', 'category']:
                     title_lang = child.attrib.get('lang')
                     if title_lang:
@@ -160,7 +158,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, le
 
 
 
-def validate_thumbnail(programs, key, channel_level_language, content_type, expected_length):
+def validate_thumbnail(programs, key, channel_level_language, content_type, expected_length) ->list:
     main_availability = []
     thum_url_availability = []
     thumbnail_width_availability = []

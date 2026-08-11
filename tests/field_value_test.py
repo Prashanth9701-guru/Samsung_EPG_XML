@@ -1,5 +1,5 @@
 
-def validate_fileds_value_availability(data, man_fields):
+def validate_fileds_value_availability(data, man_fields) -> tuple[bool|str,list] :
     status_pass = []
     status_fail = []
 
