@@ -6,8 +6,6 @@ from utilities.helper import *
 from utilities.logger_setup import *
 from utilities.master_template import *
 
-Validation_Output = []
-
 
 
 def main():
@@ -15,8 +13,9 @@ def main():
     sheet_data, work_sheet, new_column_number, sheet_service, today = validation_data()
     session_start = datetime.today()
     for inx, data in enumerate(sheet_data):
+        Validation_Output.clear()
         if data.get('RUN/STOP') == 'RUN' and data.get(today) != '✔':
-            content_type = data.get('ASSET_TYPES_SUPPORTED').lower() if data.get('ASSET_TYPES_SUPPORTED') == 'Episode' else 'others'
+            content_type = (data.get('ASSET_TYPES_SUPPORTED')).lower() if (data.get('ASSET_TYPES_SUPPORTED')).lower() == 'episode' else 'others'
             results = template(data.get('EPG_XML_URL'),
                                content_type,
                                data.get('PSD'),

@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 config = yaml.safe_load(open('config.yaml'))
 
-def validate_fields_availability(data, man_fields):
+def validate_fields_availability(data, man_fields) -> tuple[bool, list]:
 
     status_pass = []
     status_fail = []
@@ -23,11 +23,9 @@ def validate_fields_availability(data, man_fields):
 
 
 
-def validate_asset_fields_availability(programs, man_fields, mand_child_values, content_type):
+def validate_asset_fields_availability(programs, man_fields, mand_child_values, content_type) -> tuple[bool, list]:
     status_pass = []
     status_fail = []
-
-    #programs_data = []
 
     programs_data = programs if isinstance(programs, list) else [programs]
 
@@ -36,7 +34,7 @@ def validate_asset_fields_availability(programs, man_fields, mand_child_values, 
             logger.info(f'Entered program validation')
             asset_id = ''
             if isinstance(program.get('episode-num'), list):
-                asset_id = next(episode.get('#text') for episode in program.get('episode-num') if episode.get('@system') == 'assetID')
+                asset_id = next((episode.get('#text') for episode in program.get('episode-num') if episode.get('@system') == 'assetID'), 'Asset_ID not available')
             elif isinstance(program.get('episode-num'), dict):
                 asset_id = (program.get('episode-num')).get('#text') if (program.get('episode-num')).get('@system') == 'assetID' else 'Asset_ID not available'
 
@@ -70,4 +68,4 @@ def validate_asset_fields_availability(programs, man_fields, mand_child_values, 
     elif status_pass:
         return True, status_pass
 
-    return False, None
+    return False, []
