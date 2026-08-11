@@ -103,7 +103,10 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                         if len(title) > expected_length:
                             value_length.append({asset_id: title})
 
-                        if not re.search(r'''^[A-Za-z0-9 !\-?:;,'’&.%"]+$''', title):
+                        if key == 'desc' and not re.search(r'''^[A-Za-z0-9 !\-?:;,'’&.%"]+$''', title):
+                            value_spel_char.append({asset_id: title})
+
+                        elif key in ['title', 'sub-title'] and not re.search(r'''^[A-Za-z0-9 _\-?:;,.’"!&/()']+$''', title):
                             value_spel_char.append({asset_id: title})
 
                     if key in ['category']:
