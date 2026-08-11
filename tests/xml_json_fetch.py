@@ -11,6 +11,7 @@ def data_fetch(url, name, report_path) -> tuple[int, bytes|str, bytes|str]:
     json_data = ''
     logger.info('Requesting JSON/XML URL')
     response = requests.get(url)
+    response.encoding = 'utf-8'
     if response.status_code == 200:
         logger.info(f'{name} is loaded successfully with {response.status_code}')
         xml_data = response.content
