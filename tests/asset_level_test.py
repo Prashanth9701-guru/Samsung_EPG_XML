@@ -61,6 +61,9 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
     category_expected_value = []
     value_length = []
     value_spel_char = []
+    title_desc_mathc = []
+    tba = []
+    title_sub_title_match = []
 
     lists = [main_availability,
              title_text_availability,
@@ -68,7 +71,10 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
              lang_match_channel,
              category_expected_value,
              value_length,
-             value_spel_char]
+             value_spel_char,
+             title_desc_mathc,
+             tba,
+             title_sub_title_match]
 
 
     def common_function(asset_id):
@@ -79,6 +85,9 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
         category_expected_value = []
         value_length = []
         value_spel_char = []
+        title_desc_mathc = []
+        tba = []
+        title_sub_title_match = []
 
         main_node = program.findall(key)
         logger.info(f'main_node: {main_node}')
@@ -98,6 +107,9 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                 if not title:
                     title_text_availability.append({asset_id: f'{key} not available'})
 
+                elif title == 'To Be Announced':
+                    tba.append({asset_id: f'{key} having To Be Announced instead of actual title'})
+
                 else:
 
                     if key in ['title', 'sub-title', 'desc']:
@@ -113,6 +125,24 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
 
                         elif key in ['title', 'sub-title'] and not re.search(r'''^[A-Za-z0-9 _\-?:;,.’"!&/()']+$''', english_text):
                             value_spel_char.append({asset_id: title})
+
+                    if key in ["sub-title"]:
+                        actual_title = next((child.text for child in program.findall('title') if child is not None), None)
+                        description = next((child.text for child in program.findall('desc') if child is not None), None)
+                        if actual_title:
+                            if title in actual_title:
+                                title_sub_title_match.append({asset_id: title})
+                        if description:
+                            if title in description:
+                                title_desc_mathc.append({asset_id: title})
+
+                    if key in ['title']:
+                        description = next((child.text for child in program.findall('desc') if child is not None), None)
+                        if description:
+                            if title in description:
+                                title_desc_mathc.append({asset_id: title})
+
+
 
                     if key in ['category']:
                         categories = list(map(str.lower, config.get('categories')))
@@ -139,7 +169,10 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                 lang_match_channel,
                 category_expected_value,
                 value_length,
-                value_spel_char]
+                value_spel_char,
+                title_desc_mathc,
+                tba,
+                title_sub_title_match]
 
 
 
@@ -181,7 +214,9 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
             lang_match_channel,
             category_expected_value,
             value_length,
-            value_spel_char]
+            value_spel_char,
+            title_desc_mathc,
+            tba]
 
 
 
