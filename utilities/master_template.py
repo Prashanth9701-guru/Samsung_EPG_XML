@@ -74,324 +74,326 @@ def template(url,
 
                     sequence_number = sequence_number + 1
 
-                    logger.info(f'{ticket_id} Started Asset Title validation')
-                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'title', channel_level_language, content_type, 200)
-                    logger.info(f'Results in title Master_template file: {results}')
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title availability in all 7 days', f'Asset Title should be available for all Assets in all 7 days', 'Failed', f'Asset title not available for some assets', ','.join(map(str, results[2]))) if results[2] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title availability in all 7 days', f'Asset Title should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title availability in all 7 days', f'Asset Title should be available for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title availability in all 7 days', f'Asset Title should be available for all Assets in all 7 days', 'Passed', f'Asset Title is available for all assets'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate To Be Announced Assets in all 7 days', f'Asset Title field should not include To Be Announced for all Assets in all 7 days', 'Failed', f'Title field contains the value of "To Be Announced"', ','.join(map(str, results[9]))) if results[9] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate To Be Announced Assets in all 7 days', f'Asset Title field should not include To Be Announced for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate To Be Announced Assets in all 7 days', f'Asset Title field should not include To Be Announced for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate To Be Announced Assets in all 7 days', f'Asset Title field should not include To Be Announced for all Assets in all 7 days', 'Passed', f'Title field contains the value of "To Be Announced"'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title and Description are matching in all 7 days', f'Asset Title and Description should not be same for all Assets in all 7 days', 'Failed', f'Asset Title and Description fields are matching"', ','.join(map(str, results[8]))) if results[8] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title and Description are matching in all 7 days', f'Asset Title and Description should not be same for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title and Description are matching in all 7 days', f'Asset Title and Description should not be same for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title and Description are matching in all 7 days', f'Asset Title and Description should not be same for all Assets in all 7 days', 'Passed', f'Asset Title and Description fields are not matching'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Asset Title in all 7 days', f'Length of Asset Title should not exceed 200 characters for all Assets in all 7 days', 'Failed', f'Length of Asset Title is in-correct-length which is more than expected limit of 200 characters', ','.join(map(str, results[6]))) if results[6] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Asset Title in all 7 days', f'Length of Asset Title should not exceed 200 characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Asset Title in all 7 days', f'Length of Asset Title should not exceed 200 characters for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Asset Title in all 7 days', f'Length of Asset Title should not exceed 200 characters for all Assets in all 7 days', 'Passed', f'Asset Title length of all assets is within the expected limit of 200 characters'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Asset Title in all 7 days', f'Asset Title should not have any special characters for all Assets in all 7 days', 'Failed', f'Asset Title having some special characters which is not expected as per platform standard', ','.join(map(str, results[7]))) if results[7] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Asset Title in all 7 days', f'Asset Title should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Asset Title in all 7 days', f'Asset Title should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Asset Title in all 7 days', f'Asset Title should not have any special characters for all Assets in all 7 days', 'Passed', f'Asset Title not having any special characters'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for title tag in all 7 days', f'Title tag should include language in all 7 days', 'Failed', f"For some assets, language node not available in title tag", ','.join(map(str, results[3]))) if results[3] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for title tag in all 7 days', f'Title tag should include language in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for title tag in all 7 days', f'Title tag should include language in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for title tag in all 7 days', f'Title tag should include language in all 7 days', 'Passed', f'Language Node is available in title tag'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Title_Language tag should be equal in all 7 days', 'Failed', f"For some assets, title_language_node having lang value and channel_level_language having channel_lang_value are not matching", ','.join(map(str, results[4]))) if results[4] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Title_Language tag should be equal in all 7 days', 'Not Tested', f'Title_language node not available') if results[3] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Title_Language tag should be equal in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Title_Language tag should be equal in all 7 days', 'Not Tested', f'Title Tag not available for some assets',) if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Title_Language tag should be equal in all 7 days', 'Passed', f'title_language value is same as channel_language'))
-
-                    sequence_number = sequence_number + 1
-                    logger.info(f'{ticket_id} Finished Asset Title validation')
-
-                    logger.info(f'{ticket_id} Started Sub-Title validation')
-                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'sub-title', channel_level_language, content_type, 200)
-                    logger.info(f'{ticket_id} Sub-Title Results: {results}')
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Sub-Title availability in all 7 days', f'Asset Sub-Title should be available for all Assets in all 7 days', 'Failed', f'Asset Sub-Title not available for some assets', ','.join(map(str, results[2]))) if results[2] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Sub-Title availability in all 7 days', f'Asset Sub-Title should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Sub-Title availability in all 7 days', f'Asset Sub-Title should be available for all Assets in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets', ','.join(map(str, results[1]))) if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Sub-Title availability in all 7 days', f'Asset Sub-Title should be available for all Assets in all 7 days', 'Passed', f'Asset Sub-Title is available for all assets'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Asset Title are matching in all 7 days', f'Sub-Title and Asset Title should not be same for all Assets in all 7 days', 'Failed', f'Sub-Title and Asset Title fields are matching"', ','.join(map(str, results[8]))) if results[8] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Asset Title are matching in all 7 days', f'Sub-Title and Asset Title should not be same for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Asset Title are matching in all 7 days', f'Sub-Title and Asset Title should not be same for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Asset Title are matching in all 7 days', f'Sub-Title and Asset Title should not be same for all Assets in all 7 days', 'Passed', f'Sub-Title and Asset Title fields are not matching'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Description are matching in all 7 days', f'Sub-Title and Description should not be same for all Assets in all 7 days', 'Failed', f'Sub-Title and Description fields are matching"', ','.join(map(str, results[10]))) if results[10] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Description are matching in all 7 days', f'Sub-Title and Description should not be same for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Description are matching in all 7 days', f'Sub-Title and Description should not be same for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Description are matching in all 7 days', f'Sub-Title and Description should not be same for all Assets in all 7 days', 'Passed', f'Sub-Title and Description fields are not matching'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Sub-Title in all 7 days', f'Length of Sub-Title should not exceed 200 characters for all Assets in all 7 days', 'Failed', f'Length of Sub-Title is in-correct-length which is more than expected limit of 200 characters', ','.join(map(str, results[6]))) if results[6] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Sub-Title in all 7 days', f'Length of Sub-Title should not exceed 200 characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Sub-Title in all 7 days', f'Length of Sub-Title should not exceed 200 characters for all Assets in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Sub-Title in all 7 days', f'Length of Sub-Title should not exceed 200 characters for all Assets in all 7 days', 'Passed', f'Sub-Title length of all assets is within the expected limit of 200 characters'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Sub-Title in all 7 days', f'Sub-Title should not have any special characters for all Assets in all 7 days', 'Failed', f'Sub-Title having some special characters which is not expected as per platform standard', ','.join(map(str, results[7]))) if results[7] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Sub-Title in all 7 days', f'Sub-Title should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Sub-Title in all 7 days', f'Sub-Title should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Sub-Title in all 7 days', f'Sub-Title should not have any special characters for all Assets in all 7 days', 'Passed', f'Sub-Title not having any special characters'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Sub-Title tag in all 7 days', f'Sub-Title tag should include language in all 7 days', 'Failed', f"For some assets, language node not available in Sub-Title tag", ','.join(map(str, results[3]))) if results[3] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Sub-Title tag in all 7 days', f'Sub-Title tag should include language in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Sub-Title tag in all 7 days', f'Sub-Title tag should include language in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets', ','.join(map(str, results[1]))) if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Sub-Title tag in all 7 days', f'Sub-Title tag should include language in all 7 days', 'Passed', f'Language Node is available in Sub-Title tag'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Sub-Title_Language tag should be equal in all 7 days', 'Failed', f"For some assets, Sub-Title_language node having lang value and channel_level_language having channel_lang_value are not matching", ','.join(map(str, results[4]))) if results[4] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Sub-Title_Language tag should be equal in all 7 days', 'Not Tested', f'Sub-Title_language node not available') if results[3] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Sub-Title_Language tag should be equal in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Sub-Title_Language tag should be equal in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets', ','.join(map(str, results[1]))) if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Sub-Title_Language tag should be equal in all 7 days', 'Passed', f'Sub-Title_language value is same as channel_language'))
-
-                    sequence_number = sequence_number + 1
-                    logger.info(f'{ticket_id} Finished Sub-Title validation')
-
-                    logger.info(f'{ticket_id} Started Description validation')
-
-                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'desc', channel_level_language, content_type, 4000)
-                    logger.info(f'{ticket_id} Description Results: {results}')
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Description availability in all 7 days', f'Asset Description should be available for all Assets in all 7 days', 'Failed', f'Asset Description not available for some assets', ','.join(map(str, results[2]))) if results[2] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Description availability in all 7 days', f'Asset Description should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Description availability in all 7 days', f'Asset Description should be available for all Assets in all 7 days', 'Not Tested', f'Description Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Description availability in all 7 days', f'Asset Description should be available for all Assets in all 7 days', 'Passed', f'Asset Description is available for all assets'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Description in all 7 days', f'Length of Description should not exceed 4000 characters for all Assets in all 7 days', 'Failed', f'Length of Description is in-correct-length which is more than expected limit of 4000 characters', ','.join(map(str, results[6]))) if results[6] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Description in all 7 days', f'Length of Description should not exceed 4000 characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Description in all 7 days', f'Length of Description should not exceed 4000 characters for all Assets in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Description in all 7 days', f'Length of Description should not exceed 4000 characters for all Assets in all 7 days', 'Passed', f'Description length of all assets is within the expected limit of 4000 characters'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Description in all 7 days', f'Description should not have any special characters for all Assets in all 7 days', 'Failed', f'Description having some special characters which is not expected as per platform standard', ','.join(map(str, results[7]))) if results[7] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Description in all 7 days', f'Description should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Description in all 7 days', f'Description should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Description Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Description in all 7 days', f'Description should not have any special characters for all Assets in all 7 days', 'Passed', f'Description not having any special characters'))
-
-                    sequence_number = sequence_number + 1
-
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Description tag in all 7 days', f'Description tag should include language in all 7 days', 'Failed', f"For some assets, language node not available in Description tag", ','.join(map(str, results[3]))) if results[3] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Description tag in all 7 days', f'Description tag should include language in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Description tag in all 7 days', f'Description tag should include language in all 7 days', 'Not Tested', f'Description Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Description tag in all 7 days', f'Description tag should include language in all 7 days', 'Passed', f'Language Node is available in Description tag'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Description_Language node match with Channel_Language in all 7 days', f'Channel_Language and Description_Language tag should be equal in all 7 days', 'Failed', f"For some assets, Description_language having lang value and channel_level_language having channel_lang_value are not matching", ','.join(map(str, results[4]))) if results[4] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Description_Language node match with Channel_Language in all 7 days', f'Channel_Language and Description_Language tag should be equal in all 7 days', 'Not Tested', f'Description_language node not available') if results[3] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Description_Language node match with Channel_Language in all 7 days', f'Channel_Language and Description_Language tag should be equal in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Description_Language node match with Channel_Language in all 7 days', f'Channel_Language and Description_Language tag should be equal in all 7 days', 'Not Tested', f'Description Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Description_Language node match with Channel_Language in all 7 days', f'Channel_Language and Description_Language tag should be equal in all 7 days', 'Passed', f'Description_language value is same as channel_language'))
-
-                    sequence_number = sequence_number + 1
-                    logger.info(f'{ticket_id} Finished Description validation')
-
-                    logger.info(f'{ticket_id} Started Category validation')
-                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'category', channel_level_language, content_type)
-                    logger.info(f'{ticket_id} Category Results: {results}')
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Category availability in all 7 days', f'Asset Category should be available for all Assets in all 7 days', 'Failed', f'Asset Category not available for some assets', ','.join(map(str, results[2]))) if results[2] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Category availability in all 7 days', f'Asset Category should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Category availability in all 7 days', f'Asset Category should be available for all Assets in all 7 days', 'Not Tested', f'Category Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Category availability in all 7 days', f'Asset Category should be available for all Assets in all 7 days', 'Passed', f'Asset Category is available for all assets'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Category tag in all 7 days', f'Category tag should include language in all 7 days', 'Failed', f"For some assets, language node not available in Category tag", ','.join(map(str, results[3]))) if results[3] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Category tag in all 7 days', f'Category tag should include language in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Category tag in all 7 days', f'Category tag should include language in all 7 days', 'Not Tested', f'Category Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Category tag in all 7 days', f'Category tag should include language in all 7 days', 'Passed', f'Language Node is available in Category tag'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Category_Language node match with Channel_Language in all 7 days', f'Channel_Language and Category_Language tag should be equal in all 7 days', 'Failed', f"For some assets, Category_language lang value and channel_level_language having channel_lang_value are not matching", ','.join(map(str, results[4]))) if results[4] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Category_Language node match with Channel_Language in all 7 days', f'Channel_Language and Category_Language tag should be equal in all 7 days', 'Not Tested', f'Category_language node not available') if results[3] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Category_Language node match with Channel_Language in all 7 days', f'Channel_Language and Category_Language tag should be equal in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Category_Language node match with Channel_Language in all 7 days', f'Channel_Language and Category_Language tag should be equal in all 7 days', 'Not Tested', f'Category Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Category_Language node match with Channel_Language in all 7 days', f'Channel_Language and Category_Language tag should be equal in all 7 days', 'Passed', f'Category_language value is same as channel_language'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Category as per Samsung standard in all 7 days', f'Category should present in Samsung_Supported_Category_List in all 7 days', 'Failed', f"For some assets, having in-correct-cat categories are not included in Samsung_Supported_Category_List", ','.join(map(str, results[5]))) if results[5] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Category as per Samsung standard in all 7 days', f'Category should present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Category_language node not available') if results[3] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Category as per Samsung standard in all 7 days', f'Category should present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Category as per Samsung standard in all 7 days', f'Category should present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Category Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Category as per Samsung standard in all 7 days', f'Category should present in Samsung_Supported_Category_List in all 7 days', 'Passed', f'Categories are listed in the Samsung Expected Categories'))
-
-                    sequence_number = sequence_number + 1
-
-                    logger.info(f'{ticket_id} Finished Category validation')
-
-                    logger.info(f'{ticket_id} Started Language validation')
-                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'language', channel_level_language, content_type)
-                    logger.info(f'{ticket_id} Language Results: {results}')
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language availability in all 7 days', f'Asset Language should be available for all Assets in all 7 days', 'Failed', f'Asset Language not available for some assets', ','.join(map(str, results[2]))) if results[2] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language availability in all 7 days', f'Asset Language should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language availability in all 7 days', f'Asset Language should be available for all Assets in all 7 days', 'Not Tested', f'Language Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language availability in all 7 days', f'Asset Language should be available for all Assets in all 7 days', 'Passed', f'Asset Language is available for all assets'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset_Language should be equal in all 7 days', 'Failed', f"For some assets, Asset_Language not same as channel_language", ','.join(map(str, results[4]))) if results[4] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset_Language should be equal in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset_Language should be equal in all 7 days', 'Not Tested', f'Asset_Language Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset_Language should be equal in all 7 days', 'Passed', f'Asset_Language and channel_language are same'))
-
-                    sequence_number = sequence_number + 1
-
-                    logger.info(f'{ticket_id} Finished Language validation')
-
-                    logger.info(f'{ticket_id} Started Orig_Language validation')
-                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'orig-language', channel_level_language, content_type)
-                    logger.info(f'{ticket_id} Orig_Language Results: {results}')
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Orig_Language availability in all 7 days', f'Asset Orig_Language should be available for all Assets in all 7 days', 'Failed', f'Asset Orig_Language not available for some assets', ','.join(map(str, results[2]))) if results[2] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Orig_Language availability in all 7 days', f'Asset Orig_Language should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Orig_Language availability in all 7 days', f'Asset Orig_Language should be available for all Assets in all 7 days', 'Not Tested', f'Orig_Language Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Orig_Language availability in all 7 days', f'Asset Orig_Language should be available for all Assets in all 7 days', 'Passed', f'Asset Orig_Language is available for all assets'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Orig-language Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset Orig_Language should be equal in all 7 days', 'Failed', f"For some assets, Asset Orig_Language not same as channel_language", ','.join(map(str, results[4]))) if results[4] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Orig-language Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset Orig_Language should be equal in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Orig-language Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset Orig_Language should be equal in all 7 days', 'Not Tested', f'Asset Orig_Language Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Orig-language Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset Orig_Language should be equal in all 7 days', 'Passed', f'Asset Orig_Language and channel_language are same'))
-
-                    sequence_number = sequence_number + 1
-
-                    logger.info(f'{ticket_id} Finished Orig_Language validation')
-
-                    logger.info(f'{ticket_id} Started Thumbnail validation')
-                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_thumbnail, 'icon', channel_level_language, content_type, expected_length = 2000)
-                    logger.info(f'{ticket_id} Thumbnail Results: {results}')
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail availability in all 7 days', f'Asset Thumbnail should be available for all Assets in all 7 days', 'Failed', f'Asset Thumbnail not available for some assets', ','.join(map(str, results[2]))) if results[2] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail availability in all 7 days', f'Asset Thumbnail should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail availability in all 7 days', f'Asset Thumbnail should be available for all Assets in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail availability in all 7 days', f'Asset Thumbnail should be available for all Assets in all 7 days', 'Passed', f'Asset Thumbnail is available for all assets'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width availability in all 7 days', f'Asset Thumbnail_Width should be available for all Assets in all 7 days', 'Failed', f'Asset Thumbnail_Width not available for some assets', ','.join(map(str, results[3]))) if results[3] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width availability in all 7 days', f'Asset Thumbnail_Width should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width availability in all 7 days', f'Asset Thumbnail_Width should be available for all Assets in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width availability in all 7 days', f'Asset Thumbnail_Width should be available for all Assets in all 7 days', 'Passed', f'Asset Thumbnail_Width is available for all assets'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height availability in all 7 days', f'Asset Thumbnail_Height should be available for all Assets in all 7 days', 'Failed', f'Asset Thumbnail_Height not available for some assets', ','.join(map(str, results[4]))) if results[4] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height availability in all 7 days', f'Asset Thumbnail_Height should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height availability in all 7 days', f'Asset Thumbnail_Height should be available for all Assets in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height availability in all 7 days', f'Asset Thumbnail_Height should be available for all Assets in all 7 days', 'Passed', f'Asset Thumbnail_Height is available for all assets'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_URL Length in all 7 days', f'Length of Asset Thumbnail_URL should not exceed 2000 characters in all 7 days', 'Failed', f'Asset Thumbnail_URL length is in-correct-length which is more than expected limit of 2000 characters', ','.join(map(str, results[5]))) if results[5] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_URL Length in all 7 days', f'Length of Asset Thumbnail_URL should not exceed 2000 characters in all 7 days', 'Not Tested', f'Asset Thumbnail not available for some assets') if results[2] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_URL Length in all 7 days', f'Length of Asset Thumbnail_URL should not exceed 2000 characters in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_URL Length in all 7 days', f'Length of Asset Thumbnail_URL should not exceed 2000 characters in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_URL Length in all 7 days', f'Length of Asset Thumbnail_URL should not exceed 2000 characters in all 7 days', 'Passed', f'Asset Thumbnail_URL length of all assets is within the expected limit of 2000 characters'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail status code in all 7 days', f'Asset Thumbnail should open with 200 OK Status Code in all 7 days', 'Failed', f'Asset Thumbnail request getting in-correct-thumbnail status code', ','.join(map(str, results[6]))) if results[6] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail status code in all 7 days', f'Asset Thumbnail should open with 200 OK Status Code in all 7 days', 'Not Tested', f'Asset Thumbnail not available for some assets') if results[2] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail status code in all 7 days', f'Asset Thumbnail should open with 200 OK Status Code in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail status code in all 7 days', f'Asset Thumbnail should open with 200 OK Status Code in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail status code in all 7 days', f'Asset Thumbnail should open with 200 OK Status Code in all 7 days', 'Passed', f'Asset Thumbnail is being fetched successfully with an HTTP response status code of 200 Ok'))
-
-                    if results[7]:
-                        sequence_number = sequence_number + 1
-                        Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail status code in all 7 days', f'Asset Thumbnail should open with 200 OK Status Code in all 7 days', 'Failed', f'Asset Thumbnail request getting re-directed with in-correct-thumbnail status code', ','.join(map(str, results[7]))))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Format in all 7 days', f'Asset Thumbnail Format should be JPEG/JPG in all 7 days', 'Failed', f'Asset Thumbnail are having in-correct-thumbnail format. But, expected should be JPEG/JPG format', ','.join(map(str, results[8]))) if results[8] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Format in all 7 days', f'Asset Thumbnail Format should be JPEG/JPG in all 7 days', 'Not Tested', f'Asset Thumbnail not available for some assets') if results[2] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Format in all 7 days', f'Asset Thumbnail Format should be JPEG/JPG in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Format in all 7 days', f'Asset Thumbnail Format should be JPEG/JPG in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Format in all 7 days', f'Asset Thumbnail Format should be JPEG/JPG in all 7 days', 'Passed', f'Asset Thumbnail is in the expected JPEG/JPG format'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Resolution in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Failed', f'Asset Thumbnail are having in-correct-thumbnail resolution. But, expected should be 1920X1080 resolution', ','.join(map(str, results[9]))) if results[9] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Resolution in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Not Tested', f'Asset Thumbnail not available for some assets') if results[2] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Resolution in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Resolution in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Resolution in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Passed', f'Asset Thumbnail is in the expected 1920X1080 resolution'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width XML_thumbnail_width in all 7 days', f'Asset Thumbnail_Width should match with XML_thumbnail_width for all Assets in all 7 days', 'Failed', f'Asset Thumbnail_Width having in-correct length and XML_thumbnail_width having proper-length are not matching', ','.join(map(str, results[10]))) if results[10] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width XML_thumbnail_width in all 7 days', f'Asset Thumbnail_Width should match with XML_thumbnail_width for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width XML_thumbnail_width in all 7 days', f'Asset Thumbnail_Width should match with XML_thumbnail_width for all Assets in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width XML_thumbnail_width in all 7 days', f'Asset Thumbnail_Width should match with XML_thumbnail_width for all Assets in all 7 days', 'Passed', f'Asset Thumbnail_Width and XML_thumbnail_width are matching for all assets'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height XML_thumbnail_height in all 7 days', f'Asset Thumbnail_Height should match with XML_thumbnail_height for all Assets in all 7 days', 'Failed', f'Asset Thumbnail_Height having in-correct length and XML_thumbnail_height having proper-length are not matching', ','.join(map(str, results[11]))) if results[11] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height XML_thumbnail_height in all 7 days', f'Asset Thumbnail_Height should match with XML_thumbnail_height for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height XML_thumbnail_height in all 7 days', f'Asset Thumbnail_Height should match with XML_thumbnail_height for all Assets in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height XML_thumbnail_height in all 7 days', f'Asset Thumbnail_Height should match with XML_thumbnail_height for all Assets in all 7 days', 'Passed', f'Asset Thumbnail_Height and XML_thumbnail_height are matching for all assets'))
-
-                    sequence_number = sequence_number + 1
-
-                    Validation_Output.append( helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Aspect Ratio in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Failed', f'Asset Thumbnail are having in-correct-thumbnail aspect ratio. But, expected should be 16:9 aspect-ratio', ','.join(map(str, results[12]))) if results[12] else
-                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Aspect Ratio in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Not Tested', f'Asset Thumbnail not available for some assets') if results[2] else
-                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Aspect Ratio in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Aspect Ratio in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
-                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Aspect Ratio in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Passed', f'Asset Thumbnail is in the expected 16:9 aspect_ratio'))
-
-                    sequence_number = sequence_number + 1
-
-                    logger.info(f'{ticket_id} Finished Thumbnail validation')
-
+                    # logger.info(f'{ticket_id} Started Asset Title validation')
+                    # results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'title', channel_level_language, content_type, 200)
+                    # logger.info(f'Results in title Master_template file: {results}')
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title availability in all 7 days', f'Asset Title should be available for all Assets in all 7 days', 'Failed', f'Asset title not available for some assets', ','.join(map(str, results[2]))) if results[2] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title availability in all 7 days', f'Asset Title should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title availability in all 7 days', f'Asset Title should be available for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title availability in all 7 days', f'Asset Title should be available for all Assets in all 7 days', 'Passed', f'Asset Title is available for all assets'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate To Be Announced Assets in all 7 days', f'Asset Title field should not include To Be Announced for all Assets in all 7 days', 'Failed', f'Title field contains the value of "To Be Announced"', ','.join(map(str, results[9]))) if results[9] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate To Be Announced Assets in all 7 days', f'Asset Title field should not include To Be Announced for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate To Be Announced Assets in all 7 days', f'Asset Title field should not include To Be Announced for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate To Be Announced Assets in all 7 days', f'Asset Title field should not include To Be Announced for all Assets in all 7 days', 'Passed', f'Title field contains the value of "To Be Announced"'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title and Description are matching in all 7 days', f'Asset Title and Description should not be same for all Assets in all 7 days', 'Failed', f'Asset Title and Description fields are matching"', ','.join(map(str, results[8]))) if results[8] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title and Description are matching in all 7 days', f'Asset Title and Description should not be same for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title and Description are matching in all 7 days', f'Asset Title and Description should not be same for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Title and Description are matching in all 7 days', f'Asset Title and Description should not be same for all Assets in all 7 days', 'Passed', f'Asset Title and Description fields are not matching'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Asset Title in all 7 days', f'Length of Asset Title should not exceed 200 characters for all Assets in all 7 days', 'Failed', f'Length of Asset Title is in-correct-length which is more than expected limit of 200 characters', ','.join(map(str, results[6]))) if results[6] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Asset Title in all 7 days', f'Length of Asset Title should not exceed 200 characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Asset Title in all 7 days', f'Length of Asset Title should not exceed 200 characters for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Asset Title in all 7 days', f'Length of Asset Title should not exceed 200 characters for all Assets in all 7 days', 'Passed', f'Asset Title length of all assets is within the expected limit of 200 characters'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Asset Title in all 7 days', f'Asset Title should not have any special characters for all Assets in all 7 days', 'Failed', f'Asset Title having some special characters which is not expected as per platform standard', ','.join(map(str, results[7]))) if results[7] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Asset Title in all 7 days', f'Asset Title should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Asset Title in all 7 days', f'Asset Title should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Asset Title in all 7 days', f'Asset Title should not have any special characters for all Assets in all 7 days', 'Passed', f'Asset Title not having any special characters'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for title tag in all 7 days', f'Title tag should include language in all 7 days', 'Failed', f"For some assets, language node not available in title tag", ','.join(map(str, results[3]))) if results[3] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for title tag in all 7 days', f'Title tag should include language in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for title tag in all 7 days', f'Title tag should include language in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for title tag in all 7 days', f'Title tag should include language in all 7 days', 'Passed', f'Language Node is available in title tag'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Title_Language tag should be equal in all 7 days', 'Failed', f"For some assets, title_language_node having lang value and channel_level_language having channel_lang_value are not matching", ','.join(map(str, results[4]))) if results[4] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Title_Language tag should be equal in all 7 days', 'Not Tested', f'Title_language node not available') if results[3] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Title_Language tag should be equal in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Title_Language tag should be equal in all 7 days', 'Not Tested', f'Title Tag not available for some assets',) if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Title_Language tag should be equal in all 7 days', 'Passed', f'title_language value is same as channel_language'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    # logger.info(f'{ticket_id} Finished Asset Title validation')
+                    #
+                    # logger.info(f'{ticket_id} Started Sub-Title validation')
+                    # results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'sub-title', channel_level_language, content_type, 200)
+                    # logger.info(f'{ticket_id} Sub-Title Results: {results}')
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Sub-Title availability in all 7 days', f'Asset Sub-Title should be available for all Assets in all 7 days', 'Failed', f'Asset Sub-Title not available for some assets', ','.join(map(str, results[2]))) if results[2] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Sub-Title availability in all 7 days', f'Asset Sub-Title should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Sub-Title availability in all 7 days', f'Asset Sub-Title should be available for all Assets in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets', ','.join(map(str, results[1]))) if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Sub-Title availability in all 7 days', f'Asset Sub-Title should be available for all Assets in all 7 days', 'Passed', f'Asset Sub-Title is available for all assets'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Asset Title are matching in all 7 days', f'Sub-Title and Asset Title should not be same for all Assets in all 7 days', 'Failed', f'Sub-Title and Asset Title fields are matching"', ','.join(map(str, results[8]))) if results[8] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Asset Title are matching in all 7 days', f'Sub-Title and Asset Title should not be same for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Asset Title are matching in all 7 days', f'Sub-Title and Asset Title should not be same for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Asset Title are matching in all 7 days', f'Sub-Title and Asset Title should not be same for all Assets in all 7 days', 'Passed', f'Sub-Title and Asset Title fields are not matching'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Description are matching in all 7 days', f'Sub-Title and Description should not be same for all Assets in all 7 days', 'Failed', f'Sub-Title and Description fields are matching"', ','.join(map(str, results[10]))) if results[10] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Description are matching in all 7 days', f'Sub-Title and Description should not be same for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Description are matching in all 7 days', f'Sub-Title and Description should not be same for all Assets in all 7 days', 'Not Tested', f'Title Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title and Description are matching in all 7 days', f'Sub-Title and Description should not be same for all Assets in all 7 days', 'Passed', f'Sub-Title and Description fields are not matching'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Sub-Title in all 7 days', f'Length of Sub-Title should not exceed 200 characters for all Assets in all 7 days', 'Failed', f'Length of Sub-Title is in-correct-length which is more than expected limit of 200 characters', ','.join(map(str, results[6]))) if results[6] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Sub-Title in all 7 days', f'Length of Sub-Title should not exceed 200 characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Sub-Title in all 7 days', f'Length of Sub-Title should not exceed 200 characters for all Assets in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Sub-Title in all 7 days', f'Length of Sub-Title should not exceed 200 characters for all Assets in all 7 days', 'Passed', f'Sub-Title length of all assets is within the expected limit of 200 characters'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Sub-Title in all 7 days', f'Sub-Title should not have any special characters for all Assets in all 7 days', 'Failed', f'Sub-Title having some special characters which is not expected as per platform standard', ','.join(map(str, results[7]))) if results[7] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Sub-Title in all 7 days', f'Sub-Title should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Sub-Title in all 7 days', f'Sub-Title should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Sub-Title in all 7 days', f'Sub-Title should not have any special characters for all Assets in all 7 days', 'Passed', f'Sub-Title not having any special characters'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Sub-Title tag in all 7 days', f'Sub-Title tag should include language in all 7 days', 'Failed', f"For some assets, language node not available in Sub-Title tag", ','.join(map(str, results[3]))) if results[3] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Sub-Title tag in all 7 days', f'Sub-Title tag should include language in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Sub-Title tag in all 7 days', f'Sub-Title tag should include language in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets', ','.join(map(str, results[1]))) if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Sub-Title tag in all 7 days', f'Sub-Title tag should include language in all 7 days', 'Passed', f'Language Node is available in Sub-Title tag'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Sub-Title_Language tag should be equal in all 7 days', 'Failed', f"For some assets, Sub-Title_language node having lang value and channel_level_language having channel_lang_value are not matching", ','.join(map(str, results[4]))) if results[4] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Sub-Title_Language tag should be equal in all 7 days', 'Not Tested', f'Sub-Title_language node not available') if results[3] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Sub-Title_Language tag should be equal in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Sub-Title_Language tag should be equal in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets', ','.join(map(str, results[1]))) if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Sub-Title_Language node match with Channel_Language in all 7 days', f'Channel_Language and Sub-Title_Language tag should be equal in all 7 days', 'Passed', f'Sub-Title_language value is same as channel_language'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    # logger.info(f'{ticket_id} Finished Sub-Title validation')
+                    #
+                    # logger.info(f'{ticket_id} Started Description validation')
+                    #
+                    # results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'desc', channel_level_language, content_type, 4000)
+                    # logger.info(f'{ticket_id} Description Results: {results}')
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Description availability in all 7 days', f'Asset Description should be available for all Assets in all 7 days', 'Failed', f'Asset Description not available for some assets', ','.join(map(str, results[2]))) if results[2] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Description availability in all 7 days', f'Asset Description should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Description availability in all 7 days', f'Asset Description should be available for all Assets in all 7 days', 'Not Tested', f'Description Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Description availability in all 7 days', f'Asset Description should be available for all Assets in all 7 days', 'Passed', f'Asset Description is available for all assets'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Description in all 7 days', f'Length of Description should not exceed 4000 characters for all Assets in all 7 days', 'Failed', f'Length of Description is in-correct-length which is more than expected limit of 4000 characters', ','.join(map(str, results[6]))) if results[6] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Description in all 7 days', f'Length of Description should not exceed 4000 characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Description in all 7 days', f'Length of Description should not exceed 4000 characters for all Assets in all 7 days', 'Not Tested', f'Sub-Title Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Length of Description in all 7 days', f'Length of Description should not exceed 4000 characters for all Assets in all 7 days', 'Passed', f'Description length of all assets is within the expected limit of 4000 characters'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Description in all 7 days', f'Description should not have any special characters for all Assets in all 7 days', 'Failed', f'Description having some special characters which is not expected as per platform standard', ','.join(map(str, results[7]))) if results[7] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Description in all 7 days', f'Description should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Description in all 7 days', f'Description should not have any special characters for all Assets in all 7 days', 'Not Tested', f'Description Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Special Characters in Description in all 7 days', f'Description should not have any special characters for all Assets in all 7 days', 'Passed', f'Description not having any special characters'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Description tag in all 7 days', f'Description tag should include language in all 7 days', 'Failed', f"For some assets, language node not available in Description tag", ','.join(map(str, results[3]))) if results[3] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Description tag in all 7 days', f'Description tag should include language in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Description tag in all 7 days', f'Description tag should include language in all 7 days', 'Not Tested', f'Description Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Description tag in all 7 days', f'Description tag should include language in all 7 days', 'Passed', f'Language Node is available in Description tag'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Description_Language node match with Channel_Language in all 7 days', f'Channel_Language and Description_Language tag should be equal in all 7 days', 'Failed', f"For some assets, Description_language having lang value and channel_level_language having channel_lang_value are not matching", ','.join(map(str, results[4]))) if results[4] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Description_Language node match with Channel_Language in all 7 days', f'Channel_Language and Description_Language tag should be equal in all 7 days', 'Not Tested', f'Description_language node not available') if results[3] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Description_Language node match with Channel_Language in all 7 days', f'Channel_Language and Description_Language tag should be equal in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Description_Language node match with Channel_Language in all 7 days', f'Channel_Language and Description_Language tag should be equal in all 7 days', 'Not Tested', f'Description Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Description_Language node match with Channel_Language in all 7 days', f'Channel_Language and Description_Language tag should be equal in all 7 days', 'Passed', f'Description_language value is same as channel_language'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    # logger.info(f'{ticket_id} Finished Description validation')
+                    #
+                    # logger.info(f'{ticket_id} Started Category validation')
+                    # results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'category', channel_level_language, content_type)
+                    # logger.info(f'{ticket_id} Category Results: {results}')
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Category availability in all 7 days', f'Asset Category should be available for all Assets in all 7 days', 'Failed', f'Asset Category not available for some assets', ','.join(map(str, results[2]))) if results[2] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Category availability in all 7 days', f'Asset Category should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Category availability in all 7 days', f'Asset Category should be available for all Assets in all 7 days', 'Not Tested', f'Category Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Category availability in all 7 days', f'Asset Category should be available for all Assets in all 7 days', 'Passed', f'Asset Category is available for all assets'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Category tag in all 7 days', f'Category tag should include language in all 7 days', 'Failed', f"For some assets, language node not available in Category tag", ','.join(map(str, results[3]))) if results[3] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Category tag in all 7 days', f'Category tag should include language in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Category tag in all 7 days', f'Category tag should include language in all 7 days', 'Not Tested', f'Category Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate language node availability for Category tag in all 7 days', f'Category tag should include language in all 7 days', 'Passed', f'Language Node is available in Category tag'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Category_Language node match with Channel_Language in all 7 days', f'Channel_Language and Category_Language tag should be equal in all 7 days', 'Failed', f"For some assets, Category_language lang value and channel_level_language having channel_lang_value are not matching", ','.join(map(str, results[4]))) if results[4] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Category_Language node match with Channel_Language in all 7 days', f'Channel_Language and Category_Language tag should be equal in all 7 days', 'Not Tested', f'Category_language node not available') if results[3] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Category_Language node match with Channel_Language in all 7 days', f'Channel_Language and Category_Language tag should be equal in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Category_Language node match with Channel_Language in all 7 days', f'Channel_Language and Category_Language tag should be equal in all 7 days', 'Not Tested', f'Category Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Category_Language node match with Channel_Language in all 7 days', f'Channel_Language and Category_Language tag should be equal in all 7 days', 'Passed', f'Category_language value is same as channel_language'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Category as per Samsung standard in all 7 days', f'Category should present in Samsung_Supported_Category_List in all 7 days', 'Failed', f"For some assets, having in-correct-cat categories are not included in Samsung_Supported_Category_List", ','.join(map(str, results[5]))) if results[5] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Category as per Samsung standard in all 7 days', f'Category should present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Category_language node not available') if results[3] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Category as per Samsung standard in all 7 days', f'Category should present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Category as per Samsung standard in all 7 days', f'Category should present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Category Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Category as per Samsung standard in all 7 days', f'Category should present in Samsung_Supported_Category_List in all 7 days', 'Passed', f'Categories are listed in the Samsung Expected Categories'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # logger.info(f'{ticket_id} Finished Category validation')
+                    #
+                    # logger.info(f'{ticket_id} Started Language validation')
+                    # results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'language', channel_level_language, content_type)
+                    # logger.info(f'{ticket_id} Language Results: {results}')
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language availability in all 7 days', f'Asset Language should be available for all Assets in all 7 days', 'Failed', f'Asset Language not available for some assets', ','.join(map(str, results[2]))) if results[2] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language availability in all 7 days', f'Asset Language should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language availability in all 7 days', f'Asset Language should be available for all Assets in all 7 days', 'Not Tested', f'Language Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language availability in all 7 days', f'Asset Language should be available for all Assets in all 7 days', 'Passed', f'Asset Language is available for all assets'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset_Language should be equal in all 7 days', 'Failed', f"For some assets, Asset_Language not same as channel_language", ','.join(map(str, results[4]))) if results[4] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset_Language should be equal in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset_Language should be equal in all 7 days', 'Not Tested', f'Asset_Language Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset_Language should be equal in all 7 days', 'Passed', f'Asset_Language and channel_language are same'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # logger.info(f'{ticket_id} Finished Language validation')
+                    #
+                    # logger.info(f'{ticket_id} Started Orig_Language validation')
+                    # results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'orig-language', channel_level_language, content_type)
+                    # logger.info(f'{ticket_id} Orig_Language Results: {results}')
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Orig_Language availability in all 7 days', f'Asset Orig_Language should be available for all Assets in all 7 days', 'Failed', f'Asset Orig_Language not available for some assets', ','.join(map(str, results[2]))) if results[2] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Orig_Language availability in all 7 days', f'Asset Orig_Language should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Orig_Language availability in all 7 days', f'Asset Orig_Language should be available for all Assets in all 7 days', 'Not Tested', f'Orig_Language Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Orig_Language availability in all 7 days', f'Asset Orig_Language should be available for all Assets in all 7 days', 'Passed', f'Asset Orig_Language is available for all assets'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Orig-language Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset Orig_Language should be equal in all 7 days', 'Failed', f"For some assets, Asset Orig_Language not same as channel_language", ','.join(map(str, results[4]))) if results[4] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Orig-language Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset Orig_Language should be equal in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Orig-language Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset Orig_Language should be equal in all 7 days', 'Not Tested', f'Asset Orig_Language Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Orig-language Asset_Language value match with Channel_Language in all 7 days', f'Channel_Language and Asset Orig_Language should be equal in all 7 days', 'Passed', f'Asset Orig_Language and channel_language are same'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # logger.info(f'{ticket_id} Finished Orig_Language validation')
+                    #
+                    # logger.info(f'{ticket_id} Started Thumbnail validation')
+                    # results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_thumbnail, 'icon', channel_level_language, content_type, expected_length = 2000)
+                    # logger.info(f'{ticket_id} Thumbnail Results: {results}')
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail availability in all 7 days', f'Asset Thumbnail should be available for all Assets in all 7 days', 'Failed', f'Asset Thumbnail not available for some assets', ','.join(map(str, results[2]))) if results[2] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail availability in all 7 days', f'Asset Thumbnail should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail availability in all 7 days', f'Asset Thumbnail should be available for all Assets in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail availability in all 7 days', f'Asset Thumbnail should be available for all Assets in all 7 days', 'Passed', f'Asset Thumbnail is available for all assets'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width availability in all 7 days', f'Asset Thumbnail_Width should be available for all Assets in all 7 days', 'Failed', f'Asset Thumbnail_Width not available for some assets', ','.join(map(str, results[3]))) if results[3] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width availability in all 7 days', f'Asset Thumbnail_Width should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width availability in all 7 days', f'Asset Thumbnail_Width should be available for all Assets in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width availability in all 7 days', f'Asset Thumbnail_Width should be available for all Assets in all 7 days', 'Passed', f'Asset Thumbnail_Width is available for all assets'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height availability in all 7 days', f'Asset Thumbnail_Height should be available for all Assets in all 7 days', 'Failed', f'Asset Thumbnail_Height not available for some assets', ','.join(map(str, results[4]))) if results[4] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height availability in all 7 days', f'Asset Thumbnail_Height should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height availability in all 7 days', f'Asset Thumbnail_Height should be available for all Assets in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height availability in all 7 days', f'Asset Thumbnail_Height should be available for all Assets in all 7 days', 'Passed', f'Asset Thumbnail_Height is available for all assets'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_URL Length in all 7 days', f'Length of Asset Thumbnail_URL should not exceed 2000 characters in all 7 days', 'Failed', f'Asset Thumbnail_URL length is in-correct-length which is more than expected limit of 2000 characters', ','.join(map(str, results[5]))) if results[5] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_URL Length in all 7 days', f'Length of Asset Thumbnail_URL should not exceed 2000 characters in all 7 days', 'Not Tested', f'Asset Thumbnail not available for some assets') if results[2] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_URL Length in all 7 days', f'Length of Asset Thumbnail_URL should not exceed 2000 characters in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_URL Length in all 7 days', f'Length of Asset Thumbnail_URL should not exceed 2000 characters in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_URL Length in all 7 days', f'Length of Asset Thumbnail_URL should not exceed 2000 characters in all 7 days', 'Passed', f'Asset Thumbnail_URL length of all assets is within the expected limit of 2000 characters'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail status code in all 7 days', f'Asset Thumbnail should open with 200 OK Status Code in all 7 days', 'Failed', f'Asset Thumbnail request getting in-correct-thumbnail status code', ','.join(map(str, results[6]))) if results[6] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail status code in all 7 days', f'Asset Thumbnail should open with 200 OK Status Code in all 7 days', 'Not Tested', f'Asset Thumbnail not available for some assets') if results[2] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail status code in all 7 days', f'Asset Thumbnail should open with 200 OK Status Code in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail status code in all 7 days', f'Asset Thumbnail should open with 200 OK Status Code in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail status code in all 7 days', f'Asset Thumbnail should open with 200 OK Status Code in all 7 days', 'Passed', f'Asset Thumbnail is being fetched successfully with an HTTP response status code of 200 Ok'))
+                    #
+                    # if results[7]:
+                    #     sequence_number = sequence_number + 1
+                    #     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail status code in all 7 days', f'Asset Thumbnail should open with 200 OK Status Code in all 7 days', 'Failed', f'Asset Thumbnail request getting re-directed with in-correct-thumbnail status code', ','.join(map(str, results[7]))))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Format in all 7 days', f'Asset Thumbnail Format should be JPEG/JPG in all 7 days', 'Failed', f'Asset Thumbnail are having in-correct-thumbnail format. But, expected should be JPEG/JPG format', ','.join(map(str, results[8]))) if results[8] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Format in all 7 days', f'Asset Thumbnail Format should be JPEG/JPG in all 7 days', 'Not Tested', f'Asset Thumbnail not available for some assets') if results[2] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Format in all 7 days', f'Asset Thumbnail Format should be JPEG/JPG in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Format in all 7 days', f'Asset Thumbnail Format should be JPEG/JPG in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Format in all 7 days', f'Asset Thumbnail Format should be JPEG/JPG in all 7 days', 'Passed', f'Asset Thumbnail is in the expected JPEG/JPG format'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Resolution in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Failed', f'Asset Thumbnail are having in-correct-thumbnail resolution. But, expected should be 1920X1080 resolution', ','.join(map(str, results[9]))) if results[9] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Resolution in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Not Tested', f'Asset Thumbnail not available for some assets') if results[2] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Resolution in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Resolution in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Resolution in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Passed', f'Asset Thumbnail is in the expected 1920X1080 resolution'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width XML_thumbnail_width in all 7 days', f'Asset Thumbnail_Width should match with XML_thumbnail_width for all Assets in all 7 days', 'Failed', f'Asset Thumbnail_Width having in-correct length and XML_thumbnail_width having proper-length are not matching', ','.join(map(str, results[10]))) if results[10] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width XML_thumbnail_width in all 7 days', f'Asset Thumbnail_Width should match with XML_thumbnail_width for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width XML_thumbnail_width in all 7 days', f'Asset Thumbnail_Width should match with XML_thumbnail_width for all Assets in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Width XML_thumbnail_width in all 7 days', f'Asset Thumbnail_Width should match with XML_thumbnail_width for all Assets in all 7 days', 'Passed', f'Asset Thumbnail_Width and XML_thumbnail_width are matching for all assets'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height XML_thumbnail_height in all 7 days', f'Asset Thumbnail_Height should match with XML_thumbnail_height for all Assets in all 7 days', 'Failed', f'Asset Thumbnail_Height having in-correct length and XML_thumbnail_height having proper-length are not matching', ','.join(map(str, results[11]))) if results[11] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height XML_thumbnail_height in all 7 days', f'Asset Thumbnail_Height should match with XML_thumbnail_height for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height XML_thumbnail_height in all 7 days', f'Asset Thumbnail_Height should match with XML_thumbnail_height for all Assets in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
+                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail_Height XML_thumbnail_height in all 7 days', f'Asset Thumbnail_Height should match with XML_thumbnail_height for all Assets in all 7 days', 'Passed', f'Asset Thumbnail_Height and XML_thumbnail_height are matching for all assets'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # Validation_Output.append( helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Aspect Ratio in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Failed', f'Asset Thumbnail are having in-correct-thumbnail aspect ratio. But, expected should be 16:9 aspect-ratio', ','.join(map(str, results[12]))) if results[12] else
+                    #                           helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Aspect Ratio in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Not Tested', f'Asset Thumbnail not available for some assets') if results[2] else
+                    #                           helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Aspect Ratio in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                    #                           helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Aspect Ratio in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Not Tested', f'Icon Tag not available for some assets') if results[1] else
+                    #                           helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Thumbnail Aspect Ratio in all 7 days', f'Asset Thumbnail should be 1920X1080 resolution in all 7 days', 'Passed', f'Asset Thumbnail is in the expected 16:9 aspect_ratio'))
+                    #
+                    # sequence_number = sequence_number + 1
+                    #
+                    # logger.info(f'{ticket_id} Finished Thumbnail validation')
+
+                    logger.info(f'Started Schedule validation')
                     results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Schedule',
                                                                validate_asset_title, 'title', channel_level_language,
-                                                               content_type, 200)
-
+                                                               content_type, 200, [1200, 21600])
+                    logger.info(f'Schedule Results: {results}')
+                    logger.info(f'Finished Schedule validation')
                     # ticket = ticket_id.split('/')[len(ticket_id.split('/')) - 1]
                     # timestamp = datetime.today().strftime("%Y%m%d_%H%M%S")
                     #report_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "reports"), f'{ticket}_{timestamp}')
