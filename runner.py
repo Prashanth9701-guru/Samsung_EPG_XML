@@ -14,7 +14,7 @@ def main():
     session_start = datetime.today()
     for inx, data in enumerate(sheet_data):
         Validation_Output.clear()
-        if data.get('RUN/STOP') == 'RUN' and (data.get(today_format) != '✔' or data.get(today) != '✔'):
+        if data.get('RUN/STOP') == 'RUN' and (data.get(today_format) != '✔' and data.get(today) != '✔'):
             content_type = (data.get('ASSET_TYPES_SUPPORTED')).lower() if (data.get('ASSET_TYPES_SUPPORTED')).lower() == 'episode' else 'others'
             results = template(data.get('EPG_XML_URL'),
                                content_type,
