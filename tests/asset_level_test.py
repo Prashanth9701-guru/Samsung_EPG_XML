@@ -127,8 +127,8 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                             value_spel_char.append({asset_id: title})
 
                     if key in ["sub-title"]:
-                        actual_title = next((child.text for child in program.findall('title') if child is not None), None)
-                        description = next((child.text for child in program.findall('desc') if child is not None), None)
+                        actual_title = [next((child.text for child in program.findall('title') if child is not None), None)]
+                        description = [next((child.text for child in program.findall('desc') if child is not None), None)]
                         if actual_title:
                             if title in actual_title:
                                 title_sub_title_match.append({asset_id: title})
@@ -137,7 +137,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                                 title_desc_mathc.append({asset_id: title})
 
                     if key in ['title']:
-                        description = next((child.text for child in program.findall('desc') if child is not None), None)
+                        description = [next((child.text for child in program.findall('desc') if child is not None), None)]
                         if description:
                             if title in description:
                                 title_desc_mathc.append({asset_id: title})
