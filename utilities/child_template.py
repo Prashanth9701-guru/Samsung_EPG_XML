@@ -2,7 +2,6 @@ import xmltodict
 import logging
 import xml.etree.ElementTree as ET
 
-
 from tests.asset_level_test import validate_time, validate_asset_title
 from tests.field_value_test import validate_fileds_value_availability
 from tests.fields_test import validate_fields_availability, validate_asset_fields_availability
@@ -12,14 +11,14 @@ from utilities.helper import *
 
 logger = logging.getLogger(__name__)
 
-def validate_seven_days_data_fetch(seven_days_urls, seven_days, num, name) -> tuple[int, list, list] :
+def validate_seven_days_data_fetch(seven_days_urls, seven_days, num, name, report_path) -> tuple[int, list, list] :
     failed_cases = []
     date_xml = []
     date_json = []
 
     for date, urls in list(zip(seven_days, seven_days_urls)):
         logger.info(f'Fetching data for {name} from {date}')
-        status_code, xml_data, json_data = data_fetch(urls, name)
+        status_code, xml_data, json_data = data_fetch(urls, name, report_path)
 
         if status_code == 200:
             json_data= xmltodict.parse(json_data)
@@ -128,7 +127,7 @@ def validate_programs_seven_days_json(date_json_data, num, name, method_name, fi
 
 
 
-def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, filed, channel_level_language, content_type = '', expected_length = 0) -> list:
+def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, filed, channel_level_language, content_type:str = '', expected_length:int = 0) -> list:
     not_available_cases = []
     failed_cases_1 = []
     failed_cases_2 = []
@@ -157,26 +156,37 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
 
     programme_tag_availability = []
 
+    next_asset_time = ''
 
     for single_date_xml_data in date_xml_data:
         for date, xml_data in single_date_xml_data.items():
-            root = ET.fromstring(xml_data)
-            programs = root.findall('programme')
-            if programs:
-                results = method_name(programs, filed, channel_level_language, content_type, expected_length)
-                #main_availability, first_output, second_output, third_output, fourth_output = method_name(programs, filed, channel_level_language, content_type)
+                root = ET.fromstring(xml_data)
+                programs = root.findall('programme')
+                if programs:
+                    if name not in ['Schedule']:
+                        results = method_name(programs, filed, channel_level_language, content_type, expected_length)
+                        logger.info(f'Results in Child File {filed} : {results}')
 
-                if len(results) < 10:
-                    logger.info(f'Entered less than 10')
-                    for result, target_list in zip(results, lists):
-                        if result:
-                            target_list.append({date : result})
+                        if len(results) < 10:
+                            logger.info(f'Entered less than 10')
+                            for result, target_list in zip(results, lists):
+                                if result:
+                                    target_list.append({date : result})
+                        else:
+                            for result, target_list in zip(results, lists):
+                                if result:
+                                    target_list.append({date : result})
+                    elif name in ['Schedule']:
+                        for program in programs:
+                            start_time = program.attrib
+                            logger.info(f'Times of Asset: {start_time}')
+
                 else:
-                    for result, target_list in zip(results, lists):
-                        if result:
-                            target_list.append({date : result})
-            else:
-                programme_tag_availability.append({date: 'Programme Tag not available in XML'})
+                    programme_tag_availability.append({date: 'Programme Tag not available in XML'})
+
+            #elif filed in ['Schedule']:
+
+                #results = method_name(xml_data, filed, channel_level_language, content_type, expected_length)
 
     return [programme_tag_availability,
             not_available_cases,

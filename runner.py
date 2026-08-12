@@ -10,11 +10,11 @@ from utilities.master_template import *
 
 def main():
     execution_results = []
-    sheet_data, work_sheet, new_column_number, sheet_service, today = validation_data()
+    sheet_data, work_sheet, new_column_number, sheet_service, today, today_format = validation_data()
     session_start = datetime.today()
     for inx, data in enumerate(sheet_data):
         Validation_Output.clear()
-        if data.get('RUN/STOP') == 'RUN' and data.get(today) != '✔':
+        if data.get('RUN/STOP') == 'RUN' and (data.get(today_format) != '✔' and data.get(today) != '✔'):
             content_type = (data.get('ASSET_TYPES_SUPPORTED')).lower() if (data.get('ASSET_TYPES_SUPPORTED')).lower() == 'episode' else 'others'
             results = template(data.get('EPG_XML_URL'),
                                content_type,
