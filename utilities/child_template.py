@@ -211,6 +211,7 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
                                 if next_asset_time != start:
                                     failed_cases_3.append({asset_id: [date, start_time, int(next_asset_time)]})
 
+                            else:
                                 next_asset_time = stop
 
                         else:
