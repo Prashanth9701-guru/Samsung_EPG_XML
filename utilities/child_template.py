@@ -2,7 +2,7 @@ import xmltodict
 import logging
 import xml.etree.ElementTree as ET
 
-
+from Sample import start_time
 from tests.asset_level_test import validate_time, validate_asset_title
 from tests.field_value_test import validate_fileds_value_availability
 from tests.fields_test import validate_fields_availability, validate_asset_fields_availability
@@ -157,26 +157,37 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
 
     programme_tag_availability = []
 
+    next_asset_time = ''
 
     for single_date_xml_data in date_xml_data:
         for date, xml_data in single_date_xml_data.items():
-            root = ET.fromstring(xml_data)
-            programs = root.findall('programme')
-            if programs:
-                results = method_name(programs, filed, channel_level_language, content_type, expected_length)
-                logger.info(f'Results in Child File {filed} : {results}')
+                root = ET.fromstring(xml_data)
+                programs = root.findall('programme')
+                if programs:
+                    if name not in ['Schedule']:
+                        results = method_name(programs, filed, channel_level_language, content_type, expected_length)
+                        logger.info(f'Results in Child File {filed} : {results}')
 
-                if len(results) < 10:
-                    logger.info(f'Entered less than 10')
-                    for result, target_list in zip(results, lists):
-                        if result:
-                            target_list.append({date : result})
+                        if len(results) < 10:
+                            logger.info(f'Entered less than 10')
+                            for result, target_list in zip(results, lists):
+                                if result:
+                                    target_list.append({date : result})
+                        else:
+                            for result, target_list in zip(results, lists):
+                                if result:
+                                    target_list.append({date : result})
+                    elif name in ['Schedule']:
+                        for program in programs:
+                            start_time = program.attrib
+                            logger.info(f'Times of Asset: {start_time}')
+
                 else:
-                    for result, target_list in zip(results, lists):
-                        if result:
-                            target_list.append({date : result})
-            else:
-                programme_tag_availability.append({date: 'Programme Tag not available in XML'})
+                    programme_tag_availability.append({date: 'Programme Tag not available in XML'})
+
+            #elif filed in ['Schedule']:
+
+                #results = method_name(xml_data, filed, channel_level_language, content_type, expected_length)
 
     return [programme_tag_availability,
             not_available_cases,

@@ -336,3 +336,12 @@ def validate_thumbnail(programs, key, channel_level_language, content_type, expe
             thum_aspect_ratio]
 
 
+
+
+
+
+
+
+
+
+

@@ -388,6 +388,10 @@ def template(url,
 
                     logger.info(f'{ticket_id} Finished Thumbnail validation')
 
+                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Schedule',
+                                                               validate_asset_title, 'title', channel_level_language,
+                                                               content_type, 200)
+
                     # ticket = ticket_id.split('/')[len(ticket_id.split('/')) - 1]
                     # timestamp = datetime.today().strftime("%Y%m%d_%H%M%S")
                     #report_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "reports"), f'{ticket}_{timestamp}')
