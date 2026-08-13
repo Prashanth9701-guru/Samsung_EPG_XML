@@ -231,10 +231,12 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
                         if durations is not None:
                             minutes_tag = next((True for dur in durations if dur.attrib.get('units') and dur.attrib.get('units') == 'minutes'), False)
                             seconds_tag = next((True for dur in durations if dur.attrib.get('units') and dur.attrib.get('units') == 'seconds'), False)
+                            logger.info(f'Minutes tag: {minutes_tag}')
+                            logger.info(f'Seconds tag: {seconds_tag}')
 
                             if minutes_tag:
                                 xml_asset_dur_minutes = next((int(dur.text) for dur in durations if dur.attrib.get('units') == 'minutes' and dur.text), 0)
-
+                                logger.info(f'XML Minutes value: {xml_asset_dur_minutes}')
                                 if xml_asset_dur_minutes != 0:
                                     if xml_asset_dur_minutes != int(asset_duration_seconds/60):
                                         failed_cases_7.append({asset_id: [date, xml_asset_dur_minutes, int(asset_duration_seconds/60)]})
@@ -247,7 +249,7 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
 
                             if seconds_tag:
                                 xml_asset_dur_seconds = next((int(dur.text) for dur in durations if dur.attrib.get('units') == 'seconds' and dur.text), 0)
-
+                                logger.info(f'XML Seconds value: {xml_asset_dur_seconds}')
                                 if xml_asset_dur_seconds != 0:
                                     if xml_asset_dur_seconds != int(asset_duration_seconds):
                                         failed_cases_8.append({asset_id: [date, xml_asset_dur_seconds, int(asset_duration_seconds)]})
