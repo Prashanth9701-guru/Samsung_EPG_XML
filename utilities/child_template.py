@@ -186,6 +186,11 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
                     for program in programs:
                         start = program.attrib.get('start', None)
                         stop = program.attrib.get('stop', None)
+                        durations = program.findall('length')
+                        for dur in durations:
+                            logger.info(f'Length Attribute: {dur.attrib}')
+                            logger.info(f'Length Text: {dur.text}')
+
                         logger.info(f'Asset Start Time: {start} and Asset End Time: {stop}')
                         asset_id = 'Asset ID Not Available'
                         episode = program.findall('episode-num')
@@ -200,6 +205,8 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
 
                             difference = stop_time - start_time
                             logger.info(f'Start Time and Stop Time difference: {difference.total_seconds()}')
+                            minutes = difference.total_seconds() / 60
+                            logger.info(f'Scheduled Asset in Minutes: {minutes}')
 
                             if int(difference.total_seconds()) < duration[0]:
                                 failed_cases_1.append({asset_id: [date, start, int(difference.total_seconds())]})
@@ -209,7 +216,7 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
 
                             if next_asset_time:
                                 if next_asset_time != start:
-                                    failed_cases_3.append({asset_id: [date, start_time, next_asset_time]})
+                                    failed_cases_3.append({asset_id: [date, start, next_asset_time]})
                                 next_asset_time = stop
 
                             else:
