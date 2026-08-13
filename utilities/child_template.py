@@ -217,7 +217,7 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
 
                         else:
                             not_available_cases.append({asset_id: [date, 'start or stop tags are not available']})
-
+                logger.info(f'Next Asset Start Time at End {date} : {next_asset_time}')
             else:
                 programme_tag_availability.append({date: 'Programme Tag not available in XML'})
 
