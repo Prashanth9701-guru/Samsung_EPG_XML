@@ -186,10 +186,6 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
                     for program in programs:
                         start = program.attrib.get('start', None)
                         stop = program.attrib.get('stop', None)
-                        durations = program.findall('length')
-                        for dur in durations:
-                            logger.info(f'Length Attribute: {dur.attrib}')
-                            logger.info(f'Length Text: {dur.text}')
 
                         logger.info(f'Asset Start Time: {start} and Asset End Time: {stop}')
                         asset_id = 'Asset ID Not Available'
@@ -199,6 +195,10 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
                                 if 'assetID' in str(epi.attrib):
                                     asset_id = epi.text
 
+                        durations = program.findall('length')
+                        asset_duration_seconds = 0
+
+
                         if start and stop:
                             start_time = datetime.strptime(start, "%Y-%m-%dT%H:%M:%S.%f%z")
                             stop_time = datetime.strptime(stop, "%Y-%m-%dT%H:%M:%S.%f%z")
@@ -207,6 +207,7 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
                             logger.info(f'Start Time and Stop Time difference: {difference.total_seconds()}')
                             minutes = difference.total_seconds() / 60
                             logger.info(f'Scheduled Asset in Minutes: {minutes} and Integer: {int(minutes)}')
+                            asset_duration_seconds = difference.total_seconds()
 
                             if int(difference.total_seconds()) < duration[0]:
                                 failed_cases_1.append({asset_id: [date, start, int(difference.total_seconds())]})
@@ -224,13 +225,49 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
 
                         else:
                             not_available_cases.append({asset_id: [date, 'start or stop tags are not available']})
+
+
+
+                        if durations is not None:
+                            minutes_tag = next((True for dur in durations if dur.attrib.get('units') and dur.attrib.get('units') == 'minutes'), False)
+                            seconds_tag = next((True for dur in durations if dur.attrib.get('units') and dur.attrib.get('units') == 'seconds'), False)
+
+                            if minutes_tag:
+                                xml_asset_dur_minutes = next((int(dur.text) for dur in durations if dur.attrib.get('units') == 'minutes' and dur.text), 0)
+
+                                if xml_asset_dur_minutes != 0:
+                                    if xml_asset_dur_minutes != int(asset_duration_seconds/60):
+                                        failed_cases_7.append({asset_id: [date, xml_asset_dur_minutes, int(asset_duration_seconds/60)]})
+                                else:
+                                    failed_cases_6.append({asset_id: [date, 'Minutes Value not available in XML']})
+
+                            else:
+                                failed_cases_5.append({asset_id: [date, 'Minutes tag not available in XML']})
+
+
+                            if seconds_tag:
+                                xml_asset_dur_seconds = next((int(dur.text) for dur in durations if dur.attrib.get('units') == 'seconds' and dur.text), 0)
+
+                                if xml_asset_dur_seconds != 0:
+                                    if xml_asset_dur_seconds != int(asset_duration_seconds):
+                                        failed_cases_8.append({asset_id: [date, xml_asset_dur_seconds, int(asset_duration_seconds)]})
+                                else:
+                                    failed_cases_9.append({asset_id: [date, 'Seconds Value not available in XML']})
+
+                            else:
+                                failed_cases_10.append({asset_id: [date, 'Seconds tag not available in XML']})
+
+                        else:
+                            failed_cases_4.append({asset_id: [date, 'Length Tag not available']})
+
+
+
+
+
                 logger.info(f'Next Asset Start Time at End {date} : {next_asset_time}')
             else:
                 programme_tag_availability.append({date: 'Programme Tag not available in XML'})
 
-            #elif filed in ['Schedule']:
-
-                #results = method_name(xml_data, filed, channel_level_language, content_type, expected_length)
 
     if name in ['Schedule']:
         logger.info(f'Programme Tag not AVailable: {programme_tag_availability}')
@@ -238,6 +275,13 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
         logger.info(f'Failed Cases 1: {failed_cases_1}')
         logger.info(f'Failed Cases 2: {failed_cases_2}')
         logger.info(f'Failed Cases 3: {failed_cases_3}')
+        logger.info(f'Failed Cases 4 Length Tag Availability: {failed_cases_4}')
+        logger.info(f'Failed Cases 5 Minutes Tag Availability: {failed_cases_5}')
+        logger.info(f'Failed Cases 6 Minutes Value: {failed_cases_6}')
+        logger.info(f'Failed Cases 7 Minutes Match with Asset Duration: {failed_cases_7}')
+        logger.info(f'Failed Cases 8 Seconds Match with Asset Duration: {failed_cases_8} ')
+        logger.info(f'Failed Cases 9 Seconds Value: {failed_cases_9}')
+        logger.info(f'Failed Cases 10 Seconds Tag Availability: {failed_cases_10}')
 
     return [programme_tag_availability,
             not_available_cases,
