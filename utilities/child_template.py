@@ -224,6 +224,13 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
 
                 #results = method_name(xml_data, filed, channel_level_language, content_type, expected_length)
 
+    if name in ['Schedule']:
+        logger.info(f'Programme Tag not AVailable: {programme_tag_availability}')
+        logger.info(f'Start and Stop Tags not available: {not_available_cases}')
+        logger.info(f'Failed Cases 1: {failed_cases_1}')
+        logger.info(f'Failed Cases 2: {failed_cases_2}')
+        logger.info(f'Failed Cases 3: {failed_cases_3}')
+
     return [programme_tag_availability,
             not_available_cases,
             failed_cases_1,
