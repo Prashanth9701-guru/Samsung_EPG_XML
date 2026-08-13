@@ -206,7 +206,7 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
                             difference = stop_time - start_time
                             logger.info(f'Start Time and Stop Time difference: {difference.total_seconds()}')
                             minutes = difference.total_seconds() / 60
-                            logger.info(f'Scheduled Asset in Minutes: {minutes}')
+                            logger.info(f'Scheduled Asset in Minutes: {minutes} and Integer: {int(minutes)}')
 
                             if int(difference.total_seconds()) < duration[0]:
                                 failed_cases_1.append({asset_id: [date, start, int(difference.total_seconds())]})
