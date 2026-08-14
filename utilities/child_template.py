@@ -164,7 +164,6 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
 
     for single_date_xml_data in date_xml_data:
         for date, xml_data in single_date_xml_data.items():
-            logger.info(f'Next Asset Start Time {date} : {next_asset_time}')
             root = ET.fromstring(xml_data)
             programs = root.findall('programme')
             if programs:
@@ -215,9 +214,12 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
                             if int(difference.total_seconds()) > duration[1]:
                                 failed_cases_2.append({asset_id: [date, stop, int(difference.total_seconds())]})
 
+                            logger.info(f'Next Asset Start Time {date} : {next_asset_time}')
                             if next_asset_time:
                                 if next_asset_time != start:
                                     failed_cases_3.append({asset_id: [date, start, next_asset_time]})
+                                else:
+                                    logger.info(f'Next Asset Start Time and Current Asset Start time {date} : {next_asset_time} and Start Time: {start}')
                                 next_asset_time = stop
 
                             else:
@@ -270,8 +272,8 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
     if name in ['Schedule']:
         logger.info(f'Programme Tag not AVailable: {programme_tag_availability}')
         logger.info(f'Start and Stop Tags not available: {not_available_cases}')
-        logger.info(f'Failed Cases 1: {failed_cases_1}')
-        logger.info(f'Failed Cases 2: {failed_cases_2}')
+        logger.info(f'Failed Cases 1 less than 20 minutes: {failed_cases_1}')
+        logger.info(f'Failed Cases 2 greater than 6 hours: {failed_cases_2}')
         logger.info(f'Failed Cases 3: {failed_cases_3}')
         logger.info(f'Failed Cases 4 Length Tag Availability: {failed_cases_4}')
         logger.info(f'Failed Cases 5 Minutes Tag Availability: {failed_cases_5}')
