@@ -236,7 +236,7 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
 
                             if minutes_tag:
                                 xml_asset_dur_minutes = next((int(dur.text) for dur in durations if dur.attrib.get('units') == 'minutes' and dur.text), 0)
-                                logger.info(f'XML Minutes value: {xml_asset_dur_minutes}')
+                                logger.info(f'XML Minutes value: {xml_asset_dur_minutes} and asset_duration_minutes: {int(asset_duration_seconds/60)}')
                                 if xml_asset_dur_minutes != 0 and asset_duration_seconds:
                                     if xml_asset_dur_minutes != int(asset_duration_seconds/60):
                                         failed_cases_7.append({asset_id: [date, xml_asset_dur_minutes, int(asset_duration_seconds/60)]})
@@ -249,7 +249,7 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
 
                             if seconds_tag:
                                 xml_asset_dur_seconds = next((int(dur.text) for dur in durations if dur.attrib.get('units') == 'seconds' and dur.text), 0)
-                                logger.info(f'XML Seconds value: {xml_asset_dur_seconds}')
+                                logger.info(f'XML Seconds value: {xml_asset_dur_seconds} and asset_duration_seconds: {asset_duration_seconds}')
                                 if xml_asset_dur_seconds != 0 and asset_duration_seconds:
                                     if xml_asset_dur_seconds != int(asset_duration_seconds):
                                         failed_cases_8.append({asset_id: [date, xml_asset_dur_seconds, int(asset_duration_seconds)]})
@@ -261,10 +261,6 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
 
                         else:
                             failed_cases_4.append({asset_id: [date, 'Length Tag not available']})
-
-
-
-
 
                 logger.info(f'Next Asset Start Time at End {date} : {next_asset_time}')
             else:
