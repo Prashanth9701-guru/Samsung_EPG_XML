@@ -274,7 +274,7 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
         logger.info(f'Start and Stop Tags not available: {not_available_cases}')
         logger.info(f'Failed Cases 1 less than 20 minutes: {failed_cases_1}')
         logger.info(f'Failed Cases 2 greater than 6 hours: {failed_cases_2}')
-        logger.info(f'Failed Cases 3: {failed_cases_3}')
+        logger.info(f'Failed Cases 3 Schedule gaps: {failed_cases_3}')
         logger.info(f'Failed Cases 4 Length Tag Availability: {failed_cases_4}')
         logger.info(f'Failed Cases 5 Minutes Tag Availability: {failed_cases_5}')
         logger.info(f'Failed Cases 6 Minutes Value: {failed_cases_6}')
