@@ -358,9 +358,9 @@ def validate_rating(programs, key, channel_level_language, content_type, expecte
                 source = rating.attrib
                 if source:
                     logger.info(f'Entered to find rating source {source}')
-                    if source.get('system') not in config.get('rating_source'):
-                        logger.info(f'Rating Source not available in Expected List')
-                        rating_source.append({asset_id: [source.get('system')]})
+                    #if source.get('system') and config.get('rating_source') and not in config.get('rating_source'):
+                    logger.info(f'Rating Source not available in Expected List')
+                    rating_source.append({asset_id: [source.get('system')]})
                 else:
                     rating_source_availability.append({asset_id: 'Rating Source not available'})
 
