@@ -357,7 +357,9 @@ def validate_rating(programs, key, channel_level_language, content_type, expecte
             for rating in main_node:
                 source = rating.attrib
                 if source:
+                    logger.info(f'Entered to find rating source {source}')
                     if source.get('system') not in config.get('rating_source'):
+                        logger.info(f'Rating Source not available in Expected List')
                         rating_source.append({asset_id: [source.get('system')]})
                 else:
                     rating_source_availability.append({asset_id: 'Rating Source not available'})
@@ -374,6 +376,7 @@ def validate_rating(programs, key, channel_level_language, content_type, expecte
         else:
             main_availability.append({asset_id: f'{key} tag not available'})
 
+    logger.info(f'Completed rating validation')
     return [main_availability,
             rating_source_availability,
             rating_source,

@@ -161,12 +161,14 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
     programme_tag_availability = []
 
     next_asset_time = ''
+    logger.info(f'Entered for validation of {filed} in child template')
 
     for single_date_xml_data in date_xml_data:
         for date, xml_data in single_date_xml_data.items():
             root = ET.fromstring(xml_data)
             programs = root.findall('programme')
             if programs:
+                logger.info(f'Fetched programs for {filed}')
                 if name not in ['Schedule']:
                     results = method_name(programs, filed, channel_level_language, content_type, expected_length)
                     logger.info(f'Results in Child File {filed} : {results}')
