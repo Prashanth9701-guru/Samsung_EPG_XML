@@ -171,15 +171,20 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
                     results = method_name(programs, filed, channel_level_language, content_type, expected_length)
                     logger.info(f'Results in Child File {filed} : {results}')
 
-                    if len(results) < 10:
-                        logger.info(f'Entered less than 10')
-                        for result, target_list in zip(results, lists):
-                            if result:
-                                target_list.append({date : result})
-                    else:
-                        for result, target_list in zip(results, lists):
-                            if result:
-                                target_list.append({date : result})
+                    for result, target_list in zip(results, lists):
+                        if result:
+                            target_list.append({date: result})
+
+
+                    # if len(results) < 10:
+                    #     logger.info(f'Entered less than 10')
+                    #     for result, target_list in zip(results, lists):
+                    #         if result:
+                    #             target_list.append({date : result})
+                    # else:
+                    #     for result, target_list in zip(results, lists):
+                    #         if result:
+                    #             target_list.append({date : result})
 
                 elif name in ['Schedule']:
                     for program in programs:
@@ -267,21 +272,6 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
                 logger.info(f'Next Asset Start Time at End {date} : {next_asset_time}')
             else:
                 programme_tag_availability.append({date: 'Programme Tag not available in XML'})
-
-
-    if name in ['Schedule']:
-        logger.info(f'Programme Tag not AVailable: {programme_tag_availability}')
-        logger.info(f'Start and Stop Tags not available: {not_available_cases}')
-        logger.info(f'Failed Cases 1 less than 20 minutes: {failed_cases_1}')
-        logger.info(f'Failed Cases 2 greater than 6 hours: {failed_cases_2}')
-        logger.info(f'Failed Cases 3 Schedule gaps: {failed_cases_3}')
-        logger.info(f'Failed Cases 4 Length Tag Availability: {failed_cases_4}')
-        logger.info(f'Failed Cases 5 Minutes Tag Availability: {failed_cases_5}')
-        logger.info(f'Failed Cases 6 Minutes Value: {failed_cases_6}')
-        logger.info(f'Failed Cases 7 Minutes Match with Asset Duration: {failed_cases_7}')
-        logger.info(f'Failed Cases 8 Seconds Match with Asset Duration: {failed_cases_8} ')
-        logger.info(f'Failed Cases 9 Seconds Value: {failed_cases_9}')
-        logger.info(f'Failed Cases 10 Seconds Tag Availability: {failed_cases_10}')
 
     return [programme_tag_availability,
             not_available_cases,
