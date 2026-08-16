@@ -273,6 +273,13 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
             else:
                 programme_tag_availability.append({date: 'Programme Tag not available in XML'})
 
+    if filed in ['rating']:
+        logger.info(f'programme_tag_availability: {programme_tag_availability}')
+        logger.info(f'not_available_cases: {not_available_cases}')
+        logger.info(f'failed_cases_1: {failed_cases_1}')
+        logger.info(f'failed_cases_2: {failed_cases_2}')
+
+
     return [programme_tag_availability,
             not_available_cases,
             failed_cases_1,
