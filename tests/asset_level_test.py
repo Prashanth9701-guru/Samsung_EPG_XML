@@ -357,7 +357,7 @@ def validate_rating(programs, key, channel_level_language, content_type, expecte
                 rating_source.append({asset_id: [source.get('system')]})
                 values = rating.findall('value')
                 for value in values:
-                    logger.info(f'Rating Values: {value.text}')
+                    logger.info(f'Rating Values: {value.text} and rating Values from config: {config.get('rating_values')}')
                     if value.text not in config.get('rating_values'):
                         rating_value.append({asset_id: [value.text]})
         else:
