@@ -158,8 +158,8 @@ def failed_cases_seperator():
 
             elif data.get('Scenario').strip() == 'Validate less than 20 minutes (1200 seconds) of Assets are not scheduled in all 7 days':
                 common_asset_ids = {}
-                logger.info(f'Asset ID in Failed Case Seperator: {data.get('Asset IDs')}')
-                for asset_ids_data in data.get('Asset IDs'):
+                logger.info(f'Asset ID in Failed Case Seperator: {list(ast.literal_eval(f"[{data.get('Asset IDs')}]"))}')
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
                     for date, ids in asset_ids_data.items():
                         for asset_ids in ids:
                             for asset_id, value in asset_ids.items():
