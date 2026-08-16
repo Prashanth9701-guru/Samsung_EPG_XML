@@ -157,23 +157,12 @@ def failed_cases_seperator():
                                                  'Issue Summary': f"In {', '.join(list(Values.keys()))} days, {data.get('Issue Summary').replace('in-correct-cat', ', '.join(set(duplicate_values)))}"})
 
             elif data.get('Scenario').strip() == 'Validate less than 20 minutes (1200 seconds) of Assets are not scheduled in all 7 days':
-                common_asset_ids = {}
-                logger.info(f'Asset ID in Failed Case Seperator: {list(ast.literal_eval(f"[{data.get('Asset IDs')}]"))}')
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
-                    for date, ids in asset_ids_data.items():
-                        for asset_ids in ids:
-                            for asset_id, value in asset_ids.items():
-                                if asset_id not in common_asset_ids:
-                                    common_asset_ids[asset_id] = {}
-
-                                if date not in common_asset_ids[asset_id]:
-                                    common_asset_ids[asset_id][date] = []
-
-                                common_asset_ids[asset_id][date].extend(
-                                    v for v in value if v not in common_asset_ids[asset_id][date])
-                logger.info(f'Common_Asset_ID: {common_asset_ids}')
-
-
+                    for key, value in asset_ids_data.items():
+                        date, start_time, dur = value
+                        updated_summary_list.append({'Asset ID': key,
+                                                     'Module': data.get('Module'),
+                                                     'Issue Summary': f"In {date} day, Scheduled asset duration is {dur} sec which is less than 20 minutes (1200 seconds) (Asset Scheduled Time: {start_time})"})
 
             else:
                 common_asset_ids = {}
