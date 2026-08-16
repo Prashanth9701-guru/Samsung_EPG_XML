@@ -363,9 +363,9 @@ def validate_rating(programs, key, channel_level_language, content_type, expecte
         else:
             main_availability.append({asset_id: f'{key} tag not available'})
 
-        return [main_availability,
-                rating_source,
-                rating_value]
+    return [main_availability,
+            rating_source,
+            rating_value]
 
 
 
