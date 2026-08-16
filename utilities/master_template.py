@@ -465,6 +465,17 @@ def template(url,
 
                     logger.info(f'{ticket_id} Finished Thumbnail validation')
 
+                    logger.info(f'{ticket_id} Started Rating validation')
+                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level',
+                                                               validate_rating, 'rating', channel_level_language,
+                                                               content_type)
+                    logger.info(f'{ticket_id} Rating Results: {results}')
+
+
+
+
+
+
                     logger.info(f'{ticket_id} Validation Output: {Validation_Output}')
                     excel_path = xlsx_report(Validation_Output, report_path)
                     updated_summary_list = failed_cases_seperator()

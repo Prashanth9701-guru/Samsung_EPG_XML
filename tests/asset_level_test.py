@@ -336,9 +336,35 @@ def validate_thumbnail(programs, key, channel_level_language, content_type, expe
             thum_aspect_ratio]
 
 
+def validate_rating(programs, key, channel_level_language, content_type, expected_length):
+    main_availability = []
+    rating_source = []
+    rating_value = []
 
 
+    for program in programs:
+        asset_id = 'Asset ID Not Available'
+        episode = program.findall('episode-num')
+        if episode is not None:
+            for epi in episode:
+                if 'assetID' in str(epi.attrib):
+                    asset_id = epi.text
 
+        main_node = program.findall(key)
+        if main_node is not None:
+            for rating in main_node:
+                source = rating.attrib
+                rating_source.append({asset_id: [source.get('system')]})
+                values = rating.findall('value')
+                for value in values:
+                    if value not in config.get('rating_values'):
+                        rating_value.append({asset_id: [value]})
+        else:
+            main_availability.append({asset_id: f'{key} tag not available'})
+
+        return [main_availability,
+                rating_source,
+                rating_value]
 
 
 
