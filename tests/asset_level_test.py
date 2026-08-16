@@ -336,7 +336,7 @@ def validate_thumbnail(programs, key, channel_level_language, content_type, expe
             thum_aspect_ratio]
 
 
-def validate_rating(programs, key, channel_level_language, content_type, expected_length):
+def validate_rating(programs, key, channel_level_language, content_type, expected_length) -> list:
     main_availability = []
     rating_source = []
     rating_value = []

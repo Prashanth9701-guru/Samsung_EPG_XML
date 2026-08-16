@@ -4,7 +4,7 @@ import requests
 import yaml
 import logging
 
-from tests.asset_level_test import validate_thumbnail
+from tests.asset_level_test import validate_thumbnail, validate_rating
 from tests.channel_level_test import capture_channel_level_lang
 from utilities.helper import *
 from services.xlsx_service import *
