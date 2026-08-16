@@ -357,8 +357,8 @@ def validate_rating(programs, key, channel_level_language, content_type, expecte
                 rating_source.append({asset_id: [source.get('system')]})
                 values = rating.findall('value')
                 for value in values:
-                    if value not in config.get('rating_values'):
-                        rating_value.append({asset_id: [value]})
+                    if value.text not in config.get('rating_values'):
+                        rating_value.append({asset_id: [value.text]})
         else:
             main_availability.append({asset_id: f'{key} tag not available'})
 
