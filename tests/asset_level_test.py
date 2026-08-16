@@ -338,7 +338,9 @@ def validate_thumbnail(programs, key, channel_level_language, content_type, expe
 
 def validate_rating(programs, key, channel_level_language, content_type, expected_length) -> list:
     main_availability = []
+    rating_source_availability = []
     rating_source = []
+    rating_value_availability = []
     rating_value = []
 
 
@@ -354,17 +356,28 @@ def validate_rating(programs, key, channel_level_language, content_type, expecte
         if main_node is not None:
             for rating in main_node:
                 source = rating.attrib
-                rating_source.append({asset_id: [source.get('system')]})
+                if source:
+                    if source.get('system') not in config.get('rating_source'):
+                        rating_source.append({asset_id: [source.get('system')]})
+                else:
+                    rating_source_availability.append({asset_id: 'Rating Source not available'})
+
+
                 values = rating.findall('value')
-                for value in values:
-                    logger.info(f'Rating Values: {value.text} and rating Values from config: {config.get('rating_values')}')
-                    if value.text not in config.get('rating_values'):
-                        rating_value.append({asset_id: [value.text]})
+                if values is not None:
+                    for value in values:
+                        logger.info(f'Rating Values: {value.text} and rating Values from config: {config.get('rating_values')}')
+                        if value.text not in config.get('rating_values'):
+                            rating_value.append({asset_id: [value.text]})
+                else:
+                    rating_value_availability.append({asset_id: 'Rating Value not available'})
         else:
             main_availability.append({asset_id: f'{key} tag not available'})
 
     return [main_availability,
+            rating_source_availability,
             rating_source,
+            rating_value_availability,
             rating_value]
 
 
