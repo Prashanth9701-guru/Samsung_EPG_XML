@@ -82,6 +82,7 @@
                 'SF',
                 '토크쇼',
                 '로드무비']
+'rating_source': []
 
 'rating_values': ['TV-Y',
                   'TV-Y7',
