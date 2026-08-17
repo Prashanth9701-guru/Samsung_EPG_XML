@@ -465,39 +465,39 @@ def template(url,
                     #
                     # logger.info(f'{ticket_id} Finished Thumbnail validation')
                     #
-                    # logger.info(f'{ticket_id} Started Rating validation')
-                    # results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level',
-                    #                                            validate_rating, 'rating', channel_level_language,
-                    #                                            content_type)
-                    # logger.info(f'{ticket_id} Rating Results: {results}')
-                    #
-                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source availability in all 7 days', f'Rating Source should be available for all Assets in all 7 days', 'Failed', f'Rating Source not available for some assets', ','.join(map(str, results[2]))) if results[2] else
-                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source availability in all 7 days', f'Rating Source should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source availability in all 7 days', f'Rating Source should be available for all Assets in all 7 days', 'Not Tested', f'Rating Tag not available for some assets') if results[1] else
-                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source availability in all 7 days', f'Rating Source should be available for all Assets in all 7 days', 'Passed', f'Rating Source is available for all assets'))
-                    #
-                    # sequence_number = sequence_number + 1
-                    #
-                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source as per Samsung standard in all 7 days', f'Rating Source should present in Samsung_Supported_Category_List in all 7 days', 'Failed', f'For some assets, having in-correct-cat rating source. Currently, there is no spec for this case. So, moving this to Failed', ','.join(map(str, results[3]))) if results[3] else
-                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source as per Samsung standard in all 7 days', f'Rating Source should present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source as per Samsung standard in all 7 days', f'Rating Source should present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Rating Tag not available for some assets') if results[1] else
-                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source as per Samsung standard in all 7 days', f'Rating Source should present in Samsung_Supported_Category_List in all 7 days', 'Passed', f'Rating Source is available for all assets'))
-                    #
-                    # sequence_number = sequence_number + 1
-                    #
-                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value availability in all 7 days', f'Rating Value should be available for all Assets in all 7 days', 'Failed', f'Rating Value not available for some assets', ','.join(map(str, results[4]))) if results[4] else
-                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value availability in all 7 days', f'Rating Value should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value availability in all 7 days', f'Rating Value should be available for all Assets in all 7 days', 'Not Tested', f'Rating Tag not available for some assets') if results[1] else
-                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value availability in all 7 days', f'Rating Value should be available for all Assets in all 7 days', 'Passed', f'Rating Value is available for all assets'))
-                    #
-                    # sequence_number = sequence_number + 1
-                    #
-                    # Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value as per Samsung standard in all 7 days', f'Rating Source Value present in Samsung_Supported_Category_List in all 7 days', 'Failed', f'For some assets, having in-correct-cat rating value are not included in Samsung_Supported_Category_List', ','.join(map(str, results[5]))) if results[5] else
-                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value as per Samsung standard in all 7 days', f'Rating Source Value present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
-                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value as per Samsung standard in all 7 days', f'Rating Source Value present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Rating Tag not available for some assets') if results[1] else
-                    #                          helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value as per Samsung standard in all 7 days', f'Rating Source Value present in Samsung_Supported_Category_List in all 7 days', 'Passed', f'Rating Source is available for all assets'))
-                    #
-                    # sequence_number = sequence_number + 1
+                    logger.info(f'{ticket_id} Started Rating validation')
+                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level',
+                                                               validate_rating, 'rating', channel_level_language,
+                                                               content_type)
+                    logger.info(f'{ticket_id} Rating Results: {results}')
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source availability in all 7 days', f'Rating Source should be available for all Assets in all 7 days', 'Failed', f'Rating Source not available for some assets', ','.join(map(str, results[2]))) if results[2] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source availability in all 7 days', f'Rating Source should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source availability in all 7 days', f'Rating Source should be available for all Assets in all 7 days', 'Not Tested', f'Rating Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source availability in all 7 days', f'Rating Source should be available for all Assets in all 7 days', 'Passed', f'Rating Source is available for all assets'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source as per Samsung standard in all 7 days', f'Rating Source should present in Samsung_Supported_Category_List in all 7 days', 'Failed', f'For some assets, having in-correct-cat rating source. Currently, there is no spec for this case. So, moving this to Failed', ','.join(map(str, results[3]))) if results[3] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source as per Samsung standard in all 7 days', f'Rating Source should present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source as per Samsung standard in all 7 days', f'Rating Source should present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Rating Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source as per Samsung standard in all 7 days', f'Rating Source should present in Samsung_Supported_Category_List in all 7 days', 'Passed', f'Rating Source is available for all assets'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value availability in all 7 days', f'Rating Value should be available for all Assets in all 7 days', 'Failed', f'Rating Value not available for some assets', ','.join(map(str, results[4]))) if results[4] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value availability in all 7 days', f'Rating Value should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value availability in all 7 days', f'Rating Value should be available for all Assets in all 7 days', 'Not Tested', f'Rating Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value availability in all 7 days', f'Rating Value should be available for all Assets in all 7 days', 'Passed', f'Rating Value is available for all assets'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value as per Samsung standard in all 7 days', f'Rating Source Value present in Samsung_Supported_Category_List in all 7 days', 'Failed', f'For some assets, having in-correct-cat rating value are not included in Samsung_Supported_Category_List', ','.join(map(str, results[5]))) if results[5] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value as per Samsung standard in all 7 days', f'Rating Source Value present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value as per Samsung standard in all 7 days', f'Rating Source Value present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Rating Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value as per Samsung standard in all 7 days', f'Rating Source Value present in Samsung_Supported_Category_List in all 7 days', 'Passed', f'Rating Source is available for all assets'))
+
+                    sequence_number = sequence_number + 1
 
                     logger.info(f'{ticket_id} Started Asset ID validation')
                     results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level',
