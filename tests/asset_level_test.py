@@ -32,7 +32,7 @@ def validate_time(programs, key) ->tuple[bool|str,list] :
                 asset_id = (program.get('episode-num')).get('#text') if (program.get('episode-num')).get('@system') == 'assetID' else 'Asset_ID not available'
 
             timestamp = program.get(key, None)
-            if timestamp is not None:
+            if timestamp:
                 if timestamp:
                     if not re.match(pattern, timestamp):
                         status_fail.append({asset_id : [timestamp]})
@@ -127,8 +127,8 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                             value_spel_char.append({asset_id: title})
 
                     if key in ["sub-title"]:
-                        actual_title = [next((child.text for child in program.findall('title') if child is not None), None)]
-                        description = [next((child.text for child in program.findall('desc') if child is not None), None)]
+                        actual_title = [next((child.text for child in program.findall('title') if child), None)]
+                        description = [next((child.text for child in program.findall('desc') if child), None)]
                         if actual_title:
                             if title in actual_title:
                                 title_sub_title_match.append({asset_id: title})
@@ -137,7 +137,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                                 title_desc_mathc.append({asset_id: title})
 
                     if key in ['title']:
-                        description = [next((child.text for child in program.findall('desc') if child is not None), None)]
+                        description = [next((child.text for child in program.findall('desc') if child), None)]
                         if description:
                             if title in description:
                                 title_desc_mathc.append({asset_id: title})
@@ -184,7 +184,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
         episode_num_tag = bool
         asset_id_tag = bool
         episode_num_value = ''
-        if episode is not None:
+        if episode:
             episode_num_tag = next((True for epi in episode if 'onscreen' in str(epi.attrib)), False)
             asset_id_tag = next((True for epi in episode if 'assetID' in str(epi.attrib)), False)
             for epi in episode:
@@ -265,14 +265,14 @@ def validate_thumbnail(programs, key, channel_level_language, content_type, expe
     for program in programs:
         asset_id = 'Asset ID Not Available'
         episode = program.findall('episode-num')
-        if episode is not None:
+        if episode:
             for epi in episode:
                 if 'assetID' in str(epi.attrib):
                     asset_id = epi.text
 
         main_node = program.findall(key)
         logger.info(f'Thumbnail Main Node: {main_node}')
-        if main_node is not None:
+        if main_node:
             for child in main_node:
                 #if child is not None:
                 thumbnail_url = child.attrib.get('src')
@@ -374,7 +374,7 @@ def validate_rating(programs, key, channel_level_language, content_type, expecte
     for program in programs:
         asset_id = 'Asset ID Not Available'
         episode = program.findall('episode-num')
-        if episode is not None:
+        if episode:
             for epi in episode:
                 if 'assetID' in str(epi.attrib):
                     asset_id = epi.text
