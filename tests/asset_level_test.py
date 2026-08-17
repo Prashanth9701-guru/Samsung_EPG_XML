@@ -380,6 +380,7 @@ def validate_rating(programs, key, channel_level_language, content_type, expecte
                     asset_id = epi.text
 
         main_node = program.findall(key)
+        logger.info(f'{asset_id} rating data: {main_node}')
         if main_node is not None:
             for rating in main_node:
                 source = rating.attrib
