@@ -86,6 +86,7 @@
 
 'rating_values': ['TV-Y',
                   'TV-Y7',
+                  'TV-14',
                   'TV-G',
                   'TV-PG',
                   'TV-MA',
