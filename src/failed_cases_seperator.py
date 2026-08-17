@@ -91,7 +91,7 @@ def failed_cases_seperator():
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
                     updated_summary_list.append({'Asset ID': key,
                                                  'Module': data.get('Module'),
-                                                 'Issue Summary': data.get('Issue Summary').replace('in-correct-thumbnail', f'{duplicate_values[0]}')})
+                                                 'Issue Summary': data.get('Issue Summary').replace('in-correct-thumbnail', f'{duplicate_values[0]}') if 'in-correct-thumbnail' in data.get('Issue Summary') else data.get('Issue Summary').replace('in-correct-length', f'{duplicate_values[0]}')})
 
             elif 'in-correct length' in data.get('Issue Summary') and 'proper-length' in data.get('Issue Summary'):
                 common_asset_ids = {}
