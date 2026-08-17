@@ -182,9 +182,11 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
         asset_id = 'Asset ID Not Available'
         episode = program.findall('episode-num')
         episode_num_tag = bool
+        asset_id_tag = bool
         episode_num_value = ''
         if episode is not None:
             episode_num_tag = next((True for epi in episode if 'onscreen' in str(epi.attrib)), False)
+            asset_id_tag = next((True for epi in episode if 'assetID' in str(epi.attrib)), False)
             for epi in episode:
                 if 'assetID' in str(epi.attrib):
                     asset_id = epi.text
@@ -195,11 +197,14 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
 
 
         if key == 'episode-num':
-            if asset_id == 'Asset ID Not Available':
-                title_text_availability.append({asset_id: ['Asset ID Not Available']})
+            if asset_id_tag:
+                if asset_id == 'Asset ID Not Available':
+                    title_text_availability.append({asset_id: ['Asset ID Not Available']})
+                else:
+                    if len(asset_id) > expected_length:
+                        value_length.append({asset_id: [len(asset_id)]})
             else:
-                if len(asset_id) > expected_length:
-                    value_length.append({asset_id: [len(asset_id)]})
+                title_desc_mathc.append('Asset ID Tag Not Available')
 
             if episode_num_tag:
                 if not episode_num_value:
