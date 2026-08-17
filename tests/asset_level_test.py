@@ -381,7 +381,7 @@ def validate_rating(programs, key, channel_level_language, content_type, expecte
 
         main_node = program.findall(key)
         logger.info(f'{asset_id} rating data: {main_node}')
-        if main_node is not None:
+        if main_node:
             for rating in main_node:
                 source = rating.attrib
                 if source:
@@ -394,7 +394,7 @@ def validate_rating(programs, key, channel_level_language, content_type, expecte
 
 
                 values = rating.findall('value')
-                if values is not None:
+                if values:
                     for value in values:
                         logger.info(f'Rating Values: {value.text} and rating Values from config: {config.get('rating_values')}')
                         if value.text not in config.get('rating_values'):
