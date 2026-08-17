@@ -181,10 +181,37 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
     for program in programs:
         asset_id = 'Asset ID Not Available'
         episode = program.findall('episode-num')
+        episode_num_tag = bool
+        asset_id_tag = bool
+        episode_num_value = ''
         if episode is not None:
+            episode_num_tag = next((True for epi in episode if 'onscreen' in str(epi.attrib)), False)
+            asset_id_tag = next((True for epi in episode if 'assetID' in str(epi.attrib)), False)
             for epi in episode:
                 if 'assetID' in str(epi.attrib):
                     asset_id = epi.text
+
+                if episode_num_tag and content_type.lower() == 'episode' and key == 'episode-num':
+                    if 'onscreen' in str(epi.attrib):
+                        episode_num_value = epi.text
+
+
+        if key == 'episode-num':
+            if asset_id_tag:
+                if asset_id == 'Asset ID Not Available':
+                    title_text_availability.append({asset_id: ['Asset ID Not Available']})
+                else:
+                    if len(asset_id) > expected_length:
+                        value_length.append({asset_id: [len(asset_id)]})
+            else:
+                title_desc_mathc.append('Asset ID Tag Not Available')
+
+            if episode_num_tag:
+                if not episode_num_value:
+                    lang_tag_availability.append({asset_id: ['Episode Number not available']})
+            else:
+                value_spel_char.append({asset_id: ['Episode Number Tag not available']})
+
 
         if key == 'sub-title' and content_type.lower() == 'episode':
 
@@ -336,9 +363,52 @@ def validate_thumbnail(programs, key, channel_level_language, content_type, expe
             thum_aspect_ratio]
 
 
+def validate_rating(programs, key, channel_level_language, content_type, expected_length) -> list:
+    main_availability = []
+    rating_source_availability = []
+    rating_source = []
+    rating_value_availability = []
+    rating_value = []
 
 
+    for program in programs:
+        asset_id = 'Asset ID Not Available'
+        episode = program.findall('episode-num')
+        if episode is not None:
+            for epi in episode:
+                if 'assetID' in str(epi.attrib):
+                    asset_id = epi.text
 
+        main_node = program.findall(key)
+        if main_node is not None:
+            for rating in main_node:
+                source = rating.attrib
+                if source:
+                    logger.info(f'Entered to find rating source {source}')
+                    if source.get('system') not in config.get('rating_source'):
+                        logger.info(f'Rating Source not available in Expected List')
+                        rating_source.append({asset_id: [source.get('system')]})
+                else:
+                    rating_source_availability.append({asset_id: 'Rating Source not available'})
+
+
+                values = rating.findall('value')
+                if values is not None:
+                    for value in values:
+                        logger.info(f'Rating Values: {value.text} and rating Values from config: {config.get('rating_values')}')
+                        if value.text not in config.get('rating_values'):
+                            rating_value.append({asset_id: [value.text]})
+                else:
+                    rating_value_availability.append({asset_id: 'Rating Value not available'})
+        else:
+            main_availability.append({asset_id: f'{key} tag not available'})
+
+    logger.info(f'Completed rating validation')
+    return [main_availability,
+            rating_source_availability,
+            rating_source,
+            rating_value_availability,
+            rating_value]
 
 
 

@@ -41,6 +41,7 @@ def _get_client():
         raise ImportError("slack-sdk is required: pip install slack-sdk")
 
     token = os.environ.get("SLACK_BOT_TOKEN", "")
+    logger.info(f'Slack Bot Token: {token}')
     if not token:
         raise ValueError("SLACK_BOT_TOKEN environment variable is not set.")
     return WebClient(token=token)

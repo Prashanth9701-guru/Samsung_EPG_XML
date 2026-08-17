@@ -4,7 +4,7 @@ import requests
 import yaml
 import logging
 
-from tests.asset_level_test import validate_thumbnail
+from tests.asset_level_test import validate_thumbnail, validate_rating
 from tests.channel_level_test import capture_channel_level_lang
 from utilities.helper import *
 from services.xlsx_service import *
@@ -73,6 +73,83 @@ def template(url,
                     logger.info(f'{ticket_id} Finished Asset End time format validation')
 
                     sequence_number = sequence_number + 1
+
+                    logger.info(f'Started Schedule validation')
+                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Schedule',
+                                                               validate_asset_title, 'title', channel_level_language,
+                                                               content_type, 200, [1200, 21600])
+                    logger.info(f'Schedule Results: {results}')
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Validate less than 20 minutes (1200 seconds) of Assets are not scheduled in all 7 days', f'Scheduled duration of Assets should be greater than or equal to 20 minutes for all Assets in all 7 days', 'Failed', f'Duration of the scheduled assets is less than 20 minutes (1200 seconds)', ','.join(map(str, results[2]))) if results[2] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate less than 20 minutes (1200 seconds) of Assets are not scheduled in all 7 days', f'Scheduled duration of Assets should be greater than or equal to 20 minutes for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available', ','.join(map(str, results[0]))) if results[0] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate less than 20 minutes (1200 seconds) of Assets are not scheduled in all 7 days', f'Scheduled duration of Assets should be greater than or equal to 20 minutes for all Assets in all 7 days', 'Not Tested', 'Start and Stop Tags are not available') if results[1] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate less than 20 minutes (1200 seconds) of Assets are not scheduled in all 7 days', f'Scheduled duration of Assets should be greater than or equal to 20 minutes for all Assets in all 7 days', 'Passed', f'Duration of the scheduled assets is greater than or equal to 20 minutes'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Validate greater than 6 hours (21600 seconds) of Assets are not scheduled in all 7 days', f'Scheduled duration of Assets should be less than or equal to 6 hours for all Assets in all 7 days', 'Failed', f'Duration of the scheduled assets is greater than 6 hours (21600 seconds)', ','.join(map(str, results[3]))) if results[3] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate greater than 6 hours (21600 seconds) of Assets are not scheduled in all 7 days', f'Scheduled duration of Assets should be less than or equal to 6 hours for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available', ','.join(map(str, results[0]))) if results[0] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate greater than 6 hours (21600 seconds) of Assets are not scheduled in all 7 days', f'Scheduled duration of Assets should be less than or equal to 6 hours for all Assets in all 7 days', 'Not Tested', 'Start and Stop Tags are not available') if results[1] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate greater than 6 hours (21600 seconds) of Assets are not scheduled in all 7 days', f'Scheduled duration of Assets should be less than or equal to 6 hours for all Assets in all 7 days', 'Passed', f'Duration of the scheduled assets is less than or equal to 6 hours'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Validate schedule gap between Assets in all 7 days', f'Current asset stop time and future asset start time should be equal for all Assets in all 7 days', 'Failed', f'Observing gap between the schedule assets by comparing current asset stop time and future asset start time', ','.join(map(str, results[4]))) if results[4] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate schedule gap between Assets in all 7 days', f'Current asset stop time and future asset start time should be equal for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available', ','.join(map(str, results[0]))) if results[0] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate schedule gap between Assets in all 7 days', f'Current asset stop time and future asset start time should be equal for all Assets in all 7 days', 'Not Tested', 'Start and Stop Tags are not available') if results[1] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate schedule gap between Assets in all 7 days', f'Current asset stop time and future asset start time should be equal for all Assets in all 7 days', 'Passed', f"Scheduled assets doesn't have any gaps"))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Validate Minutes attribute availability in all 7 days', f'Minutes attribute should be available for all Assets in all 7 days', 'Failed', f'Minutes attribute not available for some assets', ','.join(map(str, results[6]))) if results[6] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Minutes attribute availability in all 7 days', f'Minutes attribute should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Minutes attribute availability in all 7 days', f'Minutes attribute should be available for all Assets in all 7 days', 'Not Tested', f'Schedule Length Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Minutes attribute availability in all 7 days', f'Minutes attribute should be available for all Assets in all 7 days', 'Passed', f'Minutes attribute is available for all assets'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Validate Minutes Value availability in all 7 days', f'Minutes Value should be available for all Assets in all 7 days', 'Failed', f'Minutes Value not available for some assets', ','.join(map(str, results[7]))) if results[7] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Minutes Value availability in all 7 days', f'Minutes Value should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Minutes Value availability in all 7 days', f'Minutes Value should be available for all Assets in all 7 days', 'Not Tested', f'Schedule Length Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Minutes Value availability in all 7 days', f'Minutes Value should be available for all Assets in all 7 days', 'Not Tested', f'Minutes Attribute not available for some assets') if results[6] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Minutes Value availability in all 7 days', f'Minutes Value should be available for all Assets in all 7 days', 'Passed', f'Minutes Value is available for all assets'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Validate Asset Duration in minutes match with Minutes Value in all 7 days', f'Minutes Value and Asset Duration in minutes should be equal for all Assets in all 7 days', 'Failed', f'Minutes Value and Asset Duration in minutes are not equal for some assets', ','.join(map(str, results[8]))) if results[8] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Asset Duration in minutes match with Minutes Value in all 7 days', f'Minutes Value and Asset Duration in minutes should be equal for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Asset Duration in minutes match with Minutes Value in all 7 days', f'Minutes Value and Asset Duration in minutes should be equal for all Assets in all 7 days', 'Not Tested', f'Schedule Length Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Asset Duration in minutes match with Minutes Value in all 7 days', f'Minutes Value and Asset Duration in minutes should be equal for all Assets in all 7 days', 'Not Tested', f'Minutes Attribute not available for some assets') if results[6] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Asset Duration in minutes match with Minutes Value in all 7 days', f'Minutes Value and Asset Duration in minutes should be equal for all Assets in all 7 days', 'Not Tested', f'Minutes Value not available for some assets') if results[7] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Asset Duration in minutes match with Minutes Value in all 7 days', f'Minutes Value and Asset Duration in minutes should be equal for all Assets in all 7 days', 'Passed', f'Minutes Value and Asset Duration in minutes are equal for all assets'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Validate Seconds attribute availability in all 7 days', f'Seconds attribute should be available for all Assets in all 7 days', 'Failed', f'Seconds attribute not available for some assets', ','.join(map(str, results[11]))) if results[11] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Seconds attribute availability in all 7 days', f'Seconds attribute should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Seconds attribute availability in all 7 days', f'Seconds attribute should be available for all Assets in all 7 days', 'Not Tested', f'Schedule Length Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Seconds attribute availability in all 7 days', f'Seconds attribute should be available for all Assets in all 7 days', 'Passed', f'Seconds attribute is available for all assets'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Validate Seconds Value availability in all 7 days', f'Seconds Value should be available for all Assets in all 7 days', 'Failed', f'Seconds Value not available for some assets', ','.join(map(str, results[10]))) if results[10] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Seconds Value availability in all 7 days', f'Seconds Value should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Seconds Value availability in all 7 days', f'Seconds Value should be available for all Assets in all 7 days', 'Not Tested', f'Schedule Length Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Seconds Value availability in all 7 days', f'Seconds Value should be available for all Assets in all 7 days', 'Not Tested', f'Seconds Attribute not available for some assets') if results[11] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Seconds Value availability in all 7 days', f'Seconds Value should be available for all Assets in all 7 days', 'Passed', f'Seconds Value is available for all assets'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Validate Asset Duration in seconds match with Seconds Value in all 7 days', f'Seconds Value and Asset Duration in seconds should be equal for all Assets in all 7 days', 'Failed', f'Seconds Value and Asset Duration in seconds are not equal for some assets', ','.join(map(str, results[9]))) if results[9] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Asset Duration in seconds match with Seconds Value in all 7 days', f'Seconds Value and Asset Duration in seconds should be equal for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Asset Duration in seconds match with Seconds Value in all 7 days', f'Seconds Value and Asset Duration in seconds should be equal for all Assets in all 7 days', 'Not Tested', f'Schedule Length Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Asset Duration in seconds match with Seconds Value in all 7 days', f'Seconds Value and Asset Duration in seconds should be equal for all Assets in all 7 days', 'Not Tested', f'Seconds Attribute not available for some assets') if results[11] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Asset Duration in seconds match with Seconds Value in all 7 days', f'Seconds Value and Asset Duration in seconds should be equal for all Assets in all 7 days', 'Not Tested', f'Seconds Value not available for some assets') if results[10] else
+                                             helper_fuc(sequence_number, 'Schedule', f'Validate Asset Duration in seconds match with Seconds Value in all 7 days', f'Seconds Value and Asset Duration in seconds should be equal for all Assets in all 7 days', 'Passed', f'Seconds Value and Asset Duration in seconds are equal for all assets'))
+
+                    sequence_number = sequence_number + 1
+
+                    logger.info(f'Finished Schedule validation')
 
                     logger.info(f'{ticket_id} Started Asset Title validation')
                     results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'title', channel_level_language, content_type, 200)
@@ -388,16 +465,72 @@ def template(url,
 
                     logger.info(f'{ticket_id} Finished Thumbnail validation')
 
-                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Schedule',
-                                                               validate_asset_title, 'title', channel_level_language,
-                                                               content_type, 200)
+                    logger.info(f'{ticket_id} Started Rating validation')
+                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level',
+                                                               validate_rating, 'rating', channel_level_language,
+                                                               content_type)
+                    logger.info(f'{ticket_id} Rating Results: {results}')
 
-                    # ticket = ticket_id.split('/')[len(ticket_id.split('/')) - 1]
-                    # timestamp = datetime.today().strftime("%Y%m%d_%H%M%S")
-                    #report_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "reports"), f'{ticket}_{timestamp}')
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source availability in all 7 days', f'Rating Source should be available for all Assets in all 7 days', 'Failed', f'Rating Source not available for some assets', ','.join(map(str, results[2]))) if results[2] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source availability in all 7 days', f'Rating Source should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source availability in all 7 days', f'Rating Source should be available for all Assets in all 7 days', 'Not Tested', f'Rating Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source availability in all 7 days', f'Rating Source should be available for all Assets in all 7 days', 'Passed', f'Rating Source is available for all assets'))
 
-                    # logger.info(f'{ticket_id} {report_path}')
-                    # os.makedirs(report_path, exist_ok=True)
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source as per Samsung standard in all 7 days', f'Rating Source should present in Samsung_Supported_Category_List in all 7 days', 'Failed', f'For some assets, having in-correct-cat rating source. Currently, there is no spec for this case. So, moving this to Failed', ','.join(map(str, results[3]))) if results[3] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source as per Samsung standard in all 7 days', f'Rating Source should present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source as per Samsung standard in all 7 days', f'Rating Source should present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Rating Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source as per Samsung standard in all 7 days', f'Rating Source should present in Samsung_Supported_Category_List in all 7 days', 'Passed', f'Rating Source is available for all assets'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value availability in all 7 days', f'Rating Value should be available for all Assets in all 7 days', 'Failed', f'Rating Value not available for some assets', ','.join(map(str, results[4]))) if results[4] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value availability in all 7 days', f'Rating Value should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value availability in all 7 days', f'Rating Value should be available for all Assets in all 7 days', 'Not Tested', f'Rating Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value availability in all 7 days', f'Rating Value should be available for all Assets in all 7 days', 'Passed', f'Rating Value is available for all assets'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value as per Samsung standard in all 7 days', f'Rating Source Value present in Samsung_Supported_Category_List in all 7 days', 'Failed', f'For some assets, having in-correct-cat rating value are not included in Samsung_Supported_Category_List', ','.join(map(str, results[5]))) if results[5] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value as per Samsung standard in all 7 days', f'Rating Source Value present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value as per Samsung standard in all 7 days', f'Rating Source Value present in Samsung_Supported_Category_List in all 7 days', 'Not Tested', f'Rating Tag not available for some assets') if results[1] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Value as per Samsung standard in all 7 days', f'Rating Source Value present in Samsung_Supported_Category_List in all 7 days', 'Passed', f'Rating Source is available for all assets'))
+
+                    sequence_number = sequence_number + 1
+
+                    logger.info(f'{ticket_id} Started Asset ID validation')
+                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level',
+                                                               validate_asset_title, 'episode-num', channel_level_language,
+                                                               content_type, expected_length = 50)
+                    logger.info(f'{ticket_id} Asset ID Results: {results}')
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset ID availability in all 7 days', f'Asset ID should be available for all Assets in all 7 days', 'Failed', f'Asset ID not available for some assets', ','.join(map(str, results[2]))) if results[2] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset ID availability in all 7 days', f'Asset ID should be available for all Assets in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset ID availability in all 7 days', f'Asset ID should be available for all Assets in all 7 days', 'Not Tested', f'Asset ID Tag itself not available') if results[8] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset ID availability in all 7 days', f'Asset ID should be available for all Assets in all 7 days', 'Passed', f'Asset ID is available for all assets'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset ID Length in all 7 days', f'Length of Asset ID should not exceed 50 characters in all 7 days', 'Failed', f'Asset ID length is in-correct-length which is more than expected limit of 50 characters', ','.join(map(str, results[6]))) if results[6] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset ID Length in all 7 days', f'Length of Asset ID should not exceed 50 characters in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset ID Length in all 7 days', f'Length of Asset ID should not exceed 50 characters in all 7 days', 'Not Tested', f'Asset ID Tag itself not available') if results[8] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset ID Length in all 7 days', f'Length of Asset ID should not exceed 50 characters in all 7 days', 'Passed', f'Asset ID Length is within the expected limit of 50 characters'))
+
+                    sequence_number = sequence_number + 1
+
+                    Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Episode Number value availability in all 7 days', f'Episode Number Value should be available in all 7 days', 'Failed', f'Episode Number Value not available for some assets', ','.join(map(str, results[3]))) if results[3] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Episode Number value availability in all 7 days', f'Episode Number Value should be available in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Episode Number value availability in all 7 days', f'Episode Number Value should be available in all 7 days', 'Not Tested', f'Episode Number Tag itself not available') if results[7] else
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Episode Number value availability in all 7 days', f'Episode Number Value should be available in all 7 days', 'Passed', f'Episode Number Value not available for all assets'))
+
+                    sequence_number = sequence_number + 1
+
+                    logger.info(f'{ticket_id} Finished Asset ID validation')
+
+
+
+
                     logger.info(f'{ticket_id} Validation Output: {Validation_Output}')
                     excel_path = xlsx_report(Validation_Output, report_path)
                     updated_summary_list = failed_cases_seperator()

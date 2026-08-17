@@ -49,7 +49,7 @@ def failed_cases_seperator():
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
                     updated_summary_list.append({'Asset ID': key,
                                                  'Module': data.get('Module'),
-                                                 'Issue Summary': data.get('Issue Summary').replace('Mandatory', f'In {', '.join(list(Values.keys()))} days, {', '.join(duplicate_values)}')})
+                                                 'Issue Summary': data.get('Issue Summary').replace('Mandatory', f'In {', '.join(list(Values.keys()))} days, {', '.join(set(duplicate_values))}')})
 
             elif 'Some assets are having wrong datetime format' in data.get('Issue Summary'):
                 common_asset_ids = {}
@@ -156,6 +156,48 @@ def failed_cases_seperator():
                                                  'Module': data.get('Module'),
                                                  'Issue Summary': f"In {', '.join(list(Values.keys()))} days, {data.get('Issue Summary').replace('in-correct-cat', ', '.join(set(duplicate_values)))}"})
 
+            elif data.get('Scenario').strip() == 'Validate less than 20 minutes (1200 seconds) of Assets are not scheduled in all 7 days':
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
+                    for key, value in asset_ids_data.items():
+                        date, start_time, dur = value
+                        updated_summary_list.append({'Asset ID': key,
+                                                     'Module': data.get('Module'),
+                                                     'Issue Summary': f"In {date} day, Scheduled asset duration is {dur} sec which is less than 20 minutes (1200 seconds) (Asset Scheduled Time: {start_time})"})
+
+
+            elif data.get('Scenario').strip() == 'Validate greater than 6 hours (21600 seconds) of Assets are not scheduled in all 7 days':
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
+                    for key, value in asset_ids_data.items():
+                        date, start_time, dur = value
+                        updated_summary_list.append({'Asset ID': key,
+                                                     'Module': data.get('Module'),
+                                                     'Issue Summary': f"In {date} day, Scheduled asset duration is {dur} sec which is greater than 6 hours (21600 seconds) (Asset Scheduled Time: {start_time})"})
+
+
+            elif data.get('Scenario').strip() == 'Validate schedule gap between Assets in all 7 days':
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
+                    for key, value in asset_ids_data.items():
+                        date, start_time, next_asset_end_time = value
+                        updated_summary_list.append({'Asset ID': key,
+                                                     'Module': data.get('Module'),
+                                                     'Issue Summary': f"In {date} day, Current asset start time is {start_time} and Previous Asset End Time {next_asset_end_time} are not matching"})
+
+            elif data.get('Scenario').strip() == 'Validate Asset Duration in minutes match with Minutes Value in all 7 days':
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
+                    for key, value in asset_ids_data.items():
+                        date, xml_min, actual_dur_min = value
+                        updated_summary_list.append({'Asset ID': key,
+                                                     'Module': data.get('Module'),
+                                                     'Issue Summary': f"In {date} day,Actual asset duration {actual_dur_min} minutes and Duration in XML {xml_min} minutes are not matching"})
+
+
+            elif data.get('Scenario').strip() == 'Validate Asset Duration in seconds match with Seconds Value in all 7 days':
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
+                    for key, value in asset_ids_data.items():
+                        date, xml_sec, actual_dur_sec = value
+                        updated_summary_list.append({'Asset ID': key,
+                                                     'Module': data.get('Module'),
+                                                     'Issue Summary': f"In {date} day,Actual asset duration {actual_dur_sec} seconds and Duration in XML {xml_sec} seconds are not matching"})
 
             else:
                 common_asset_ids = {}
