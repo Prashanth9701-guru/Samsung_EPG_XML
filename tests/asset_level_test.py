@@ -206,8 +206,8 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
             else:
                 title_desc_mathc.append('Asset ID Tag Not Available')
 
+            logger.info(f'{asset_id} Episode Number Value: {episode_num_value} and Episode Num Tag: {episode_num_tag}')
             if episode_num_tag:
-                logger.info(f'{asset_id} Episode Number Value: {episode_num_value}')
                 if not episode_num_value:
                     lang_tag_availability.append({asset_id: ['Episode Number not available']})
             else:
