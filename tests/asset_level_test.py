@@ -1,6 +1,7 @@
 import logging
 import re
 import time
+import unicodedata
 
 import yaml
 import pycountry
@@ -113,6 +114,11 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                 else:
 
                     if key in ['title', 'sub-title', 'desc']:
+                        title = ''.join(
+                            char for char in title
+                            if not unicodedata.category(char).startswith('C')
+                        )
+
                         english_text = GoogleTranslator(
                             source="auto",
                             target="en"
