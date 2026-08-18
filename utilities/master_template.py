@@ -522,7 +522,7 @@ def template(url,
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Episode Number value availability in all 7 days', f'Episode Number Value should be available in all 7 days', 'Failed', f'Episode Number Value not available for some assets', ','.join(map(str, results[3]))) if results[3] else
                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate Episode Number value availability in all 7 days', f'Episode Number Value should be available in all 7 days', 'Not Tested', f'Main Programme Field itself not available') if results[0] else
                                              helper_fuc(sequence_number, 'Asset_Level', f'Validate Episode Number value availability in all 7 days', f'Episode Number Value should be available in all 7 days', 'Not Tested', f'Episode Number Tag itself not available') if results[7] else
-                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Episode Number value availability in all 7 days', f'Episode Number Value should be available in all 7 days', 'Passed', f'Episode Number Value not available for all assets'))
+                                             helper_fuc(sequence_number, 'Asset_Level', f'Validate Episode Number value availability in all 7 days', f'Episode Number Value should be available in all 7 days', 'Passed', f'Episode Number Value available for all assets'))
 
                     sequence_number = sequence_number + 1
 
