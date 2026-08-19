@@ -67,4 +67,5 @@ def validate_url_date_format(url, num) -> tuple[int, list, list] :
 
 
     else:
+        Validation_Output.append(helper_fuc(num, 'URL', 'Validation of URL Date Format', 'URL should be in Date Format', 'Failed', "URL not in Date Format"))
         return num, urls, date

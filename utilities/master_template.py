@@ -43,7 +43,7 @@ def template(url,
         logger.info(f'{ticket_id} {report_path}')
         os.makedirs(report_path, exist_ok=True)
         if seven_days_urls:
-             try:
+            try:
                 sequence_number, date_xml_data, date_json_data = validate_seven_days_data_fetch(seven_days_urls, seven_days, sequence_number, 'XML', report_path)
                 #logger.info(f'Data: {date_json_data}')
                 if date_xml_data:
@@ -563,7 +563,7 @@ def template(url,
                     logger.info(f"filtered_list: {filtered_list}")
 
 
-             except Exception as e:
+            except Exception as e:
                  logger.error(f'{ticket_id} Exception: {e}')
                  return {"status":"FAILED",
                         "xml_url":url,
