@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from services import slack_service
+from services.amagi_api_service import get_oauth_token
 from services.gsheet_service import validation_data
 from utilities.helper import *
 from utilities.logger_setup import *
@@ -10,6 +11,7 @@ from utilities.master_template import *
 
 def main():
     execution_results = []
+    token = get_oauth_token()
     sheet_data, work_sheet, new_column_number, sheet_service, today, today_format = validation_data()
     session_start = datetime.today()
     for inx, data in enumerate(sheet_data):
@@ -20,7 +22,8 @@ def main():
                                content_type,
                                data.get('PSD'),
                                data.get('Channel Name'),
-                               data.get('Content Partner Name'))
+                               data.get('Content Partner Name'),
+                               token=token)
             output = [data.get('EPG_XML_URL'),
                       data.get('Channel Name'),
                       data.get('Content Partner Name'),

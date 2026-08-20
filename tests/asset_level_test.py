@@ -11,6 +11,8 @@ from PIL import Image
 from io import BytesIO
 from deep_translator import GoogleTranslator
 
+from tests.fields_test import _content_type_map
+
 logger = logging.getLogger(__name__)
 
 config = yaml.safe_load(open('config.yaml'))
@@ -54,7 +56,7 @@ def validate_time(programs, key) ->tuple[bool|str,list] :
         return True, status_pass
 
 
-def validate_asset_title(programs, key, channel_level_language, content_type, expected_length) -> list:
+def validate_asset_title(programs, key, channel_level_language, content_type, expected_length, content_type_list=None) -> list:
     main_availability = []
     title_text_availability = []
     lang_tag_availability = []
@@ -184,6 +186,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
 
 
     logger.info(f'Content Type: {content_type} and key: {key}')
+    type_map = _content_type_map(content_type_list)
     for program in programs:
         asset_id = 'Asset ID Not Available'
         episode = program.findall('episode-num')
@@ -197,10 +200,13 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                 if 'assetID' in str(epi.attrib):
                     asset_id = epi.text
 
-                if episode_num_tag and content_type.lower() == 'episode' and key == 'episode-num':
+                effective_ct = type_map.get(asset_id, content_type)
+                if episode_num_tag and 'episode' in str(effective_ct).lower() and key == 'episode-num':
                     if 'onscreen' in str(epi.attrib):
                         episode_num_value = epi.text
 
+        effective_ct = type_map.get(asset_id, content_type)
+        logger.info(f'{asset_id} effective_content_type={effective_ct} for key={key}')
 
         if key == 'episode-num':
             if asset_id_tag:
@@ -214,22 +220,19 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
 
             logger.info(f'{asset_id} Episode Number Value: {episode_num_value} and Episode Num Tag: {episode_num_tag}')
             if episode_num_tag:
-                if not episode_num_value and content_type.lower() == 'episode':
+                if not episode_num_value and 'episode' in str(effective_ct).lower():
                     lang_tag_availability.append({asset_id: ['Episode Number not available']})
             else:
                 value_spel_char.append({asset_id: ['Episode Number Tag not available']})
 
 
-        if key == 'sub-title' and content_type.lower() == 'episode':
+        if key == 'sub-title' and 'episode' in str(effective_ct).lower():
 
             results = common_function(asset_id)
             logger.info(f'Results in Asset_Level_Test {key} file: {results}')
             for result, target_list in zip(results, lists):
                 if result:
                     target_list.extend(result)
-
-        elif key == 'sub-title' and 'episode' in content_type.lower():
-            pass
 
         elif key != 'sub-title':
 
@@ -239,7 +242,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                 if result:
                     target_list.extend(result)
 
-        elif key == 'sub-title' and content_type != 'episode':
+        elif key == 'sub-title' and 'episode' not in str(effective_ct).lower():
             main_availability.append({asset_id: f'{key} tag not available'})
 
     return [main_availability,

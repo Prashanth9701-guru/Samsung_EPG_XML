@@ -72,7 +72,7 @@ def failed_cases_seperator():
                                                  'Module': data.get('Module'),
                                                  'Issue Summary': f'In {', '.join(list(Values.keys()))} days are having, wrong date format (Ex:{duplicate_values[0]}) which is not expected as per platform standard'})
 
-            elif 'in-correct-thumbnail' in data.get('Issue Summary') or 'in-correct-length' in data.get('Issue Summary'):
+            elif 'in-correct-thumbnail' in data.get('Issue Summary') or 'in-correct-length' in data.get('Issue Summary') or 'in-correct_content_type' in data.get('Issue Summary'):
                 common_asset_ids = {}
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
                     for date, ids in asset_ids_data.items():

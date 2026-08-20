@@ -91,20 +91,31 @@ def validate_seven_days_channel_level_data(date_json_data, num, name) -> tuple[i
 
     return num+1, channel_level_language
 
-def validate_asset_fields_availability_seven_days(date_json_data, date_xml_data, num, channel_level_language, name, content_type) -> int:
+def validate_asset_fields_availability_seven_days(date_json_data, date_xml_data, num, channel_level_language, name, content_type, content_type_list=None) -> int:
     failed_cases = []
+    incorrect_content_type_failed_cases = []
 
     logger.info(f'Started Asset Level fields availability validation')
     for single_date_json_data in date_json_data:
         for date, json_data in single_date_json_data.items():
             program_data = (json_data.get('tv')).get('programme')
-            status, data = validate_asset_fields_availability(program_data, ['sub-title', 'episode-num'], ['onscreen'], content_type)
+            status, data, incorrect_content_type_pass, incorrect_content_type_fail = validate_asset_fields_availability(
+                program_data, ['sub-title', 'episode-num'], ['onscreen'], content_type, content_type_list=content_type_list
+            )
             if not status:
                 failed_cases.append({date: data})
+            if incorrect_content_type_fail:
+                incorrect_content_type_failed_cases.append({date: incorrect_content_type_fail})
 
     logger.info(f'Finished Asset Level fields availability validation: {failed_cases}')
     Validation_Output.append(helper_fuc(num, name, f'Validate mandatory fields availability for Assets in all 7 days', f'Mandatory fields should be available for Assets in all 7 days', 'Failed', f'Mandatory Fields are not available', ','.join(map(str, failed_cases))) if failed_cases else
                              helper_fuc(num, name, f'Validate mandatory fields availability for Assets in all 7 days', f'Mandatory fields should be available for Assets in all 7 days', 'Passed', f'All Mandatory fields are available for episodic assets'))
+
+    num += 1
+    logger.info(f'Incorrect content_type failed cases: {incorrect_content_type_failed_cases}')
+    Validation_Output.append(helper_fuc(num, name, f'Validate assets having in-correct content_type in all 7 days', f'Assets should have proper content_type in all 7 days', 'Failed', f'asset having in-correct_content_type so, sub-title or episode_onscreen fields are not available', ','.join(map(str, incorrect_content_type_failed_cases))) if incorrect_content_type_failed_cases else
+                             helper_fuc(num, name, f'Validate assets having in-correct content_type in all 7 days', f'Assets should have proper content_type in all 7 days', 'Passed', f'No assets having in-correct content_type'))
+
     return num+1
 
 
@@ -129,7 +140,7 @@ def validate_programs_seven_days_json(date_json_data, num, name, method_name, fi
 
 
 
-def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, filed, channel_level_language, content_type:str = '', expected_length:int = 0, duration=None) -> list:
+def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, filed, channel_level_language, content_type:str = '', expected_length:int = 0, duration=None, content_type_list=None) -> list:
     if duration is None:
         duration = []
     not_available_cases = []
@@ -170,7 +181,10 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
             if programs:
                 logger.info(f'Fetched programs for {filed}')
                 if name not in ['Schedule']:
-                    results = method_name(programs, filed, channel_level_language, content_type, expected_length)
+                    if method_name is validate_asset_title:
+                        results = method_name(programs, filed, channel_level_language, content_type, expected_length, content_type_list)
+                    else:
+                        results = method_name(programs, filed, channel_level_language, content_type, expected_length)
                     logger.info(f'Results in Child File {filed} : {results}')
 
                     for result, target_list in zip(results, lists):

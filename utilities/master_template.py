@@ -11,6 +11,7 @@ from services.xlsx_service import *
 from tests.xml_json_fetch import *
 from tests.xml_date_format import *
 from utilities.child_template import *
+from services.amagi_api_service import collect_asset_content_types
 from services.gsheet_service import *
 from services.upload_drive_service import *
 from src.failed_cases_seperator import *
@@ -26,7 +27,8 @@ def template(url,
              ticket_id,
              channel_name,
              content_partner_name,
-             sequence_number = 1) -> dict:
+             sequence_number = 1,
+             token=None) -> dict:
 
     drive_link: str = ""
     s3_html_url: str = ""
@@ -47,10 +49,17 @@ def template(url,
                 sequence_number, date_xml_data, date_json_data = validate_seven_days_data_fetch(seven_days_urls, seven_days, sequence_number, 'XML', report_path)
                 #logger.info(f'Data: {date_json_data}')
                 if date_xml_data:
+                    content_type_list = collect_asset_content_types(
+                        token, url, date_xml_data, ticket_id, default_content_type=content_type
+                    )
+                    logger.info(f'{ticket_id} Captured content_type list: {content_type_list}')
                     logger.info(f'{ticket_id} - Started Channel Level Fields')
                     sequence_number, channel_level_language = validate_seven_days_channel_level_data(date_xml_data, sequence_number, 'Channel_Level')
                     logger.info(f'{ticket_id} - Channel Level Language: {channel_level_language}')
-                    sequence_number = validate_asset_fields_availability_seven_days(date_json_data, date_xml_data, sequence_number, channel_level_language, 'Asset_Level', content_type)
+                    sequence_number = validate_asset_fields_availability_seven_days(
+                        date_json_data, date_xml_data, sequence_number, channel_level_language,
+                        'Asset_Level', content_type, content_type_list=content_type_list
+                    )
 
                     logger.info(f'{ticket_id} - Started Asset Start time format validation')
                     failed_cases, not_available_cases, no_value = validate_programs_seven_days_json(date_json_data, sequence_number, 'Asset_Level', validate_time, '@start', channel_level_language)
@@ -207,7 +216,7 @@ def template(url,
                     logger.info(f'{ticket_id} Finished Asset Title validation')
 
                     logger.info(f'{ticket_id} Started Sub-Title validation')
-                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'sub-title', channel_level_language, content_type, 200)
+                    results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level', validate_asset_title, 'sub-title', channel_level_language, content_type, 200, content_type_list=content_type_list)
                     logger.info(f'{ticket_id} Sub-Title Results: {results}')
 
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset Sub-Title availability in all 7 days', f'Asset Sub-Title should be available for all Assets in all 7 days', 'Failed', f'Asset Sub-Title not available for some assets', ','.join(map(str, results[2]))) if results[2] else
@@ -502,7 +511,7 @@ def template(url,
                     logger.info(f'{ticket_id} Started Asset ID validation')
                     results = validate_programs_seven_days_xml(date_xml_data, sequence_number, 'Asset_Level',
                                                                validate_asset_title, 'episode-num', channel_level_language,
-                                                               content_type, expected_length = 50)
+                                                               content_type, expected_length = 50, content_type_list=content_type_list)
                     logger.info(f'{ticket_id} Asset ID Results: {results}')
 
                     Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Asset ID availability in all 7 days', f'Asset ID should be available for all Assets in all 7 days', 'Failed', f'Asset ID not available for some assets', ','.join(map(str, results[2]))) if results[2] else
