@@ -93,6 +93,30 @@ def failed_cases_seperator():
                                                  'Module': data.get('Module'),
                                                  'Issue Summary': data.get('Issue Summary').replace('in-correct-thumbnail', f'{duplicate_values[0]}') if 'in-correct-thumbnail' in data.get('Issue Summary') else data.get('Issue Summary').replace('in-correct-length', f'{duplicate_values[0]}')})
 
+
+            elif 'in-correct_content_type' in data.get('Issue Summary'):
+                common_asset_ids = {}
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
+                    for date, ids in asset_ids_data.items():
+                        for asset_ids in ids:
+                            for asset_id, value in asset_ids.items():
+                                if asset_id not in common_asset_ids:
+                                    common_asset_ids[asset_id] = {}
+
+                                if date not in common_asset_ids[asset_id]:
+                                    common_asset_ids[asset_id][date] = []
+
+                                common_asset_ids[asset_id][date].extend(v for v in value if v not in common_asset_ids[asset_id][date])
+
+                for key, Values in common_asset_ids.items():
+                    duplicate_values = []
+                    duplicate_values.extend(i for v in list(Values.values()) for i in v)
+                    updated_summary_list.append({'Asset ID': key,
+                                                 'Module': data.get('Module'),
+                                                 'Issue Summary': data.get('Issue Summary').replace('in-correct_content_type', f'{duplicate_values[0]}')})
+
+
+
             elif 'in-correct length' in data.get('Issue Summary') and 'proper-length' in data.get('Issue Summary'):
                 common_asset_ids = {}
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
