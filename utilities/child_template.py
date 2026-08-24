@@ -251,7 +251,7 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
 
 
 
-                        if durations is not None:
+                        if durations:
                             minutes_tag = next((True for dur in durations if dur.attrib.get('units') and dur.attrib.get('units') == 'minutes'), False)
                             seconds_tag = next((True for dur in durations if dur.attrib.get('units') and dur.attrib.get('units') == 'seconds'), False)
                             logger.info(f'Minutes tag: {minutes_tag}')
