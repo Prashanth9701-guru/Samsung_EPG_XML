@@ -355,37 +355,41 @@ details[open] .chevron { transform: rotate(90deg); }
   display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
 }
 .tc-table-wrap {
-  overflow-x: auto; border: 1px solid #E2E8F0; border-radius: 10px;
-  max-height: 640px; min-height: 220px; overflow-y: auto;
-  resize: vertical;
+  overflow: auto; border: 1px solid #E2E8F0; border-radius: 10px;
+  max-height: 640px;
 }
-.tc-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; min-width: 900px; }
+.tc-table {
+  width: max-content; min-width: 100%; border-collapse: collapse;
+  font-size: 13px; table-layout: fixed;
+}
 .tc-table th {
-  position: sticky; top: 0; z-index: 1;
-  padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700;
+  position: sticky; top: 0; z-index: 2;
+  padding: 10px 14px 10px 12px; text-align: left; font-size: 11px; font-weight: 700;
   text-transform: uppercase; letter-spacing: .7px; color: #64748B;
   background: #F8FAFC; border-bottom: 2px solid #E2E8F0;
-  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  box-sizing: border-box; white-space: nowrap;
 }
-.tc-th-label { display: block; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; }
+.tc-th-label { display: block; overflow: hidden; text-overflow: ellipsis; }
 .tc-col-resizer {
-  position: absolute; top: 0; right: 0; width: 8px; height: 100%;
-  cursor: col-resize; user-select: none; z-index: 2; touch-action: none;
+  position: absolute; top: 0; right: 0; width: 5px; height: 100%;
+  cursor: col-resize; user-select: none; z-index: 3; touch-action: none;
 }
-.tc-col-resizer:hover, .tc-col-resizer.resizing { background: rgba(59,130,246,.25); }
+.tc-col-resizer::after {
+  content: ''; position: absolute; top: 20%; bottom: 20%; right: 2px; width: 1px;
+  background: #CBD5E1; transition: background .15s;
+}
+.tc-col-resizer:hover::after, .tc-col-resizer.resizing::after {
+  background: #3B82F6; width: 2px; right: 1px;
+}
+body.tc-col-resizing { cursor: col-resize !important; user-select: none !important; }
+body.tc-col-resizing * { cursor: col-resize !important; }
 .tc-table td {
   padding: 9px 12px; border-bottom: 1px solid #F1F5F9; vertical-align: top;
-  overflow-wrap: anywhere; color: #1E293B; overflow: hidden;
+  overflow-wrap: anywhere; word-break: break-word; color: #1E293B;
+  box-sizing: border-box;
 }
 .tc-table tr:last-child td { border-bottom: none; }
 .tc-table tbody tr:hover td { background: #F8FAFC; }
-.tc-col-sno { width: 6%; }
-.tc-col-module { width: 12%; }
-.tc-col-scenario { width: 22%; }
-.tc-col-expected { width: 18%; }
-.tc-col-status { width: 12%; }
-.tc-col-issue { width: 18%; }
-.tc-col-assets { width: 12%; }
 .tc-empty { font-size: 13px; color: #94A3B8; font-style: italic; padding: 12px 0; }
 .tab-blurb {
   background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px;
@@ -1276,13 +1280,13 @@ def _build_failure_summary_card(rows):
 # ---------------------------------------------------------------------------
 
 _COMPLETE_COLUMNS = (
-    ('S.No', 'tc-col-sno'),
-    ('Module', 'tc-col-module'),
-    ('Scenario', 'tc-col-scenario'),
-    ('Expected Results', 'tc-col-expected'),
-    ('Status', 'tc-col-status'),
-    ('Issue Summary', 'tc-col-issue'),
-    ('Asset IDs', 'tc-col-assets'),
+    ('S.No', 'tc-col-sno', 56),
+    ('Module', 'tc-col-module', 120),
+    ('Scenario', 'tc-col-scenario', 240),
+    ('Expected Results', 'tc-col-expected', 220),
+    ('Status', 'tc-col-status', 110),
+    ('Issue Summary', 'tc-col-issue', 240),
+    ('Asset IDs', 'tc-col-assets', 200),
 )
 
 _ASSET_PREVIEW_LIMIT = 120
@@ -1366,15 +1370,23 @@ def _render_complete_test_cases_panel(rows, counts):
             + '<div class="tc-empty">No test cases recorded.</div>'
         )
 
+    colgroup = (
+        '<colgroup>'
+        + ''.join(
+            f'<col class="{css}" data-default-width="{width}" style="width:{width}px;">'
+            for _col, css, width in _COMPLETE_COLUMNS
+        )
+        + '</colgroup>'
+    )
     thead = (
         '<thead><tr>'
         + ''.join(
             f'<th class="{css}">'
             f'<span class="tc-th-label">{_esc(col)}</span>'
             f'<span class="tc-col-resizer" role="separator" aria-orientation="vertical" '
-            f'aria-label="Resize {_esc(col)} column"></span>'
+            f'aria-label="Resize {_esc(col)} column" title="Drag to resize · double-click to reset"></span>'
             f'</th>'
-            for col, css in _COMPLETE_COLUMNS
+            for col, css, _width in _COMPLETE_COLUMNS
         )
         + '</tr></thead>'
     )
@@ -1405,7 +1417,7 @@ def _render_complete_test_cases_panel(rows, counts):
         + kpi
         + '<div class="tc-table-wrap">'
         f'<table class="tc-table" id="tc-complete-table">'
-        f'{thead}<tbody>{"".join(body_rows)}</tbody></table>'
+        f'{colgroup}{thead}<tbody>{"".join(body_rows)}</tbody></table>'
         '</div>'
     )
 
@@ -1644,43 +1656,48 @@ function initCompleteFilters(){
 function initResizableCompleteTable(){
   var table = document.getElementById('tc-complete-table');
   if(!table) return;
+  var cols = table.querySelectorAll('colgroup col');
   var ths = table.querySelectorAll('thead th');
+  if(!cols.length || !ths.length) return;
 
-  function setColWidth(th, colIndex, width){
-    var px = Math.max(48, Math.round(width)) + 'px';
-    th.style.width = px;
-    th.style.minWidth = px;
-    th.style.maxWidth = px;
-    table.querySelectorAll('tbody tr').forEach(function(row){
-      var cell = row.children[colIndex];
-      if(!cell) return;
-      cell.style.width = px;
-      cell.style.minWidth = px;
-      cell.style.maxWidth = px;
-    });
+  var minWidths = [48, 80, 120, 120, 88, 120, 120];
+
+  function defaultWidth(col){
+    return parseInt(col.getAttribute('data-default-width') || '120', 10);
+  }
+
+  function setColWidth(colIndex, widthPx){
+    var col = cols[colIndex];
+    if(!col) return;
+    var minW = minWidths[colIndex] || 48;
+    col.style.width = Math.max(minW, Math.round(widthPx)) + 'px';
   }
 
   ths.forEach(function(th, colIndex){
     var resizer = th.querySelector('.tc-col-resizer');
-    if(!resizer) return;
-    var startX = 0;
-    var startWidth = 0;
+    var col = cols[colIndex];
+    if(!resizer || !col) return;
+
+    resizer.addEventListener('dblclick', function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+      setColWidth(colIndex, defaultWidth(col));
+    });
 
     resizer.addEventListener('mousedown', function(ev){
       ev.preventDefault();
-      startX = ev.pageX;
-      startWidth = th.offsetWidth;
+      ev.stopPropagation();
+      var startX = ev.clientX;
+      var startW = col.getBoundingClientRect().width;
       resizer.classList.add('resizing');
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
+      document.body.classList.add('tc-col-resizing');
 
       function onMove(moveEv){
-        setColWidth(th, colIndex, startWidth + (moveEv.pageX - startX));
+        setColWidth(colIndex, startW + (moveEv.clientX - startX));
       }
       function onUp(){
         resizer.classList.remove('resizing');
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
+        document.body.classList.remove('tc-col-resizing');
         document.removeEventListener('mousemove', onMove);
         document.removeEventListener('mouseup', onUp);
       }
