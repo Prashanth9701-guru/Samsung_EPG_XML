@@ -359,7 +359,7 @@ details[open] .chevron { transform: rotate(90deg); }
   max-height: 640px;
 }
 .tc-table {
-  width: max-content; min-width: 100%; border-collapse: collapse;
+  width: max-content; border-collapse: collapse;
   font-size: 13px; table-layout: fixed;
 }
 .tc-table th {
@@ -369,20 +369,26 @@ details[open] .chevron { transform: rotate(90deg); }
   background: #F8FAFC; border-bottom: 2px solid #E2E8F0;
   box-sizing: border-box; white-space: nowrap;
 }
-.tc-th-label { display: block; overflow: hidden; text-overflow: ellipsis; }
+.tc-th-inner {
+  position: relative; display: block; width: 100%;
+}
+.tc-th-label { display: block; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
 .tc-col-resizer {
-  position: absolute; top: 0; right: 0; width: 5px; height: 100%;
-  cursor: col-resize; user-select: none; z-index: 3; touch-action: none;
+  position: absolute; top: -10px; right: -6px; bottom: -10px; width: 12px;
+  cursor: col-resize; user-select: none; z-index: 5; touch-action: none;
 }
 .tc-col-resizer::after {
-  content: ''; position: absolute; top: 20%; bottom: 20%; right: 2px; width: 1px;
-  background: #CBD5E1; transition: background .15s;
+  content: ''; position: absolute; top: 25%; bottom: 25%; left: 50%;
+  width: 2px; margin-left: -1px; background: transparent; border-radius: 1px;
+  transition: background .12s;
 }
 .tc-col-resizer:hover::after, .tc-col-resizer.resizing::after {
-  background: #3B82F6; width: 2px; right: 1px;
+  background: #3B82F6;
 }
-body.tc-col-resizing { cursor: col-resize !important; user-select: none !important; }
-body.tc-col-resizing * { cursor: col-resize !important; }
+body.tc-col-resizing, body.tc-col-resizing * {
+  cursor: col-resize !important; user-select: none !important;
+}
+body.tc-col-resizing { -webkit-user-select: none; }
 .tc-table td {
   padding: 9px 12px; border-bottom: 1px solid #F1F5F9; vertical-align: top;
   overflow-wrap: anywhere; word-break: break-word; color: #1E293B;
@@ -1382,9 +1388,11 @@ def _render_complete_test_cases_panel(rows, counts):
         '<thead><tr>'
         + ''.join(
             f'<th class="{css}">'
+            f'<div class="tc-th-inner">'
             f'<span class="tc-th-label">{_esc(col)}</span>'
             f'<span class="tc-col-resizer" role="separator" aria-orientation="vertical" '
             f'aria-label="Resize {_esc(col)} column" title="Drag to resize · double-click to reset"></span>'
+            f'</div>'
             f'</th>'
             for col, css, _width in _COMPLETE_COLUMNS
         )
@@ -1656,22 +1664,40 @@ function initCompleteFilters(){
 function initResizableCompleteTable(){
   var table = document.getElementById('tc-complete-table');
   if(!table) return;
+  var wrap = table.closest('.tc-table-wrap');
   var cols = table.querySelectorAll('colgroup col');
   var ths = table.querySelectorAll('thead th');
   if(!cols.length || !ths.length) return;
 
-  var minWidths = [48, 80, 120, 120, 88, 120, 120];
+  // Low mins so a column can be dragged nearly to the edge
+  var minWidths = [36, 48, 56, 56, 56, 56, 56];
 
-  function defaultWidth(col){
-    return parseInt(col.getAttribute('data-default-width') || '120', 10);
+  function readWidth(col){
+    var w = parseFloat(col.style.width);
+    if(!isFinite(w) || w <= 0){
+      w = parseFloat(col.getAttribute('data-default-width') || '120');
+    }
+    return w;
+  }
+
+  function syncTableWidth(){
+    var total = 0;
+    cols.forEach(function(c){ total += readWidth(c); });
+    table.style.width = Math.round(total) + 'px';
   }
 
   function setColWidth(colIndex, widthPx){
     var col = cols[colIndex];
     if(!col) return;
-    var minW = minWidths[colIndex] || 48;
-    col.style.width = Math.max(minW, Math.round(widthPx)) + 'px';
+    var minW = minWidths[colIndex] || 36;
+    // No max cap — drag right can expand all the way to the far edge
+    var next = Math.max(minW, Math.round(widthPx));
+    col.style.width = next + 'px';
+    syncTableWidth();
   }
+
+  // Initial width = sum of col defaults (avoids other cols stealing space)
+  syncTableWidth();
 
   ths.forEach(function(th, colIndex){
     var resizer = th.querySelector('.tc-col-resizer');
@@ -1681,28 +1707,54 @@ function initResizableCompleteTable(){
     resizer.addEventListener('dblclick', function(ev){
       ev.preventDefault();
       ev.stopPropagation();
-      setColWidth(colIndex, defaultWidth(col));
+      setColWidth(colIndex, parseInt(col.getAttribute('data-default-width') || '120', 10));
     });
 
-    resizer.addEventListener('mousedown', function(ev){
+    resizer.addEventListener('pointerdown', function(ev){
+      if(ev.pointerType === 'mouse' && ev.button !== 0) return;
       ev.preventDefault();
       ev.stopPropagation();
+
       var startX = ev.clientX;
-      var startW = col.getBoundingClientRect().width;
+      var startW = readWidth(col);
+      var dragging = true;
       resizer.classList.add('resizing');
       document.body.classList.add('tc-col-resizing');
+      try { resizer.setPointerCapture(ev.pointerId); } catch(e) {}
+
+      function edgeScroll(clientX){
+        if(!wrap) return;
+        var rect = wrap.getBoundingClientRect();
+        var zone = 48;
+        var step = 24;
+        if(clientX > rect.right - zone){
+          wrap.scrollLeft += step;
+        } else if(clientX < rect.left + zone){
+          wrap.scrollLeft -= step;
+        }
+      }
 
       function onMove(moveEv){
+        if(!dragging) return;
         setColWidth(colIndex, startW + (moveEv.clientX - startX));
+        edgeScroll(moveEv.clientX);
       }
-      function onUp(){
+
+      function onUp(upEv){
+        if(!dragging) return;
+        dragging = false;
         resizer.classList.remove('resizing');
         document.body.classList.remove('tc-col-resizing');
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
+        try { resizer.releasePointerCapture(upEv.pointerId); } catch(e) {}
+        document.removeEventListener('pointermove', onMove, true);
+        document.removeEventListener('pointerup', onUp, true);
+        document.removeEventListener('pointercancel', onUp, true);
       }
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
+
+      // Document-level capture so drag continues to viewport edges
+      document.addEventListener('pointermove', onMove, true);
+      document.addEventListener('pointerup', onUp, true);
+      document.addEventListener('pointercancel', onUp, true);
     });
   });
 }
