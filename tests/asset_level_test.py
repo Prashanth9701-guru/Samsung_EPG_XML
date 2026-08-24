@@ -162,7 +162,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                                     pycountry.languages.get(alpha_3=title) or
                                     pycountry.languages.get(alpha_2=title))
                         logger.info(f'language: {language} and channel level language: {channel_level_language}')
-                        if not language.alpha_2 == channel_level_language:
+                        if language.alpha_2 and not language.alpha_2 == channel_level_language:
                             lang_match_channel.append({asset_id: [title, channel_level_language]})
 
             if failed_category_list:
