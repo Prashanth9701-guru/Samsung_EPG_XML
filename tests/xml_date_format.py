@@ -14,7 +14,7 @@ def validate_url_date_format(url, num) -> tuple[int, list, list] :
     urls = []
     date = []
     if url.endswith("Today.xml"):
-        Validation_Output.append(helper_fuc(num, 'URL', 'Validation of URL Date Format', 'URL should be in Date Format', 'Failed', "URL not in Date Format at end having Today which is not expected"))
+        Validation_Output.append(helper_fuc(num, 'URL', 'Validation of URL Date Format', 'URL should be in Date Format', 'Failed', "URL does not contain the expected date format (YYYY-MM-DD) at the end; instead, it contains the value 'Today'"))
         current_date = datetime.today()
         #current_date = datetime(2026,8,10)
         logger.info(f'Current Date: {current_date}')
@@ -67,5 +67,5 @@ def validate_url_date_format(url, num) -> tuple[int, list, list] :
 
 
     else:
-        Validation_Output.append(helper_fuc(num, 'URL', 'Validation of URL Date Format', 'URL should be in Date Format', 'Failed', "URL not in Date Format"))
+        Validation_Output.append(helper_fuc(num, 'URL', 'Validation of URL Date Format', 'URL should be in Date Format', 'Failed', "URL does not follow the expected date format (YYYY-MM-DD)"))
         return num, urls, date

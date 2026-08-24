@@ -356,18 +356,26 @@ details[open] .chevron { transform: rotate(90deg); }
 }
 .tc-table-wrap {
   overflow-x: auto; border: 1px solid #E2E8F0; border-radius: 10px;
-  max-height: 640px; overflow-y: auto;
+  max-height: 640px; min-height: 220px; overflow-y: auto;
+  resize: vertical;
 }
-.tc-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+.tc-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; min-width: 900px; }
 .tc-table th {
   position: sticky; top: 0; z-index: 1;
   padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700;
   text-transform: uppercase; letter-spacing: .7px; color: #64748B;
   background: #F8FAFC; border-bottom: 2px solid #E2E8F0;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
 }
+.tc-th-label { display: block; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; }
+.tc-col-resizer {
+  position: absolute; top: 0; right: 0; width: 8px; height: 100%;
+  cursor: col-resize; user-select: none; z-index: 2; touch-action: none;
+}
+.tc-col-resizer:hover, .tc-col-resizer.resizing { background: rgba(59,130,246,.25); }
 .tc-table td {
   padding: 9px 12px; border-bottom: 1px solid #F1F5F9; vertical-align: top;
-  overflow-wrap: anywhere; color: #1E293B;
+  overflow-wrap: anywhere; color: #1E293B; overflow: hidden;
 }
 .tc-table tr:last-child td { border-bottom: none; }
 .tc-table tbody tr:hover td { background: #F8FAFC; }
@@ -435,6 +443,14 @@ details[open] .chevron { transform: rotate(90deg); }
   color: #991B1B; word-break: break-all;
 }
 .gf-empty { font-size: 13px; color: #94A3B8; font-style: italic; }
+.gf-assets-wrap { padding: 0; }
+.gf-assets-header {
+  padding: 8px 12px; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .7px; color: #64748B;
+  background: #F8FAFC; border-bottom: 1px solid #E2E8F0;
+}
+.gf-assets-wrap .tc-assets-cell { padding: 10px 12px; }
+.gf-assets-wrap .gf-asset-id { white-space: pre-wrap; }
 """
 
 # ---------------------------------------------------------------------------
@@ -1093,15 +1109,14 @@ def _render_failure_html_card(asset_groups, module_groups):
     )
     blurb = (
         '<div class="tab-blurb">'
-        'Asset-level failure summary with issues consolidated for review. '
-        'Use <strong>Download Failure Summary</strong> to export this view as Excel.'
+        'Below are list of Asset ID&#39;s and respective issues.'
         '</div>'
     )
 
     if not asset_groups and not module_groups:
         return (
             '<div class="card">'
-            f'<div class="card-label">Failure Summary {_dl_btn}</div>'
+            f'<div class="card-label">Failures Grouped under Asset IDs {_dl_btn}</div>'
             + blurb
             + '<div class="fs-none">No failures recorded.</div>'
             '</div>'
@@ -1148,7 +1163,7 @@ def _render_failure_html_card(asset_groups, module_groups):
 
     return (
         '<div class="card">'
-        f'<div class="card-label">Failure Summary {_dl_btn}</div>'
+        f'<div class="card-label">Failures Grouped under Asset IDs {_dl_btn}</div>'
         + blurb
         + f'<table class="fs-table">{thead}<tbody>{tbody_rows}</tbody></table>'
         '</div>'
@@ -1271,6 +1286,7 @@ _COMPLETE_COLUMNS = (
 )
 
 _ASSET_PREVIEW_LIMIT = 120
+_GROUPED_ASSET_PREVIEW_COUNT = 5
 
 
 def _filter_pill(count, label, filter_key, dot, text, bg, active=False):
@@ -1322,9 +1338,7 @@ def _render_complete_test_cases_panel(rows, counts):
     )
     blurb = (
         '<div class="tab-blurb">'
-        'All validation results (Passed, Failed, Not Tested, Observation, Not Applicable). '
-        'Click a status filter below to narrow the list. Use <strong>…more</strong> / '
-        '<strong>Copy</strong> on Asset IDs when values are long.'
+        'Below are the complete End-to-End EPG execution results are listed.'
         '</div>'
     )
     kpi = (
@@ -1346,7 +1360,7 @@ def _render_complete_test_cases_panel(rows, counts):
 
     if not rows:
         return (
-            f'<div class="card-label">Complete Test Cases {_dl_btn}</div>'
+            f'<div class="card-label">Test Case + Results Section {_dl_btn}</div>'
             + blurb
             + kpi
             + '<div class="tc-empty">No test cases recorded.</div>'
@@ -1355,7 +1369,11 @@ def _render_complete_test_cases_panel(rows, counts):
     thead = (
         '<thead><tr>'
         + ''.join(
-            f'<th class="{css}">{_esc(col)}</th>'
+            f'<th class="{css}">'
+            f'<span class="tc-th-label">{_esc(col)}</span>'
+            f'<span class="tc-col-resizer" role="separator" aria-orientation="vertical" '
+            f'aria-label="Resize {_esc(col)} column"></span>'
+            f'</th>'
             for col, css in _COMPLETE_COLUMNS
         )
         + '</tr></thead>'
@@ -1382,7 +1400,7 @@ def _render_complete_test_cases_panel(rows, counts):
         )
 
     return (
-        f'<div class="card-label">Complete Test Cases {_dl_btn}</div>'
+        f'<div class="card-label">Test Case + Results Section {_dl_btn}</div>'
         + blurb
         + kpi
         + '<div class="tc-table-wrap">'
@@ -1464,17 +1482,49 @@ def _extract_asset_ids_for_grouped_tab(asset_ids_text, module):
     return ids
 
 
+def _render_grouped_asset_ids_body(asset_ids):
+    """Render Asset ID list for grouped tab; preview first 5, …more + copy when more."""
+    id_count = len(asset_ids)
+    if not asset_ids:
+        return '<div class="gf-empty" style="padding:10px 14px;">No Asset IDs recorded.</div>'
+
+    full_text = '\n'.join(asset_ids)
+    full_attr = _html.escape(full_text, quote=True)
+    needs_more = id_count > _GROUPED_ASSET_PREVIEW_COUNT
+    preview_text = '\n'.join(asset_ids[:_GROUPED_ASSET_PREVIEW_COUNT])
+
+    actions = (
+        f'<div class="tc-assets-actions">'
+        f'<button type="button" class="tc-copy-btn" data-copy="{full_attr}">Copy</button>'
+    )
+    if needs_more:
+        actions += (
+            '<button type="button" class="tc-more-btn" data-more="1">…more</button>'
+        )
+    actions += '</div>'
+
+    return (
+        f'<div class="gf-assets-wrap">'
+        f'<div class="gf-assets-header">Asset IDs ({id_count})</div>'
+        f'<div class="tc-assets-cell">'
+        f'<div class="tc-assets-preview gf-asset-id">{_esc(preview_text)}</div>'
+        f'<div class="tc-assets-full gf-asset-id">{_esc(full_text)}</div>'
+        + actions
+        + '</div>'
+        '</div>'
+    )
+
+
 def _render_grouped_failed_cases_panel(rows):
     """Tab 3: Failed cases accordion grouped by Issue Summary; body shows Asset IDs only.
 
     Groups are sorted descending by unique Asset ID count.
     """
     groups = _group_failed_rows_by_issue_summary(rows)
-    header = '<div class="card-label">Grouped Failed Cases</div>'
+    header = '<div class="card-label">Asset IDs Grouped under Failures</div>'
     blurb = (
         '<div class="tab-blurb">'
-        'Failures grouped by <strong>Issue Summary</strong>, ordered by most impacted '
-        'assets first. Expand a group to see Asset IDs.'
+        'Below the list of Issues and respective Asset ID&#39;s'
         '</div>'
     )
 
@@ -1504,16 +1554,7 @@ def _render_grouped_failed_cases_panel(rows):
         open_attr = ' open' if id_count <= 3 and id_count > 0 else ''
 
         if asset_ids:
-            body_rows = ''.join(
-                f'<tr><td class="gf-asset-id">{_esc(aid)}</td></tr>'
-                for aid in asset_ids
-            )
-            body_html = (
-                f'<table class="gf-table">'
-                f'<thead><tr><th>Asset IDs ({id_count})</th></tr></thead>'
-                f'<tbody>{body_rows}</tbody>'
-                f'</table>'
-            )
+            body_html = _render_grouped_asset_ids_body(asset_ids)
         else:
             body_html = '<div class="gf-empty" style="padding:10px 14px;">No Asset IDs recorded.</div>'
 
@@ -1543,11 +1584,11 @@ def _render_tab_shell(complete_html, failed_html, grouped_html):
         toolbar
         + '<div class="tab-bar" role="tablist">'
         '<button type="button" class="tab-btn" data-tab="complete" role="tab"'
-        ' aria-selected="false">Complete Test Cases</button>'
+        ' aria-selected="false">Test Case + Results Section</button>'
         '<button type="button" class="tab-btn active" data-tab="failed" role="tab"'
-        ' aria-selected="true">Failed Cases</button>'
+        ' aria-selected="true">Failures Grouped under Asset IDs</button>'
         '<button type="button" class="tab-btn" data-tab="grouped" role="tab"'
-        ' aria-selected="false">Grouped Failed Cases</button>'
+        ' aria-selected="false">Asset IDs Grouped under Failures</button>'
         '</div>'
         '<div class="tab-panels">'
         f'<div class="tab-panel" id="tab-complete" role="tabpanel">{complete_html}</div>'
@@ -1600,6 +1641,55 @@ function initCompleteFilters(){
   });
 }
 
+function initResizableCompleteTable(){
+  var table = document.getElementById('tc-complete-table');
+  if(!table) return;
+  var ths = table.querySelectorAll('thead th');
+
+  function setColWidth(th, colIndex, width){
+    var px = Math.max(48, Math.round(width)) + 'px';
+    th.style.width = px;
+    th.style.minWidth = px;
+    th.style.maxWidth = px;
+    table.querySelectorAll('tbody tr').forEach(function(row){
+      var cell = row.children[colIndex];
+      if(!cell) return;
+      cell.style.width = px;
+      cell.style.minWidth = px;
+      cell.style.maxWidth = px;
+    });
+  }
+
+  ths.forEach(function(th, colIndex){
+    var resizer = th.querySelector('.tc-col-resizer');
+    if(!resizer) return;
+    var startX = 0;
+    var startWidth = 0;
+
+    resizer.addEventListener('mousedown', function(ev){
+      ev.preventDefault();
+      startX = ev.pageX;
+      startWidth = th.offsetWidth;
+      resizer.classList.add('resizing');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+
+      function onMove(moveEv){
+        setColWidth(th, colIndex, startWidth + (moveEv.pageX - startX));
+      }
+      function onUp(){
+        resizer.classList.remove('resizing');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  });
+}
+
 function initAssetIdActions(){
   document.addEventListener('click', function(ev){
     var moreBtn = ev.target.closest('.tc-more-btn');
@@ -1635,6 +1725,7 @@ function initAssetIdActions(){
 document.addEventListener('DOMContentLoaded', function(){
   initReportTabs();
   initCompleteFilters();
+  initResizableCompleteTable();
   initAssetIdActions();
 });
 </script>
