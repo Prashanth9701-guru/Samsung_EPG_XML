@@ -38,6 +38,9 @@ _STATUS_NORM = {
     'failed': 'Failed',
     'not tested': 'Not Tested',
     'observation': 'Observation',
+    'not applicable': 'Not Applicable',
+    'n/a': 'Not Applicable',
+    'na': 'Not Applicable',
 }
 
 
@@ -55,7 +58,7 @@ def _module_overall(rows):
     statuses = {_norm(r['Status']) for r in rows}
     if 'Failed' in statuses:
         return 'Failed'
-    if 'Not Tested' in statuses or 'Observation' in statuses:
+    if 'Not Tested' in statuses or 'Observation' in statuses or 'Not Applicable' in statuses:
         return 'Passed with caveats'
     return 'Passed'
 
@@ -66,6 +69,7 @@ def _cls(status):
         'Failed':             'failed',
         'Not Tested':         'nt',
         'Observation':        'obs',
+        'Not Applicable':     'na',
         'Passed with caveats': 'caveats',
     }.get(status, 'nt')
 
@@ -154,6 +158,7 @@ body {
 .badge-failed  { color: #991B1B; background: #FEE2E2; border-color: #FCA5A5; }
 .badge-nt      { color: #1E40AF; background: #DBEAFE; border-color: #93C5FD; }
 .badge-obs     { color: #854D0E; background: #FEF9C3; border-color: #FDE68A; }
+.badge-na      { color: #475569; background: #F1F5F9; border-color: #CBD5E1; }
 .badge-caveats { color: #92400E; background: #FEF3C7; border-color: #FCD34D; }
 
 /* ── Module cards ── */
@@ -306,6 +311,92 @@ details[open] .chevron { transform: rotate(90deg); }
           font-weight:600; color:#fff; background:#3B82F6; border:none; border-radius:6px;
           cursor:pointer; vertical-align:middle; line-height:1.6; }
 .dl-btn:hover { background:#2563EB; }
+
+/* ── Tabs ── */
+.tab-bar {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  background: #fff; border-radius: 14px 14px 0 0; padding: 8px 10px 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 6px 24px rgba(0,0,0,.06);
+  border-bottom: 1px solid #E2E8F0; margin-bottom: 0;
+}
+.tab-btn {
+  appearance: none; border: none; background: transparent;
+  padding: 12px 18px; font-size: 13px; font-weight: 700; color: #64748B;
+  cursor: pointer; border-radius: 10px 10px 0 0; letter-spacing: .2px;
+  border-bottom: 3px solid transparent; margin-bottom: -1px;
+}
+.tab-btn:hover { color: #1E293B; background: #F8FAFC; }
+.tab-btn.active {
+  color: #0F172A; background: #F8FAFC;
+  border-bottom-color: #3B82F6;
+}
+.tab-panels {
+  background: #fff; border-radius: 0 0 14px 14px; padding: 22px 24px 26px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 6px 24px rgba(0,0,0,.06);
+  margin-bottom: 24px;
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.tab-panels .card {
+  box-shadow: none; margin-bottom: 0; padding: 0;
+  border-radius: 0;
+}
+
+/* ── Complete test cases table ── */
+.tc-kpi-row {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+}
+.tc-table-wrap {
+  overflow-x: auto; border: 1px solid #E2E8F0; border-radius: 10px;
+  max-height: 640px; overflow-y: auto;
+}
+.tc-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+.tc-table th {
+  position: sticky; top: 0; z-index: 1;
+  padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .7px; color: #64748B;
+  background: #F8FAFC; border-bottom: 2px solid #E2E8F0;
+}
+.tc-table td {
+  padding: 9px 12px; border-bottom: 1px solid #F1F5F9; vertical-align: top;
+  overflow-wrap: anywhere; color: #1E293B;
+}
+.tc-table tr:last-child td { border-bottom: none; }
+.tc-table tbody tr:hover td { background: #F8FAFC; }
+.tc-col-sno { width: 6%; }
+.tc-col-module { width: 12%; }
+.tc-col-scenario { width: 22%; }
+.tc-col-expected { width: 18%; }
+.tc-col-status { width: 12%; }
+.tc-col-issue { width: 18%; }
+.tc-col-assets { width: 12%; }
+.tc-empty { font-size: 13px; color: #94A3B8; font-style: italic; padding: 12px 0; }
+
+/* ── Grouped failed cases (by scenario) ── */
+.gf-item { border: 1px solid #E2E8F0; border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+.gf-summary {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+  background: #FFF8F8; cursor: pointer; user-select: none; list-style: none;
+}
+.gf-summary::-webkit-details-marker { display: none; }
+.gf-sc-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: #1E293B; }
+.gf-count {
+  flex-shrink: 0; background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5;
+  border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700;
+}
+.gf-body { padding: 0; background: #fff; border-top: 1px solid #FEE2E2; }
+.gf-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.gf-table th {
+  padding: 8px 12px; text-align: left; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .7px; color: #64748B;
+  background: #F8FAFC; border-bottom: 1px solid #E2E8F0;
+}
+.gf-table td {
+  padding: 8px 12px; border-bottom: 1px solid #F1F5F9; vertical-align: top;
+  overflow-wrap: anywhere; color: #334155;
+}
+.gf-table tr:last-child td { border-bottom: none; }
+.gf-empty { font-size: 13px; color: #94A3B8; font-style: italic; }
 """
 
 # ---------------------------------------------------------------------------
@@ -1097,6 +1188,181 @@ def _build_failure_summary_card(rows):
 
 
 # ---------------------------------------------------------------------------
+# Tab builders — Complete / Failed / Grouped Failed
+# ---------------------------------------------------------------------------
+
+_COMPLETE_COLUMNS = (
+    ('S.No', 'tc-col-sno'),
+    ('Module', 'tc-col-module'),
+    ('Scenario', 'tc-col-scenario'),
+    ('Expected Results', 'tc-col-expected'),
+    ('Status', 'tc-col-status'),
+    ('Issue Summary', 'tc-col-issue'),
+    ('Asset IDs', 'tc-col-assets'),
+)
+
+
+def _render_complete_test_cases_panel(rows, counts):
+    """Tab 1: full Validation_Output / Excel rows with status badges."""
+    kpi = (
+        '<div class="tc-kpi-row">'
+        + _stat_pill(counts.get('Passed', 0), 'Passed', '#22C55E', '#166534', '#DCFCE7')
+        + _stat_pill(counts.get('Failed', 0), 'Failed', '#EF4444', '#991B1B', '#FEE2E2')
+        + _stat_pill(counts.get('Not Tested', 0), 'Not Tested', '#3B82F6', '#1E40AF', '#DBEAFE')
+        + _stat_pill(counts.get('Observation', 0), 'Observation', '#F59E0B', '#854D0E', '#FEF9C3')
+        + _stat_pill(counts.get('Not Applicable', 0), 'Not Applicable', '#94A3B8', '#475569', '#F1F5F9')
+        + f'<span class="stat-pill" style="background:#F8FAFC;color:#475569;">'
+          f'<span class="stat-dot" style="background:#64748B;"></span>'
+          f'{len(rows)} Total</span>'
+        + '</div>'
+    )
+
+    if not rows:
+        return (
+            '<div class="card-label">Complete Test Cases</div>'
+            + kpi
+            + '<div class="tc-empty">No test cases recorded.</div>'
+        )
+
+    thead = (
+        '<thead><tr>'
+        + ''.join(
+            f'<th class="{css}">{_esc(col)}</th>'
+            for col, css in _COMPLETE_COLUMNS
+        )
+        + '</tr></thead>'
+    )
+
+    body_rows = []
+    for r in rows:
+        status = _norm(r.get('Status', ''))
+        badge = (
+            f'<span class="badge badge-{_cls(status)}">{_esc(status)}</span>'
+        )
+        issue = _truncate(r.get('Issue Summary', '') or '', 500)
+        assets = _truncate(r.get('Asset IDs', '') or '', 300)
+        body_rows.append(
+            '<tr>'
+            f'<td class="tc-col-sno">{_esc(r.get("S.No", ""))}</td>'
+            f'<td class="tc-col-module">{_esc(r.get("Module", ""))}</td>'
+            f'<td class="tc-col-scenario">{_esc(r.get("Scenario", ""))}</td>'
+            f'<td class="tc-col-expected">{_esc(_truncate(r.get("Expected Results", "") or "", 300))}</td>'
+            f'<td class="tc-col-status">{badge}</td>'
+            f'<td class="tc-col-issue">{_esc(issue)}</td>'
+            f'<td class="tc-col-assets">{_esc(assets)}</td>'
+            '</tr>'
+        )
+
+    return (
+        '<div class="card-label">Complete Test Cases</div>'
+        + kpi
+        + '<div class="tc-table-wrap">'
+        f'<table class="tc-table">{thead}<tbody>{"".join(body_rows)}</tbody></table>'
+        '</div>'
+    )
+
+
+def _group_failed_rows_by_scenario(rows):
+    """Group Excel Failed rows by Scenario (OrderedDict preserves first-seen order)."""
+    groups = OrderedDict()
+    for r in rows:
+        if _norm(r.get('Status', '')) != 'Failed':
+            continue
+        scenario = str(r.get('Scenario', '') or '').strip() or 'Unknown Scenario'
+        groups.setdefault(scenario, []).append(r)
+    return groups
+
+
+def _render_grouped_failed_cases_panel(rows):
+    """Tab 3: Failed cases accordion grouped by Scenario."""
+    groups = _group_failed_rows_by_scenario(rows)
+    header = '<div class="card-label">Grouped Failed Cases</div>'
+
+    if not groups:
+        return header + '<div class="gf-empty">No failures recorded.</div>'
+
+    items = []
+    for scenario, failed_rows in groups.items():
+        count = len(failed_rows)
+        open_attr = ' open' if count <= 3 else ''
+        tbody = ''
+        for r in failed_rows:
+            issue = _truncate(r.get('Issue Summary', '') or '', 600)
+            assets = _truncate(r.get('Asset IDs', '') or '', 400)
+            tbody += (
+                '<tr>'
+                f'<td>{_esc(r.get("Module", ""))}</td>'
+                f'<td>{_esc(issue)}</td>'
+                f'<td>{_esc(assets)}</td>'
+                '</tr>'
+            )
+        items.append(
+            f'<details class="gf-item"{open_attr}>'
+            f'<summary class="gf-summary">'
+            f'<span class="chevron">&#9658;</span>'
+            f'<span class="gf-sc-name">{_esc(scenario)}</span>'
+            f'<span class="gf-count">{count} failure{"s" if count != 1 else ""}</span>'
+            f'</summary>'
+            f'<div class="gf-body">'
+            f'<table class="gf-table">'
+            f'<thead><tr>'
+            f'<th style="width:16%;">Module</th>'
+            f'<th style="width:42%;">Issue Summary</th>'
+            f'<th style="width:42%;">Asset IDs</th>'
+            f'</tr></thead>'
+            f'<tbody>{tbody}</tbody>'
+            f'</table>'
+            f'</div>'
+            f'</details>'
+        )
+
+    return header + ''.join(items)
+
+
+def _render_tab_shell(complete_html, failed_html, grouped_html):
+    """Tab navigation + three panels. Default active tab = Failed Cases."""
+    return (
+        '<div class="tab-bar" role="tablist">'
+        '<button type="button" class="tab-btn" data-tab="complete" role="tab"'
+        ' aria-selected="false">Complete Test Cases</button>'
+        '<button type="button" class="tab-btn active" data-tab="failed" role="tab"'
+        ' aria-selected="true">Failed Cases</button>'
+        '<button type="button" class="tab-btn" data-tab="grouped" role="tab"'
+        ' aria-selected="false">Grouped Failed Cases</button>'
+        '</div>'
+        '<div class="tab-panels">'
+        f'<div class="tab-panel" id="tab-complete" role="tabpanel">{complete_html}</div>'
+        f'<div class="tab-panel active" id="tab-failed" role="tabpanel">{failed_html}</div>'
+        f'<div class="tab-panel" id="tab-grouped" role="tabpanel">{grouped_html}</div>'
+        '</div>'
+    )
+
+
+_TAB_SCRIPT = """
+<script>
+function initReportTabs(){
+  var buttons = document.querySelectorAll('.tab-btn');
+  var panels = document.querySelectorAll('.tab-panel');
+  if(!buttons.length) return;
+  buttons.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var target = btn.getAttribute('data-tab');
+      buttons.forEach(function(b){
+        b.classList.toggle('active', b === btn);
+        b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+      });
+      panels.forEach(function(p){
+        p.classList.toggle('active', p.id === 'tab-' + target);
+      });
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', initReportTabs);
+</script>
+"""
+
+
+# ---------------------------------------------------------------------------
 # Coverage card builder
 # ---------------------------------------------------------------------------
 
@@ -1246,6 +1512,7 @@ def summary_report_writer(
     failed_n = counts['Failed']
     nt_n     = counts['Not Tested']
     obs_n    = counts['Observation']
+    na_n     = counts['Not Applicable']
     pass_pct = int(passed_n / total * 100) if total else 0
 
     # Group by module, preserving order of first appearance
@@ -1318,7 +1585,13 @@ def summary_report_writer(
         _fs_ag, _fs_mg = _group_failure_rows(visible_rows)
     _fs_b64, _fs_filename = _failure_summary_excel_b64(_fs_ag, _fs_mg, channel_name)
 
-    # JavaScript embedded in <head>: base64 payload + Blob download function.
+    # Tab panels (Failed Cases = existing Failure Summary; default active)
+    complete_panel = _render_complete_test_cases_panel(visible_rows, counts)
+    failed_panel   = _render_failure_html_card(_fs_ag, _fs_mg)
+    grouped_panel  = _render_grouped_failed_cases_panel(visible_rows)
+    tabs_html      = _render_tab_shell(complete_panel, failed_panel, grouped_panel)
+
+    # JavaScript embedded in <head>: base64 payload + Blob download + tab switch.
     # Blob download works reliably from a standalone HTML file with no server.
     _fs_script = (
         '<script>\n'
@@ -1333,6 +1606,7 @@ def summary_report_writer(
         '  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(a.href);},0);\n'
         '}\n'
         '</script>\n'
+        + _TAB_SCRIPT
     )
 
     # ── Assemble full document ────────────────────────────────────────────
@@ -1363,7 +1637,7 @@ def summary_report_writer(
         # Body
         '<div class="container">'
         + inputs_card
-        + _render_failure_html_card(_fs_ag, _fs_mg)
+        + tabs_html
         + '</div>'
 
         # Footer
