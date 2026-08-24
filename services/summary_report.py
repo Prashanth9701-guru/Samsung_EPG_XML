@@ -396,6 +396,10 @@ details[open] .chevron { transform: rotate(90deg); }
   overflow-wrap: anywhere; color: #334155;
 }
 .gf-table tr:last-child td { border-bottom: none; }
+.gf-asset-id {
+  font-family: 'Courier New', monospace; font-size: 12px; font-weight: 700;
+  color: #991B1B; word-break: break-all;
+}
 .gf-empty { font-size: 13px; color: #94A3B8; font-style: italic; }
 """
 
@@ -1273,8 +1277,67 @@ def _group_failed_rows_by_scenario(rows):
     return groups
 
 
+def _extract_asset_ids_for_grouped_tab(asset_ids_text, module):
+    """Extract Asset ID keys from the Excel Asset IDs column.
+
+    Schedule module shape (top-level keys are asset IDs):
+        {asset_id: [date, start, …]}, {asset_id2: […]}
+
+    Other modules shape (date → list of {asset_id: …} dicts):
+        {date: [{asset_id: […]}, {asset_id2: […]}]}, …
+    """
+    ids = []
+    seen = set()
+    text = str(asset_ids_text or '').strip()
+    if not text:
+        return ids
+
+    try:
+        items = ast.literal_eval(f'[{text}]')
+    except Exception:
+        return ids
+
+    if not isinstance(items, list):
+        return ids
+
+    is_schedule = str(module or '').strip() == 'Schedule'
+
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+
+        if is_schedule:
+            for key in item.keys():
+                key_str = str(key)
+                if key_str and key_str not in seen:
+                    seen.add(key_str)
+                    ids.append(key_str)
+            continue
+
+        # Non-Schedule: values are lists of dicts; take keys of those dicts.
+        for _date, inner_list in item.items():
+            if not isinstance(inner_list, list):
+                # Fallback: if value is a dict, treat its keys as asset IDs.
+                if isinstance(inner_list, dict):
+                    for key in inner_list.keys():
+                        key_str = str(key)
+                        if key_str and key_str not in seen:
+                            seen.add(key_str)
+                            ids.append(key_str)
+                continue
+            for entry in inner_list:
+                if isinstance(entry, dict):
+                    for key in entry.keys():
+                        key_str = str(key)
+                        if key_str and key_str not in seen:
+                            seen.add(key_str)
+                            ids.append(key_str)
+
+    return ids
+
+
 def _render_grouped_failed_cases_panel(rows):
-    """Tab 3: Failed cases accordion grouped by Scenario."""
+    """Tab 3: Failed cases accordion grouped by Scenario; body shows Asset IDs only."""
     groups = _group_failed_rows_by_scenario(rows)
     header = '<div class="card-label">Grouped Failed Cases</div>'
 
@@ -1283,36 +1346,44 @@ def _render_grouped_failed_cases_panel(rows):
 
     items = []
     for scenario, failed_rows in groups.items():
-        count = len(failed_rows)
-        open_attr = ' open' if count <= 3 else ''
-        tbody = ''
+        asset_ids = []
+        seen = set()
         for r in failed_rows:
-            issue = _truncate(r.get('Issue Summary', '') or '', 600)
-            assets = _truncate(r.get('Asset IDs', '') or '', 400)
-            tbody += (
-                '<tr>'
-                f'<td>{_esc(r.get("Module", ""))}</td>'
-                f'<td>{_esc(issue)}</td>'
-                f'<td>{_esc(assets)}</td>'
-                '</tr>'
+            for aid in _extract_asset_ids_for_grouped_tab(
+                r.get('Asset IDs', ''),
+                r.get('Module', ''),
+            ):
+                if aid not in seen:
+                    seen.add(aid)
+                    asset_ids.append(aid)
+
+        fail_count = len(failed_rows)
+        id_count = len(asset_ids)
+        open_attr = ' open' if fail_count <= 3 else ''
+
+        if asset_ids:
+            # Single-column list of Asset IDs only (no Module / Issue Summary).
+            body_rows = ''.join(
+                f'<tr><td class="gf-asset-id">{_esc(aid)}</td></tr>'
+                for aid in asset_ids
             )
+            body_html = (
+                f'<table class="gf-table">'
+                f'<thead><tr><th>Asset IDs ({id_count})</th></tr></thead>'
+                f'<tbody>{body_rows}</tbody>'
+                f'</table>'
+            )
+        else:
+            body_html = '<div class="gf-empty" style="padding:10px 14px;">No Asset IDs recorded.</div>'
+
         items.append(
             f'<details class="gf-item"{open_attr}>'
             f'<summary class="gf-summary">'
             f'<span class="chevron">&#9658;</span>'
             f'<span class="gf-sc-name">{_esc(scenario)}</span>'
-            f'<span class="gf-count">{count} failure{"s" if count != 1 else ""}</span>'
+            f'<span class="gf-count">{fail_count} failure{"s" if fail_count != 1 else ""}</span>'
             f'</summary>'
-            f'<div class="gf-body">'
-            f'<table class="gf-table">'
-            f'<thead><tr>'
-            f'<th style="width:16%;">Module</th>'
-            f'<th style="width:42%;">Issue Summary</th>'
-            f'<th style="width:42%;">Asset IDs</th>'
-            f'</tr></thead>'
-            f'<tbody>{tbody}</tbody>'
-            f'</table>'
-            f'</div>'
+            f'<div class="gf-body">{body_html}</div>'
             f'</details>'
         )
 
