@@ -163,7 +163,7 @@ def fetch_content_type_for_asset(
         "channel_id": channel_id,
         "platform_id": platform_id,
         "asset_id": asset_id,
-        "language_code": "en",
+        #"language_code": "en",
         "expanded": "true",
     }
     headers = {
