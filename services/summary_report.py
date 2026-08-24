@@ -379,8 +379,34 @@ details[open] .chevron { transform: rotate(90deg); }
 .tc-col-issue { width: 18%; }
 .tc-col-assets { width: 12%; }
 .tc-empty { font-size: 13px; color: #94A3B8; font-style: italic; padding: 12px 0; }
+.tab-blurb {
+  background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px;
+  padding: 11px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.65; color: #475569;
+}
+.tc-filter-pill {
+  appearance: none; border: 1px solid transparent; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+}
+.tc-filter-pill.active-filter {
+  outline: 2px solid #1E293B; outline-offset: 1px;
+}
+.tc-filter-pill:hover { filter: brightness(0.97); }
+.tc-assets-cell { line-height: 1.5; }
+.tc-assets-preview { word-break: break-word; }
+.tc-assets-full { display: none; word-break: break-word; white-space: pre-wrap; margin-top: 4px; }
+.tc-assets-cell.expanded .tc-assets-full { display: block; }
+.tc-assets-cell.expanded .tc-assets-preview { display: none; }
+.tc-assets-actions { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 8px; }
+.tc-more-btn, .tc-copy-btn {
+  appearance: none; border: none; background: none; padding: 0;
+  font-size: 11px; font-weight: 700; color: #2563EB; cursor: pointer;
+  text-decoration: underline;
+}
+.tc-more-btn:hover, .tc-copy-btn:hover { color: #1D4ED8; }
+.tc-table tbody tr.tc-row-hidden { display: none; }
 
-/* ── Grouped failed cases (by scenario) ── */
+/* ── Grouped failed cases (by Issue Summary) ── */
 .gf-item { border: 1px solid #E2E8F0; border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
 .gf-summary {
   display: flex; align-items: center; gap: 10px; padding: 12px 14px;
@@ -1065,12 +1091,19 @@ def _render_failure_html_card(asset_groups, module_groups):
         '<button class="dl-btn" onclick="downloadFailureSummary()">'
         'Download Failure Summary</button>'
     )
+    blurb = (
+        '<div class="tab-blurb">'
+        'Asset-level failure summary with issues consolidated for review. '
+        'Use <strong>Download Failure Summary</strong> to export this view as Excel.'
+        '</div>'
+    )
 
     if not asset_groups and not module_groups:
         return (
             '<div class="card">'
             f'<div class="card-label">Failure Summary {_dl_btn}</div>'
-            '<div class="fs-none">No failures recorded.</div>'
+            + blurb
+            + '<div class="fs-none">No failures recorded.</div>'
             '</div>'
         )
 
@@ -1116,7 +1149,8 @@ def _render_failure_html_card(asset_groups, module_groups):
     return (
         '<div class="card">'
         f'<div class="card-label">Failure Summary {_dl_btn}</div>'
-        f'<table class="fs-table">{thead}<tbody>{tbody_rows}</tbody></table>'
+        + blurb
+        + f'<table class="fs-table">{thead}<tbody>{tbody_rows}</tbody></table>'
         '</div>'
     )
 
@@ -1236,6 +1270,49 @@ _COMPLETE_COLUMNS = (
     ('Asset IDs', 'tc-col-assets'),
 )
 
+_ASSET_PREVIEW_LIMIT = 120
+
+
+def _filter_pill(count, label, filter_key, dot, text, bg, active=False):
+    active_cls = ' active-filter' if active else ''
+    return (
+        f'<button type="button" class="tc-filter-pill{active_cls}" '
+        f'data-filter="{_esc(filter_key)}" '
+        f'style="background:{bg};color:{text};">'
+        f'<span class="stat-dot" style="background:{dot};"></span>'
+        f'{count} {label}</button>'
+    )
+
+
+def _render_asset_ids_cell(raw_assets):
+    """Preview + …more expand + copy-full for Asset IDs column."""
+    full = str(raw_assets or '').strip()
+    if not full:
+        return ''
+
+    needs_more = len(full) > _ASSET_PREVIEW_LIMIT
+    preview = full[:_ASSET_PREVIEW_LIMIT] + ('…' if needs_more else '')
+    # Escape for HTML text and for JS string in onclick (use data attribute instead).
+    full_attr = _html.escape(full, quote=True)
+
+    actions = (
+        f'<div class="tc-assets-actions">'
+        f'<button type="button" class="tc-copy-btn" data-copy="{full_attr}">Copy</button>'
+    )
+    if needs_more:
+        actions += (
+            '<button type="button" class="tc-more-btn" data-more="1">…more</button>'
+        )
+    actions += '</div>'
+
+    return (
+        f'<div class="tc-assets-cell" data-full="{full_attr}">'
+        f'<div class="tc-assets-preview">{_esc(preview)}</div>'
+        f'<div class="tc-assets-full">{_esc(full)}</div>'
+        + actions
+        + '</div>'
+    )
+
 
 def _render_complete_test_cases_panel(rows, counts):
     """Tab 1: full Validation_Output / Excel rows with status badges."""
@@ -1243,22 +1320,34 @@ def _render_complete_test_cases_panel(rows, counts):
         '<button class="dl-btn" onclick="downloadFullReport()">'
         'Download as Excel</button>'
     )
+    blurb = (
+        '<div class="tab-blurb">'
+        'All validation results (Passed, Failed, Not Tested, Observation, Not Applicable). '
+        'Click a status filter below to narrow the list. Use <strong>…more</strong> / '
+        '<strong>Copy</strong> on Asset IDs when values are long.'
+        '</div>'
+    )
     kpi = (
-        '<div class="tc-kpi-row">'
-        + _stat_pill(counts.get('Passed', 0), 'Passed', '#22C55E', '#166534', '#DCFCE7')
-        + _stat_pill(counts.get('Failed', 0), 'Failed', '#EF4444', '#991B1B', '#FEE2E2')
-        + _stat_pill(counts.get('Not Tested', 0), 'Not Tested', '#3B82F6', '#1E40AF', '#DBEAFE')
-        + _stat_pill(counts.get('Observation', 0), 'Observation', '#F59E0B', '#854D0E', '#FEF9C3')
-        + _stat_pill(counts.get('Not Applicable', 0), 'Not Applicable', '#94A3B8', '#475569', '#F1F5F9')
-        + f'<span class="stat-pill" style="background:#F8FAFC;color:#475569;">'
-          f'<span class="stat-dot" style="background:#64748B;"></span>'
-          f'{len(rows)} Total</span>'
+        '<div class="tc-kpi-row" id="tc-status-filters">'
+        + _filter_pill(counts.get('Passed', 0), 'Passed', 'Passed',
+                       '#22C55E', '#166534', '#DCFCE7')
+        + _filter_pill(counts.get('Failed', 0), 'Failed', 'Failed',
+                       '#EF4444', '#991B1B', '#FEE2E2')
+        + _filter_pill(counts.get('Not Tested', 0), 'Not Tested', 'Not Tested',
+                       '#3B82F6', '#1E40AF', '#DBEAFE')
+        + _filter_pill(counts.get('Observation', 0), 'Observation', 'Observation',
+                       '#F59E0B', '#854D0E', '#FEF9C3')
+        + _filter_pill(counts.get('Not Applicable', 0), 'Not Applicable', 'Not Applicable',
+                       '#94A3B8', '#475569', '#F1F5F9')
+        + _filter_pill(len(rows), 'Total', 'ALL',
+                       '#64748B', '#475569', '#F8FAFC', active=True)
         + '</div>'
     )
 
     if not rows:
         return (
             f'<div class="card-label">Complete Test Cases {_dl_btn}</div>'
+            + blurb
             + kpi
             + '<div class="tc-empty">No test cases recorded.</div>'
         )
@@ -1279,36 +1368,40 @@ def _render_complete_test_cases_panel(rows, counts):
             f'<span class="badge badge-{_cls(status)}">{_esc(status)}</span>'
         )
         issue = _truncate(r.get('Issue Summary', '') or '', 500)
-        assets = _truncate(r.get('Asset IDs', '') or '', 300)
+        assets_html = _render_asset_ids_cell(r.get('Asset IDs', '') or '')
         body_rows.append(
-            '<tr>'
+            f'<tr data-status="{_esc(status)}">'
             f'<td class="tc-col-sno">{_esc(r.get("S.No", ""))}</td>'
             f'<td class="tc-col-module">{_esc(r.get("Module", ""))}</td>'
             f'<td class="tc-col-scenario">{_esc(r.get("Scenario", ""))}</td>'
             f'<td class="tc-col-expected">{_esc(_truncate(r.get("Expected Results", "") or "", 300))}</td>'
             f'<td class="tc-col-status">{badge}</td>'
             f'<td class="tc-col-issue">{_esc(issue)}</td>'
-            f'<td class="tc-col-assets">{_esc(assets)}</td>'
+            f'<td class="tc-col-assets">{assets_html}</td>'
             '</tr>'
         )
 
     return (
         f'<div class="card-label">Complete Test Cases {_dl_btn}</div>'
+        + blurb
         + kpi
         + '<div class="tc-table-wrap">'
-        f'<table class="tc-table">{thead}<tbody>{"".join(body_rows)}</tbody></table>'
+        f'<table class="tc-table" id="tc-complete-table">'
+        f'{thead}<tbody>{"".join(body_rows)}</tbody></table>'
         '</div>'
     )
 
 
-def _group_failed_rows_by_scenario(rows):
-    """Group Excel Failed rows by Scenario (OrderedDict preserves first-seen order)."""
+def _group_failed_rows_by_issue_summary(rows):
+    """Group Excel Failed rows by Issue Summary (OrderedDict preserves first-seen order)."""
     groups = OrderedDict()
     for r in rows:
         if _norm(r.get('Status', '')) != 'Failed':
             continue
-        scenario = str(r.get('Scenario', '') or '').strip() or 'Unknown Scenario'
-        groups.setdefault(scenario, []).append(r)
+        issue = str(r.get('Issue Summary', '') or '').strip()
+        if not issue:
+            issue = str(r.get('Scenario', '') or '').strip() or 'Unknown Issue'
+        groups.setdefault(issue, []).append(r)
     return groups
 
 
@@ -1372,15 +1465,24 @@ def _extract_asset_ids_for_grouped_tab(asset_ids_text, module):
 
 
 def _render_grouped_failed_cases_panel(rows):
-    """Tab 3: Failed cases accordion grouped by Scenario; body shows Asset IDs only."""
-    groups = _group_failed_rows_by_scenario(rows)
+    """Tab 3: Failed cases accordion grouped by Issue Summary; body shows Asset IDs only.
+
+    Groups are sorted descending by unique Asset ID count.
+    """
+    groups = _group_failed_rows_by_issue_summary(rows)
     header = '<div class="card-label">Grouped Failed Cases</div>'
+    blurb = (
+        '<div class="tab-blurb">'
+        'Failures grouped by <strong>Issue Summary</strong>, ordered by most impacted '
+        'assets first. Expand a group to see Asset IDs.'
+        '</div>'
+    )
 
     if not groups:
-        return header + '<div class="gf-empty">No failures recorded.</div>'
+        return header + blurb + '<div class="gf-empty">No failures recorded.</div>'
 
-    items = []
-    for scenario, failed_rows in groups.items():
+    prepared = []
+    for issue_summary, failed_rows in groups.items():
         asset_ids = []
         seen = set()
         for r in failed_rows:
@@ -1391,13 +1493,17 @@ def _render_grouped_failed_cases_panel(rows):
                 if aid not in seen:
                     seen.add(aid)
                     asset_ids.append(aid)
+        prepared.append((issue_summary, failed_rows, asset_ids))
 
-        fail_count = len(failed_rows)
+    # Descending by unique Asset ID count; tie-break by issue text.
+    prepared.sort(key=lambda item: (-len(item[2]), item[0].lower()))
+
+    items = []
+    for issue_summary, failed_rows, asset_ids in prepared:
         id_count = len(asset_ids)
-        open_attr = ' open' if fail_count <= 3 else ''
+        open_attr = ' open' if id_count <= 3 and id_count > 0 else ''
 
         if asset_ids:
-            # Single-column list of Asset IDs only (no Module / Issue Summary).
             body_rows = ''.join(
                 f'<tr><td class="gf-asset-id">{_esc(aid)}</td></tr>'
                 for aid in asset_ids
@@ -1415,14 +1521,14 @@ def _render_grouped_failed_cases_panel(rows):
             f'<details class="gf-item"{open_attr}>'
             f'<summary class="gf-summary">'
             f'<span class="chevron">&#9658;</span>'
-            f'<span class="gf-sc-name">{_esc(scenario)}</span>'
+            f'<span class="gf-sc-name">{_esc(issue_summary)}</span>'
             f'<span class="gf-count">{id_count} asset{"s" if id_count != 1 else ""}</span>'
             f'</summary>'
             f'<div class="gf-body">{body_html}</div>'
             f'</details>'
         )
 
-    return header + ''.join(items)
+    return header + blurb + ''.join(items)
 
 
 def _render_tab_shell(complete_html, failed_html, grouped_html):
@@ -1470,7 +1576,67 @@ function initReportTabs(){
     });
   });
 }
-document.addEventListener('DOMContentLoaded', initReportTabs);
+
+function initCompleteFilters(){
+  var pills = document.querySelectorAll('#tc-status-filters .tc-filter-pill');
+  var rows = document.querySelectorAll('#tc-complete-table tbody tr');
+  if(!pills.length || !rows.length) return;
+
+  function applyFilter(filter){
+    pills.forEach(function(p){
+      p.classList.toggle('active-filter', p.getAttribute('data-filter') === filter);
+    });
+    rows.forEach(function(row){
+      var status = row.getAttribute('data-status') || '';
+      var show = (filter === 'ALL' || status === filter);
+      row.classList.toggle('tc-row-hidden', !show);
+    });
+  }
+
+  pills.forEach(function(pill){
+    pill.addEventListener('click', function(){
+      applyFilter(pill.getAttribute('data-filter') || 'ALL');
+    });
+  });
+}
+
+function initAssetIdActions(){
+  document.addEventListener('click', function(ev){
+    var moreBtn = ev.target.closest('.tc-more-btn');
+    if(moreBtn){
+      var cell = moreBtn.closest('.tc-assets-cell');
+      if(!cell) return;
+      var expanded = cell.classList.toggle('expanded');
+      moreBtn.textContent = expanded ? '…less' : '…more';
+      return;
+    }
+    var copyBtn = ev.target.closest('.tc-copy-btn');
+    if(copyBtn){
+      var text = copyBtn.getAttribute('data-copy') || '';
+      // data-copy is HTML-escaped; decode via textarea trick
+      var ta = document.createElement('textarea');
+      ta.innerHTML = text;
+      var decoded = ta.value;
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(decoded).then(function(){
+          var prev = copyBtn.textContent;
+          copyBtn.textContent = 'Copied';
+          setTimeout(function(){ copyBtn.textContent = prev; }, 1200);
+        }).catch(function(){
+          window.prompt('Copy Asset IDs:', decoded);
+        });
+      } else {
+        window.prompt('Copy Asset IDs:', decoded);
+      }
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  initReportTabs();
+  initCompleteFilters();
+  initAssetIdActions();
+});
 </script>
 """
 
