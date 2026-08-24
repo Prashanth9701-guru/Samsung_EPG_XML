@@ -210,7 +210,7 @@ def validate_programs_seven_days_xml(date_xml_data, num, name, method_name, file
                         logger.info(f'Asset Start Time: {start} and Asset End Time: {stop}')
                         asset_id = 'Asset ID Not Available'
                         episode = program.findall('episode-num')
-                        if episode is not None:
+                        if episode:
                             for epi in episode:
                                 if 'assetID' in str(epi.attrib):
                                     asset_id = epi.text
