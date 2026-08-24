@@ -311,6 +311,14 @@ details[open] .chevron { transform: rotate(90deg); }
           font-weight:600; color:#fff; background:#3B82F6; border:none; border-radius:6px;
           cursor:pointer; vertical-align:middle; line-height:1.6; }
 .dl-btn:hover { background:#2563EB; }
+.dl-btn-full {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-left: 0; padding: 9px 18px; font-size: 13px;
+}
+.report-toolbar {
+  display: flex; justify-content: flex-end; align-items: center;
+  gap: 10px; margin-bottom: 12px;
+}
 
 /* ── Tabs ── */
 .tab-bar {
@@ -1055,7 +1063,7 @@ def _render_failure_html_card(asset_groups, module_groups):
     """
     _dl_btn = (
         '<button class="dl-btn" onclick="downloadFailureSummary()">'
-        'Download as Excel</button>'
+        'Download Failure Summary</button>'
     )
 
     if not asset_groups and not module_groups:
@@ -1150,6 +1158,29 @@ def _failure_summary_excel_b64(asset_groups, module_groups, channel_name):
     return b64_str, filename
 
 
+def _full_report_excel_b64(excel_path, channel_name):
+    """Embed the final Validation_Output Excel (all statuses) for browser download.
+
+    Returns (base64_string, suggested_download_filename), or ('', '') if unreadable.
+    """
+    if not excel_path or not os.path.isfile(excel_path):
+        return '', ''
+
+    try:
+        with open(excel_path, 'rb') as fh:
+            b64_str = base64.b64encode(fh.read()).decode('ascii')
+    except Exception as exc:
+        print(f'WARNING: _full_report_excel_b64 — could not read Excel: {exc}')
+        return '', ''
+
+    safe_ch = re.sub(r'[^\w\-]', '_', str(channel_name or 'report')).strip('_') or 'report'
+    safe_ts = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    # Prefer original basename when available for traceability.
+    base = os.path.splitext(os.path.basename(excel_path))[0] or 'full_report'
+    filename = f'{safe_ch}_full_report_{base}_{safe_ts}.xlsx'
+    return b64_str, filename
+
+
 def _group_failure_rows_from_updated_summary_list(updated_summary_list):
     """Build (asset_groups, module_groups) from the pre-filtered updated_summary_list.
 
@@ -1208,6 +1239,10 @@ _COMPLETE_COLUMNS = (
 
 def _render_complete_test_cases_panel(rows, counts):
     """Tab 1: full Validation_Output / Excel rows with status badges."""
+    _dl_btn = (
+        '<button class="dl-btn" onclick="downloadFullReport()">'
+        'Download as Excel</button>'
+    )
     kpi = (
         '<div class="tc-kpi-row">'
         + _stat_pill(counts.get('Passed', 0), 'Passed', '#22C55E', '#166534', '#DCFCE7')
@@ -1223,7 +1258,7 @@ def _render_complete_test_cases_panel(rows, counts):
 
     if not rows:
         return (
-            '<div class="card-label">Complete Test Cases</div>'
+            f'<div class="card-label">Complete Test Cases {_dl_btn}</div>'
             + kpi
             + '<div class="tc-empty">No test cases recorded.</div>'
         )
@@ -1258,7 +1293,7 @@ def _render_complete_test_cases_panel(rows, counts):
         )
 
     return (
-        '<div class="card-label">Complete Test Cases</div>'
+        f'<div class="card-label">Complete Test Cases {_dl_btn}</div>'
         + kpi
         + '<div class="tc-table-wrap">'
         f'<table class="tc-table">{thead}<tbody>{"".join(body_rows)}</tbody></table>'
@@ -1381,7 +1416,7 @@ def _render_grouped_failed_cases_panel(rows):
             f'<summary class="gf-summary">'
             f'<span class="chevron">&#9658;</span>'
             f'<span class="gf-sc-name">{_esc(scenario)}</span>'
-            f'<span class="gf-count">{fail_count} failure{"s" if fail_count != 1 else ""}</span>'
+            f'<span class="gf-count">{id_count} asset{"s" if id_count != 1 else ""}</span>'
             f'</summary>'
             f'<div class="gf-body">{body_html}</div>'
             f'</details>'
@@ -1392,8 +1427,15 @@ def _render_grouped_failed_cases_panel(rows):
 
 def _render_tab_shell(complete_html, failed_html, grouped_html):
     """Tab navigation + three panels. Default active tab = Failed Cases."""
+    toolbar = (
+        '<div class="report-toolbar">'
+        '<button type="button" class="dl-btn dl-btn-full" onclick="downloadFullReport()">'
+        'Download as Excel</button>'
+        '</div>'
+    )
     return (
-        '<div class="tab-bar" role="tablist">'
+        toolbar
+        + '<div class="tab-bar" role="tablist">'
         '<button type="button" class="tab-btn" data-tab="complete" role="tab"'
         ' aria-selected="false">Complete Test Cases</button>'
         '<button type="button" class="tab-btn active" data-tab="failed" role="tab"'
@@ -1655,6 +1697,7 @@ def summary_report_writer(
     else:
         _fs_ag, _fs_mg = _group_failure_rows(visible_rows)
     _fs_b64, _fs_filename = _failure_summary_excel_b64(_fs_ag, _fs_mg, channel_name)
+    _full_b64, _full_filename = _full_report_excel_b64(excel_path, channel_name)
 
     # Tab panels (Failed Cases = existing Failure Summary; default active)
     complete_panel = _render_complete_test_cases_panel(visible_rows, counts)
@@ -1668,11 +1711,22 @@ def summary_report_writer(
         '<script>\n'
         f'var _fsDlB64="{_fs_b64}";\n'
         f'var _fsDlName="{_fs_filename}";\n'
+        f'var _fullDlB64="{_full_b64}";\n'
+        f'var _fullDlName="{_full_filename}";\n'
         'function downloadFailureSummary(){\n'
         '  var bin=atob(_fsDlB64),bytes=new Uint8Array(bin.length);\n'
         '  for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);\n'
         '  var blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});\n'
         '  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=_fsDlName;\n'
+        '  document.body.appendChild(a);a.click();\n'
+        '  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(a.href);},0);\n'
+        '}\n'
+        'function downloadFullReport(){\n'
+        '  if(!_fullDlB64){alert("Full Excel report is not available.");return;}\n'
+        '  var bin=atob(_fullDlB64),bytes=new Uint8Array(bin.length);\n'
+        '  for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);\n'
+        '  var blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});\n'
+        '  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=_fullDlName;\n'
         '  document.body.appendChild(a);a.click();\n'
         '  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(a.href);},0);\n'
         '}\n'
