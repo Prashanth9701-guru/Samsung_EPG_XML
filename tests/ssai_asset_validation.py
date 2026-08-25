@@ -209,6 +209,7 @@ def _suite_ab_mandatory(
     missing: Dict[str, Dict[str, List[Any]]],
     empty: Dict[str, Dict[str, List[Any]]],
 ) -> None:
+    logger.info(f"Running suite_ab_mandatory for date: {date}")
     fields = config.get("mandatory_fields") or []
     for prog in programs:
         if not isinstance(prog, dict):
@@ -221,6 +222,7 @@ def _suite_ab_mandatory(
             elif _is_empty(prog.get(field)):
                 _record(empty, date, key, [f"{field} empty"])
 
+    logger.info(f"Completed suite_ab_mandatory for date: {date}")
 
 def _suite_dup_ids(
     date: str,
@@ -228,6 +230,7 @@ def _suite_dup_ids(
     failed: Dict[str, Dict[str, List[Any]]],
 ) -> None:
     seen: Dict[str, int] = {}
+    logger.info(f"Running suite_dup_ids for date: {date}")
     for prog in programs:
         if not isinstance(prog, dict):
             continue
@@ -240,6 +243,7 @@ def _suite_dup_ids(
         if count > 1:
             _record(failed, date, pid_s, [f"duplicate program.id count={count}"])
 
+    logger.info(f"Completed suite_dup_ids for date: {date}")
 
 def _suite_c_asset_id(
     date: str,
@@ -249,6 +253,7 @@ def _suite_c_asset_id(
     not_tested: Dict[str, Dict[str, List[Any]]],
 ) -> None:
     max_len = (config.get("lengths") or {}).get("asset_id", 50)
+    logger.info(f"Running suite_c_asset_id for date: {date}")
     for prog in programs:
         if not isinstance(prog, dict):
             continue
@@ -272,7 +277,7 @@ def _suite_c_asset_id(
         if isinstance(desc, str) and asset_id == desc:
             _record(failed, date, key, ["asset_id equals desc", asset_id])
 
-
+    logger.info(f"Completed suite_c_asset_id for date: {date}")
 def _suite_d_title(
     date: str,
     programs: List[dict],
@@ -285,6 +290,7 @@ def _suite_d_title(
     not_tested: Dict[str, Dict[str, List[Any]]],
 ) -> None:
     max_len = (config.get("lengths") or {}).get("title", 200)
+    logger.info(f"Running suite_d_title for date: {date}")
     for prog in programs:
         if not isinstance(prog, dict):
             continue
@@ -309,6 +315,7 @@ def _suite_d_title(
         if _has_special_chars(title, "title"):
             _record(special_fail, date, key, [title])
 
+    logger.info(f"Completed suite_d_title for date: {date}")
 
 def _fetch_poster_image(url: str, timeout: int = 60):
     """Return (response, error_detail). Uses allow_redirects=False."""
@@ -334,6 +341,7 @@ def _suite_e_poster(
     buckets keys: missing, url_missing, url_type, url_len, status, redirect,
                   format, resolution, type_missing, wh_missing, wh_mismatch
     """
+    logger.info(f"Running suite_e_poster for date: {date}")
     lengths = config.get("lengths") or {}
     thumb = config.get("thumbnail") or {}
     max_url = lengths.get("poster_url", 2000)
@@ -419,6 +427,7 @@ def _suite_e_poster(
         except Exception as exc:
             _record(buckets["status"], date, key, [f"processing error: {exc}", url])
 
+    logger.info(f"Completed suite_e_poster for date: {date}")
 
 def _suite_f_genre(
     date: str,
@@ -428,6 +437,7 @@ def _suite_f_genre(
     not_tested: Dict[str, Dict[str, List[Any]]],
 ) -> None:
     allowed = set(config.get("genres") or [])
+    logger.info(f"Running suite_f_genre for date: {date}")
     for prog in programs:
         if not isinstance(prog, dict):
             continue
@@ -455,6 +465,7 @@ def _suite_f_genre(
             elif name not in allowed:
                 _record(failed, date, key, [f"unexpected genre: {name}"])
 
+    logger.info(f"Completed suite_f_genre for date: {date}")
 
 def _suite_g_rating(
     date: str,
@@ -464,6 +475,7 @@ def _suite_g_rating(
     not_tested: Dict[str, Dict[str, List[Any]]],
 ) -> None:
     allowed = {str(r) for r in (config.get("ratings") or [])}
+    logger.info(f"Running suite_g_rating for date: {date}")
     for prog in programs:
         if not isinstance(prog, dict):
             continue
@@ -481,6 +493,7 @@ def _suite_g_rating(
         if rating not in allowed:
             _record(failed, date, key, [rating])
 
+    logger.info(f"Completed suite_g_rating for date: {date}")
 
 def _suite_h_desc(
     date: str,
@@ -492,6 +505,7 @@ def _suite_h_desc(
     not_tested: Dict[str, Dict[str, List[Any]]],
 ) -> None:
     max_len = (config.get("lengths") or {}).get("desc", 4000)
+    logger.info(f"Running suite_h_desc for date: {date}")
     for prog in programs:
         if not isinstance(prog, dict):
             continue
@@ -511,6 +525,7 @@ def _suite_h_desc(
         if _has_special_chars(desc, "desc"):
             _record(special_fail, date, key, [desc[:80]])
 
+    logger.info(f"Completed suite_h_desc for date: {date}")
 
 def _suite_i_duration(
     date: str,
@@ -518,6 +533,7 @@ def _suite_i_duration(
     failed: Dict[str, Dict[str, List[Any]]],
     not_tested: Dict[str, Dict[str, List[Any]]],
 ) -> None:
+    logger.info(f"Running suite_i_duration for date: {date}")
     for prog in programs:
         if not isinstance(prog, dict):
             continue
@@ -535,6 +551,7 @@ def _suite_i_duration(
         if duration == 0:
             _record(failed, date, key, ["duration is 0"])
 
+    logger.info(f"Completed suite_i_duration for date: {date}")
 
 def _suite_k_content_uri(
     date: str,
@@ -543,6 +560,7 @@ def _suite_k_content_uri(
     failed: Dict[str, Dict[str, List[Any]]],
     not_tested: Dict[str, Dict[str, List[Any]]],
 ) -> None:
+    logger.info(f"Running suite_k_content_uri for date: {date}")
     for prog in programs:
         if not isinstance(prog, dict):
             continue
@@ -560,6 +578,7 @@ def _suite_k_content_uri(
         if uri != stream_url:
             _record(failed, date, key, [uri, stream_url])
 
+    logger.info(f"Completed suite_k_content_uri for date: {date}")
 
 def _suite_l_cast(
     date: str,
@@ -567,6 +586,7 @@ def _suite_l_cast(
     failed: Dict[str, Dict[str, List[Any]]],
     not_tested: Dict[str, Dict[str, List[Any]]],
 ) -> None:
+    logger.info(f"Running suite_l_cast for date: {date}")
     for prog in programs:
         if not isinstance(prog, dict):
             continue
@@ -584,6 +604,7 @@ def _suite_l_cast(
         if len(cast) == 0:
             _record(failed, date, key, ["cast empty"])
 
+    logger.info(f"Completed suite_l_cast for date: {date}")
 
 def _suite_j_schedule(
     date: str,
@@ -596,6 +617,7 @@ def _suite_j_schedule(
     buckets: missing_fields, empty_fields, gap, overlap, content_missing,
              duration_mismatch, id_equals_schedule, start_parse, dur_parse
     """
+    logger.info(f"Running suite_j_schedule for date: {date}")
     mand = config.get("schedule_mandatory_fields") or []
     program_by_id: Dict[str, dict] = {}
     for prog in programs:
@@ -669,6 +691,7 @@ def _suite_j_schedule(
                 [f"delta={delta}", f"duration={curr_dur}", curr_entry.get("starttime")],
             )
 
+    logger.info(f"Completed suite_j_schedule for date: {date}")
 
 def run_ssai_day_validations(
     by_date: dict,
