@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import shutil
 from typing import Any, Dict, Optional
+from urllib.parse import urlsplit
 
 from services.ssai_gsheet_service import SSAI_DRIVE_FOLDER_ID
 from services.ssai_schedule_api import fetch_schedule_with_token_retry
@@ -21,6 +23,25 @@ from utilities.ssai_child_template import (
 from utilities.ssai_url_parser import parse_now3_stream_url
 
 logger = logging.getLogger(__name__)
+
+
+def _stream_url_for_html_report(stream_url: str, ticket_id: str = "") -> str:
+    """
+    Build a short feed token for summary_report_writer filenames.
+
+    Stream URLs often carry long ?ads.* query strings; using the raw URL as
+    json_url makes Summary-report_<basename>.html exceed NAME_MAX (Errno 36).
+    """
+    ticket = str(ticket_id or "ssai").rstrip("/").split("/")[-1] or "ssai"
+    ticket = re.sub(r"[^\w\-]+", "_", ticket)[:40] or "ssai"
+
+    parts = urlsplit(stream_url or "")
+    path = parts.path or "/playlist.m3u8"
+    base = os.path.basename(path) or "playlist.m3u8"
+    # Drop query accidentally glued to basename if caller passed a weird path
+    base = base.split("?")[0].split("#")[0]
+    base = re.sub(r"[^\w.\-]+", "_", base)[:80] or "playlist.m3u8"
+    return f"{ticket}_{base}"
 
 
 def _zip_report_folder(report_path: str) -> Optional[str]:
@@ -63,6 +84,28 @@ def _has_failed_rows() -> bool:
     return any(row.get("Status") == "Failed" for row in Validation_Output)
 
 
+def _write_html_report(
+    excel_path: str,
+    channel_name: str,
+    content_partner_name: str,
+    ticket_id: str,
+    stream_url: str,
+    updated_summary_list: Optional[list] = None,
+) -> Optional[str]:
+    from services.summary_report import summary_report_writer
+
+    feed_token = _stream_url_for_html_report(stream_url, ticket_id)
+    logger.info("%s HTML feed token for report filename: %s", ticket_id, feed_token)
+    return summary_report_writer(
+        excel_path,
+        channel_name=channel_name,
+        content_partner_name=content_partner_name,
+        psd=ticket_id,
+        json_url=feed_token,
+        updated_summary_list=updated_summary_list if updated_summary_list is not None else [],
+    )
+
+
 def ssai_template(
     stream_url: str,
     ticket_id: str,
@@ -102,14 +145,12 @@ def ssai_template(
             try:
                 excel_path = xlsx_report(Validation_Output, report_path) if Validation_Output else None
                 if excel_path:
-                    from services.summary_report import summary_report_writer
-
-                    summary_report_writer(
+                    _write_html_report(
                         excel_path,
-                        channel_name=channel_name,
-                        content_partner_name=content_partner_name,
-                        psd=ticket_id,
-                        json_url=stream_url,
+                        channel_name,
+                        content_partner_name,
+                        ticket_id,
+                        stream_url,
                         updated_summary_list=ssai_failed_cases_seperator(),
                     )
             except Exception as exc:
@@ -212,14 +253,12 @@ def ssai_template(
         try:
             updated_summary_list = ssai_failed_cases_seperator()
             if excel_path:
-                from services.summary_report import summary_report_writer
-
-                html_path = summary_report_writer(
+                html_path = _write_html_report(
                     excel_path,
-                    channel_name=channel_name,
-                    content_partner_name=content_partner_name,
-                    psd=ticket_id,
-                    json_url=stream_url,
+                    channel_name,
+                    content_partner_name,
+                    ticket_id,
+                    stream_url,
                     updated_summary_list=updated_summary_list,
                 )
                 logger.info("%s HTML report: %s", ticket_id, html_path)
