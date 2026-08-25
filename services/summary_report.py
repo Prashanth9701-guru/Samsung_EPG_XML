@@ -311,21 +311,25 @@ details[open] .chevron { transform: rotate(90deg); }
           font-weight:600; color:#fff; background:#3B82F6; border:none; border-radius:6px;
           cursor:pointer; vertical-align:middle; line-height:1.6; }
 .dl-btn:hover { background:#2563EB; }
-.dl-btn-full {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin-left: 0; padding: 9px 18px; font-size: 13px;
+.dl-btn-tab {
+  margin-left: 0; padding: 7px 14px; font-size: 12px; white-space: nowrap;
 }
-.report-toolbar {
-  display: flex; justify-content: flex-end; align-items: center;
-  gap: 10px; margin-bottom: 12px;
-}
+.tab-bar-dl-hidden { display: none !important; }
 
 /* ── Tabs ── */
 .tab-bar {
-  display: flex; flex-wrap: wrap; gap: 4px;
-  background: #fff; border-radius: 14px 14px 0 0; padding: 8px 10px 0;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 8px 12px;
+  background: #fff; border-radius: 14px 14px 0 0; padding: 8px 12px 0;
   box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 6px 24px rgba(0,0,0,.06);
   border-bottom: 1px solid #E2E8F0; margin-bottom: 0;
+}
+.tab-bar-tabs {
+  display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; flex: 1 1 auto;
+}
+.tab-bar-actions {
+  display: flex; align-items: center; gap: 8px;
+  flex: 0 0 auto; padding-bottom: 8px;
 }
 .tab-btn {
   appearance: none; border: none; background: transparent;
@@ -359,32 +363,39 @@ details[open] .chevron { transform: rotate(90deg); }
   max-height: 640px;
 }
 .tc-table {
-  width: max-content; border-collapse: collapse;
+  width: max-content; border-collapse: separate; border-spacing: 0;
   font-size: 13px; table-layout: fixed;
 }
 .tc-table th {
   position: sticky; top: 0; z-index: 2;
-  padding: 10px 14px 10px 12px; text-align: left; font-size: 11px; font-weight: 700;
+  padding: 10px 16px 10px 12px; text-align: left; font-size: 11px; font-weight: 700;
   text-transform: uppercase; letter-spacing: .7px; color: #64748B;
   background: #F8FAFC; border-bottom: 2px solid #E2E8F0;
   box-sizing: border-box; white-space: nowrap;
-  overflow: hidden; max-width: 0;
+  /* max-width:0 lets fixed columns shrink; do NOT overflow:hidden here —
+     that clips the resize handle on Issue Summary / Asset IDs */
+  max-width: 0;
 }
 .tc-th-inner {
-  position: relative; display: block; width: 100%;
+  position: relative; display: block; width: 100%; min-height: 1.2em;
 }
-.tc-th-label { display: block; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
+.tc-th-label {
+  display: block; overflow: hidden; text-overflow: ellipsis; padding-right: 10px;
+}
 .tc-col-resizer {
-  position: absolute; top: -10px; right: -6px; bottom: -10px; width: 12px;
-  cursor: col-resize; user-select: none; z-index: 5; touch-action: none;
+  position: absolute; top: -12px; right: 0; bottom: -12px; width: 14px;
+  cursor: col-resize; user-select: none; z-index: 6; touch-action: none;
+}
+.tc-table th:last-child .tc-col-resizer {
+  right: 0; width: 16px;
 }
 .tc-col-resizer::after {
-  content: ''; position: absolute; top: 25%; bottom: 25%; left: 50%;
-  width: 2px; margin-left: -1px; background: transparent; border-radius: 1px;
-  transition: background .12s;
+  content: ''; position: absolute; top: 22%; bottom: 22%; left: 50%;
+  width: 2px; margin-left: -1px; background: #CBD5E1; border-radius: 1px;
+  transition: background .12s, width .12s;
 }
 .tc-col-resizer:hover::after, .tc-col-resizer.resizing::after {
-  background: #3B82F6;
+  background: #3B82F6; width: 3px; margin-left: -1.5px;
 }
 body.tc-col-resizing, body.tc-col-resizing * {
   cursor: col-resize !important; user-select: none !important;
@@ -1114,10 +1125,6 @@ def _render_failure_html_card(asset_groups, module_groups):
     Accepts the same (asset_groups, module_groups) produced by
     _group_failure_rows so the HTML table and the embedded Excel always match.
     """
-    _dl_btn = (
-        '<button class="dl-btn" onclick="downloadFailureSummary()">'
-        'Download Failure Summary</button>'
-    )
     blurb = (
         '<div class="tab-blurb">'
         'Below are list of Asset ID&#39;s and respective issues.'
@@ -1127,7 +1134,7 @@ def _render_failure_html_card(asset_groups, module_groups):
     if not asset_groups and not module_groups:
         return (
             '<div class="card">'
-            f'<div class="card-label">Failures Grouped under Asset IDs {_dl_btn}</div>'
+            '<div class="card-label">Failures Grouped under Asset IDs</div>'
             + blurb
             + '<div class="fs-none">No failures recorded.</div>'
             '</div>'
@@ -1174,7 +1181,7 @@ def _render_failure_html_card(asset_groups, module_groups):
 
     return (
         '<div class="card">'
-        f'<div class="card-label">Failures Grouped under Asset IDs {_dl_btn}</div>'
+        '<div class="card-label">Failures Grouped under Asset IDs</div>'
         + blurb
         + f'<table class="fs-table">{thead}<tbody>{tbody_rows}</tbody></table>'
         '</div>'
@@ -1343,10 +1350,6 @@ def _render_asset_ids_cell(raw_assets):
 
 def _render_complete_test_cases_panel(rows, counts):
     """Tab 1: full Validation_Output / Excel rows with status badges."""
-    _dl_btn = (
-        '<button class="dl-btn" onclick="downloadFullReport()">'
-        'Download as Excel</button>'
-    )
     blurb = (
         '<div class="tab-blurb">'
         'Below are the complete End-to-End EPG execution results are listed.'
@@ -1371,7 +1374,7 @@ def _render_complete_test_cases_panel(rows, counts):
 
     if not rows:
         return (
-            f'<div class="card-label">Test Case + Results Section {_dl_btn}</div>'
+            '<div class="card-label">Test Case + Results Section</div>'
             + blurb
             + kpi
             + '<div class="tc-empty">No test cases recorded.</div>'
@@ -1421,7 +1424,7 @@ def _render_complete_test_cases_panel(rows, counts):
         )
 
     return (
-        f'<div class="card-label">Test Case + Results Section {_dl_btn}</div>'
+        '<div class="card-label">Test Case + Results Section</div>'
         + blurb
         + kpi
         + '<div class="tc-table-wrap">'
@@ -1596,13 +1599,21 @@ def _render_grouped_failed_cases_panel(rows):
 def _render_tab_shell(complete_html, failed_html, grouped_html):
     """Tab navigation + three panels. Default active tab = Failed Cases."""
     return (
-        '<div class="tab-bar" role="tablist">'
+        '<div class="tab-bar">'
+        '<div class="tab-bar-tabs" role="tablist">'
         '<button type="button" class="tab-btn" data-tab="complete" role="tab"'
         ' aria-selected="false">Test Case + Results Section</button>'
         '<button type="button" class="tab-btn active" data-tab="failed" role="tab"'
         ' aria-selected="true">Failures Grouped under Asset IDs</button>'
         '<button type="button" class="tab-btn" data-tab="grouped" role="tab"'
         ' aria-selected="false">Asset IDs Grouped under Failures</button>'
+        '</div>'
+        '<div class="tab-bar-actions">'
+        '<button type="button" class="dl-btn dl-btn-tab tab-bar-dl-hidden" id="dl-btn-complete"'
+        ' onclick="downloadFullReport()">Download as Excel</button>'
+        '<button type="button" class="dl-btn dl-btn-tab" id="dl-btn-failed"'
+        ' onclick="downloadFailureSummary()">Download Failure Summary</button>'
+        '</div>'
         '</div>'
         '<div class="tab-panels">'
         f'<div class="tab-panel" id="tab-complete" role="tabpanel">{complete_html}</div>'
@@ -1617,7 +1628,19 @@ _TAB_SCRIPT = """
 function initReportTabs(){
   var buttons = document.querySelectorAll('.tab-btn');
   var panels = document.querySelectorAll('.tab-panel');
+  var dlComplete = document.getElementById('dl-btn-complete');
+  var dlFailed = document.getElementById('dl-btn-failed');
   if(!buttons.length) return;
+
+  function syncDownloadButtons(target){
+    if(dlComplete){
+      dlComplete.classList.toggle('tab-bar-dl-hidden', target !== 'complete');
+    }
+    if(dlFailed){
+      dlFailed.classList.toggle('tab-bar-dl-hidden', target !== 'failed');
+    }
+  }
+
   buttons.forEach(function(btn){
     btn.addEventListener('click', function(){
       var target = btn.getAttribute('data-tab');
@@ -1628,8 +1651,11 @@ function initReportTabs(){
       panels.forEach(function(p){
         p.classList.toggle('active', p.id === 'tab-' + target);
       });
+      syncDownloadButtons(target);
     });
   });
+  // Default active tab is Failed Cases
+  syncDownloadButtons('failed');
 }
 
 function initCompleteFilters(){
@@ -1712,7 +1738,8 @@ function initResizableCompleteTable(){
       ev.stopPropagation();
 
       var startX = ev.clientX;
-      var startW = readWidth(col);
+      // Prefer live rendered width so left/right drag matches what user sees
+      var startW = th.getBoundingClientRect().width || readWidth(col);
       var dragging = true;
       resizer.classList.add('resizing');
       document.body.classList.add('tc-col-resizing');
