@@ -372,26 +372,26 @@ details[open] .chevron { transform: rotate(90deg); }
   text-transform: uppercase; letter-spacing: .7px; color: #64748B;
   background: #F8FAFC; border-bottom: 2px solid #E2E8F0;
   box-sizing: border-box; white-space: nowrap;
-  /* max-width:0 lets fixed columns shrink; do NOT overflow:hidden here —
-     that clips the resize handle on Issue Summary / Asset IDs */
+  /* Allow shrink without clipping the resize handle */
   max-width: 0;
 }
 .tc-th-inner {
   position: relative; display: block; width: 100%; min-height: 1.2em;
+  overflow: visible;
 }
 .tc-th-label {
-  display: block; overflow: hidden; text-overflow: ellipsis; padding-right: 10px;
+  display: block; overflow: hidden; text-overflow: ellipsis; padding-right: 12px;
 }
 .tc-col-resizer {
-  position: absolute; top: -12px; right: 0; bottom: -12px; width: 14px;
-  cursor: col-resize; user-select: none; z-index: 6; touch-action: none;
+  position: absolute; top: -14px; right: -2px; bottom: -14px; width: 16px;
+  cursor: col-resize; user-select: none; z-index: 8; touch-action: none;
 }
 .tc-table th:last-child .tc-col-resizer {
-  right: 0; width: 16px;
+  right: -2px; width: 18px;
 }
 .tc-col-resizer::after {
-  content: ''; position: absolute; top: 22%; bottom: 22%; left: 50%;
-  width: 2px; margin-left: -1px; background: #CBD5E1; border-radius: 1px;
+  content: ''; position: absolute; top: 20%; bottom: 20%; left: 50%;
+  width: 2px; margin-left: -1px; background: #94A3B8; border-radius: 1px;
   transition: background .12s, width .12s;
 }
 .tc-col-resizer:hover::after, .tc-col-resizer.resizing::after {
@@ -423,7 +423,7 @@ body.tc-col-resizing { -webkit-user-select: none; }
 }
 .tc-filter-pill:hover { filter: brightness(0.97); }
 .tc-assets-cell { line-height: 1.5; }
-.tc-assets-preview { word-break: break-word; }
+.tc-assets-preview { word-break: break-word; overflow: hidden; }
 .tc-assets-full { display: none; word-break: break-word; white-space: pre-wrap; margin-top: 4px; }
 .tc-assets-cell.expanded .tc-assets-full { display: block; }
 .tc-assets-cell.expanded .tc-assets-preview { display: none; }
@@ -1134,7 +1134,6 @@ def _render_failure_html_card(asset_groups, module_groups):
     if not asset_groups and not module_groups:
         return (
             '<div class="card">'
-            '<div class="card-label">Failures Grouped under Asset IDs</div>'
             + blurb
             + '<div class="fs-none">No failures recorded.</div>'
             '</div>'
@@ -1181,7 +1180,6 @@ def _render_failure_html_card(asset_groups, module_groups):
 
     return (
         '<div class="card">'
-        '<div class="card-label">Failures Grouped under Asset IDs</div>'
         + blurb
         + f'<table class="fs-table">{thead}<tbody>{tbody_rows}</tbody></table>'
         '</div>'
@@ -1319,32 +1317,28 @@ def _filter_pill(count, label, filter_key, dot, text, bg, active=False):
 
 
 def _render_asset_ids_cell(raw_assets):
-    """Preview + …more expand + copy-full for Asset IDs column."""
+    """Preview + …more expand + copy-full for Asset IDs column.
+
+    Preview length is adjusted in the browser when the column is resized.
+    """
     full = str(raw_assets or '').strip()
     if not full:
         return ''
 
     needs_more = len(full) > _ASSET_PREVIEW_LIMIT
     preview = full[:_ASSET_PREVIEW_LIMIT] + ('…' if needs_more else '')
-    # Escape for HTML text and for JS string in onclick (use data attribute instead).
     full_attr = _html.escape(full, quote=True)
-
-    actions = (
-        f'<div class="tc-assets-actions">'
-        f'<button type="button" class="tc-copy-btn" data-copy="{full_attr}">Copy</button>'
-    )
-    if needs_more:
-        actions += (
-            '<button type="button" class="tc-more-btn" data-more="1">…more</button>'
-        )
-    actions += '</div>'
+    more_style = '' if needs_more else ' style="display:none"'
 
     return (
         f'<div class="tc-assets-cell" data-full="{full_attr}">'
         f'<div class="tc-assets-preview">{_esc(preview)}</div>'
         f'<div class="tc-assets-full">{_esc(full)}</div>'
-        + actions
-        + '</div>'
+        f'<div class="tc-assets-actions">'
+        f'<button type="button" class="tc-copy-btn" data-copy="{full_attr}">Copy</button>'
+        f'<button type="button" class="tc-more-btn" data-more="1"{more_style}>…more</button>'
+        f'</div>'
+        f'</div>'
     )
 
 
@@ -1374,8 +1368,7 @@ def _render_complete_test_cases_panel(rows, counts):
 
     if not rows:
         return (
-            '<div class="card-label">Test Case + Results Section</div>'
-            + blurb
+            blurb
             + kpi
             + '<div class="tc-empty">No test cases recorded.</div>'
         )
@@ -1424,8 +1417,7 @@ def _render_complete_test_cases_panel(rows, counts):
         )
 
     return (
-        '<div class="card-label">Test Case + Results Section</div>'
-        + blurb
+        blurb
         + kpi
         + '<div class="tc-table-wrap">'
         f'<table class="tc-table" id="tc-complete-table">'
@@ -1545,7 +1537,7 @@ def _render_grouped_failed_cases_panel(rows):
     Groups are sorted descending by unique Asset ID count.
     """
     groups = _group_failed_rows_by_issue_summary(rows)
-    header = '<div class="card-label">Asset IDs Grouped under Failures</div>'
+    header = ''
     blurb = (
         '<div class="tab-blurb">'
         'Below the list of Issues and respective Asset ID&#39;s'
@@ -1689,47 +1681,96 @@ function initResizableCompleteTable(){
   var ths = table.querySelectorAll('thead th');
   if(!cols.length || !ths.length) return;
 
-  // Low mins so a column can be dragged nearly to the edge
+  var ASSETS_COL = 6;
   var minWidths = [36, 48, 56, 56, 56, 56, 56];
+  var widths = [];
+  cols.forEach(function(col){
+    var w = parseFloat(col.style.width) || parseFloat(col.getAttribute('data-default-width') || '120');
+    widths.push(w);
+  });
 
-  function readWidth(col){
-    var w = parseFloat(col.style.width);
-    if(!isFinite(w) || w <= 0){
-      w = parseFloat(col.getAttribute('data-default-width') || '120');
-    }
-    return w;
+  function decodeAttr(escaped){
+    var ta = document.createElement('textarea');
+    ta.innerHTML = escaped || '';
+    return ta.value;
+  }
+
+  function refreshAssetPreviews(colWidth){
+    var charBudget = Math.max(16, Math.floor((colWidth - 28) / 7));
+    table.querySelectorAll('td.tc-col-assets .tc-assets-cell').forEach(function(cell){
+      if(cell.classList.contains('expanded')) return;
+      var full = decodeAttr(cell.getAttribute('data-full') || '');
+      var previewEl = cell.querySelector('.tc-assets-preview');
+      var moreBtn = cell.querySelector('.tc-more-btn');
+      if(!previewEl) return;
+      if(full.length > charBudget){
+        previewEl.textContent = full.slice(0, charBudget) + '…';
+        if(moreBtn){
+          moreBtn.style.display = '';
+          moreBtn.textContent = '…more';
+        }
+      } else {
+        previewEl.textContent = full;
+        if(moreBtn) moreBtn.style.display = 'none';
+      }
+    });
   }
 
   function syncTableWidth(){
     var total = 0;
-    cols.forEach(function(c){ total += readWidth(c); });
+    for(var i = 0; i < widths.length; i++) total += widths[i];
     table.style.width = Math.round(total) + 'px';
+    table.style.minWidth = Math.round(total) + 'px';
   }
 
   function setColWidth(colIndex, widthPx){
-    var col = cols[colIndex];
-    if(!col) return;
     var minW = minWidths[colIndex] || 36;
-    // No max cap — drag right expands; left shrinks down to minW
     var next = Math.max(minW, Math.round(widthPx));
-    col.style.width = next + 'px';
-    col.style.minWidth = next + 'px';
-    col.style.maxWidth = next + 'px';
+    widths[colIndex] = next;
+    var px = next + 'px';
+
+    var col = cols[colIndex];
+    if(col){
+      col.style.width = px;
+      col.style.minWidth = px;
+      col.style.maxWidth = px;
+    }
+    var th = ths[colIndex];
+    if(th){
+      th.style.width = px;
+      th.style.minWidth = px;
+      th.style.maxWidth = px;
+    }
+    var body = table.tBodies[0];
+    if(body){
+      for(var r = 0; r < body.rows.length; r++){
+        var cell = body.rows[r].cells[colIndex];
+        if(!cell) continue;
+        cell.style.width = px;
+        cell.style.minWidth = px;
+        cell.style.maxWidth = px;
+      }
+    }
     syncTableWidth();
+    if(colIndex === ASSETS_COL){
+      refreshAssetPreviews(next);
+    }
   }
 
-  // Initial width = sum of col defaults (avoids other cols stealing space)
-  syncTableWidth();
+  // Apply initial defaults so left-drag shrinks from a known base
+  for(var i = 0; i < widths.length; i++){
+    setColWidth(i, widths[i]);
+  }
 
   ths.forEach(function(th, colIndex){
     var resizer = th.querySelector('.tc-col-resizer');
-    var col = cols[colIndex];
-    if(!resizer || !col) return;
+    if(!resizer) return;
 
     resizer.addEventListener('dblclick', function(ev){
       ev.preventDefault();
       ev.stopPropagation();
-      setColWidth(colIndex, parseInt(col.getAttribute('data-default-width') || '120', 10));
+      var def = parseInt(cols[colIndex].getAttribute('data-default-width') || '120', 10);
+      setColWidth(colIndex, def);
     });
 
     resizer.addEventListener('pointerdown', function(ev){
@@ -1738,8 +1779,8 @@ function initResizableCompleteTable(){
       ev.stopPropagation();
 
       var startX = ev.clientX;
-      // Prefer live rendered width so left/right drag matches what user sees
-      var startW = th.getBoundingClientRect().width || readWidth(col);
+      // Style-tracked width is source of truth so left drag works reliably
+      var startW = widths[colIndex];
       var dragging = true;
       resizer.classList.add('resizing');
       document.body.classList.add('tc-col-resizing');
@@ -1749,7 +1790,7 @@ function initResizableCompleteTable(){
         if(!wrap) return;
         var rect = wrap.getBoundingClientRect();
         var zone = 48;
-        var step = 24;
+        var step = 28;
         if(clientX > rect.right - zone){
           wrap.scrollLeft += step;
         } else if(clientX < rect.left + zone){
@@ -1774,7 +1815,6 @@ function initResizableCompleteTable(){
         document.removeEventListener('pointercancel', onUp, true);
       }
 
-      // Document-level capture so drag continues to viewport edges
       document.addEventListener('pointermove', onMove, true);
       document.addEventListener('pointerup', onUp, true);
       document.addEventListener('pointercancel', onUp, true);
