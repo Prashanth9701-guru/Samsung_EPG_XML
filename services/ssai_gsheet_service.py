@@ -13,16 +13,16 @@ from typing import Any, List, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 SPREADSHEET_ID = os.environ.get(
-    "SSAI_CONTROL_SHEET_URL",
+    "CONTROL_SHEET_URL",
     os.environ.get(
         "CONTROL_SHEET_URL",
         "1tYuX0SLiNPl6Eg_fK9NwExsn2OIh1dNQCShCD9vdhxM",
     ),
 )
-SSAI_INPUT_SHEET_GID = int(os.environ.get("SSAI_INPUT_SHEET_GID", "1350788501"))
-SSAI_RESULTS_SHEET_GID = int(os.environ.get("SSAI_RESULTS_SHEET_GID", "852742931"))
+SSAI_INPUT_SHEET_GID = int(os.environ.get("CONTROL_SHEET_GID", "1350788501"))
+SSAI_RESULTS_SHEET_GID = int(os.environ.get("HISTORY_SHEET_GID", "852742931"))
 SSAI_DRIVE_FOLDER_ID = os.environ.get(
-    "SSAI_DRIVE_FOLDER_ID",
+    "DRIVE_PARENT_FOLDER_ID",
     "1HKNF6C1wpfz6E4kw5AAFf4N08TSV_Q-p",
 )
 SA_JSON = os.environ.get("GDRIVE_SA_JSON") or os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
