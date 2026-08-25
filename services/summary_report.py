@@ -368,11 +368,11 @@ details[open] .chevron { transform: rotate(90deg); }
 }
 .tc-table th {
   position: sticky; top: 0; z-index: 2;
-  padding: 10px 16px 10px 12px; text-align: left; font-size: 11px; font-weight: 700;
+  padding: 8px 10px 8px 6px; text-align: left; font-size: 11px; font-weight: 700;
   text-transform: uppercase; letter-spacing: .7px; color: #64748B;
   background: #F8FAFC; border-bottom: 2px solid #E2E8F0;
   box-sizing: border-box; white-space: nowrap;
-  /* Allow shrink without clipping the resize handle */
+  /* max-width:0 enables shrink; overflow must stay visible so resize grip is clickable */
   max-width: 0;
 }
 .tc-th-inner {
@@ -380,19 +380,18 @@ details[open] .chevron { transform: rotate(90deg); }
   overflow: visible;
 }
 .tc-th-label {
-  display: block; overflow: hidden; text-overflow: ellipsis; padding-right: 12px;
+  display: block; overflow: hidden; text-overflow: ellipsis; padding-right: 10px;
 }
 .tc-col-resizer {
-  position: absolute; top: -14px; right: -2px; bottom: -14px; width: 16px;
-  cursor: col-resize; user-select: none; z-index: 8; touch-action: none;
+  position: absolute; top: -16px; right: -4px; bottom: -16px; width: 18px;
+  cursor: col-resize; user-select: none; z-index: 20; touch-action: none;
 }
 .tc-table th:last-child .tc-col-resizer {
-  right: -2px; width: 18px;
+  right: -4px; width: 20px;
 }
 .tc-col-resizer::after {
-  content: ''; position: absolute; top: 20%; bottom: 20%; left: 50%;
+  content: ''; position: absolute; top: 18%; bottom: 18%; left: 50%;
   width: 2px; margin-left: -1px; background: #94A3B8; border-radius: 1px;
-  transition: background .12s, width .12s;
 }
 .tc-col-resizer:hover::after, .tc-col-resizer.resizing::after {
   background: #3B82F6; width: 3px; margin-left: -1.5px;
@@ -402,7 +401,7 @@ body.tc-col-resizing, body.tc-col-resizing * {
 }
 body.tc-col-resizing { -webkit-user-select: none; }
 .tc-table td {
-  padding: 9px 12px; border-bottom: 1px solid #F1F5F9; vertical-align: top;
+  padding: 8px 6px; border-bottom: 1px solid #F1F5F9; vertical-align: top;
   overflow-wrap: anywhere; word-break: break-word; color: #1E293B;
   box-sizing: border-box; overflow: hidden; max-width: 0;
 }
@@ -422,12 +421,13 @@ body.tc-col-resizing { -webkit-user-select: none; }
   outline: 2px solid #1E293B; outline-offset: 1px;
 }
 .tc-filter-pill:hover { filter: brightness(0.97); }
-.tc-assets-cell { line-height: 1.5; }
+.tc-assets-cell { line-height: 1.5; min-width: 0; }
 .tc-assets-preview { word-break: break-word; overflow: hidden; }
 .tc-assets-full { display: none; word-break: break-word; white-space: pre-wrap; margin-top: 4px; }
 .tc-assets-cell.expanded .tc-assets-full { display: block; }
 .tc-assets-cell.expanded .tc-assets-preview { display: none; }
 .tc-assets-actions { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 8px; }
+.tc-assets-actions.tc-actions-hidden { display: none !important; }
 .tc-more-btn, .tc-copy-btn {
   appearance: none; border: none; background: none; padding: 0;
   font-size: 11px; font-weight: 700; color: #2563EB; cursor: pointer;
@@ -1682,11 +1682,12 @@ function initResizableCompleteTable(){
   if(!cols.length || !ths.length) return;
 
   var ASSETS_COL = 6;
-  var minWidths = [36, 48, 56, 56, 56, 56, 56];
+  // Near-zero floor so drag-left can go almost to the edge (grip still usable)
+  var MIN_COL = 16;
   var widths = [];
   cols.forEach(function(col){
     var w = parseFloat(col.style.width) || parseFloat(col.getAttribute('data-default-width') || '120');
-    widths.push(w);
+    widths.push(Math.max(MIN_COL, w));
   });
 
   function decodeAttr(escaped){
@@ -1696,8 +1697,13 @@ function initResizableCompleteTable(){
   }
 
   function refreshAssetPreviews(colWidth){
-    var charBudget = Math.max(16, Math.floor((colWidth - 28) / 7));
+    var hideActions = colWidth < 72;
+    var charBudget = Math.max(4, Math.floor((colWidth - (hideActions ? 8 : 28)) / 6.5));
     table.querySelectorAll('td.tc-col-assets .tc-assets-cell').forEach(function(cell){
+      var actions = cell.querySelector('.tc-assets-actions');
+      if(actions){
+        actions.classList.toggle('tc-actions-hidden', hideActions);
+      }
       if(cell.classList.contains('expanded')) return;
       var full = decodeAttr(cell.getAttribute('data-full') || '');
       var previewEl = cell.querySelector('.tc-assets-preview');
@@ -1705,7 +1711,7 @@ function initResizableCompleteTable(){
       if(!previewEl) return;
       if(full.length > charBudget){
         previewEl.textContent = full.slice(0, charBudget) + '…';
-        if(moreBtn){
+        if(moreBtn && !hideActions){
           moreBtn.style.display = '';
           moreBtn.textContent = '…more';
         }
@@ -1723,11 +1729,10 @@ function initResizableCompleteTable(){
     table.style.minWidth = Math.round(total) + 'px';
   }
 
-  function setColWidth(colIndex, widthPx){
-    var minW = minWidths[colIndex] || 36;
-    var next = Math.max(minW, Math.round(widthPx));
-    widths[colIndex] = next;
+  function applyCol(colIndex){
+    var next = widths[colIndex];
     var px = next + 'px';
+    var pad = next < 40 ? '4px 2px' : (next < 70 ? '6px 4px' : '');
 
     var col = cols[colIndex];
     if(col){
@@ -1740,6 +1745,8 @@ function initResizableCompleteTable(){
       th.style.width = px;
       th.style.minWidth = px;
       th.style.maxWidth = px;
+      if(pad) th.style.padding = pad;
+      else th.style.padding = '';
     }
     var body = table.tBodies[0];
     if(body){
@@ -1749,18 +1756,51 @@ function initResizableCompleteTable(){
         cell.style.width = px;
         cell.style.minWidth = px;
         cell.style.maxWidth = px;
+        if(pad) cell.style.padding = pad;
+        else cell.style.padding = '';
       }
     }
-    syncTableWidth();
     if(colIndex === ASSETS_COL){
       refreshAssetPreviews(next);
     }
   }
 
-  // Apply initial defaults so left-drag shrinks from a known base
-  for(var i = 0; i < widths.length; i++){
-    setColWidth(i, widths[i]);
+  function setColWidthExcel(colIndex, desiredPx){
+    var desired = Math.round(desiredPx);
+    var last = widths.length - 1;
+
+    if(colIndex >= last){
+      // Last column: grow/shrink table freely down to MIN_COL
+      widths[colIndex] = Math.max(MIN_COL, desired);
+      applyCol(colIndex);
+      syncTableWidth();
+      return;
+    }
+
+    // Middle columns: steal/give space from the NEXT column so the divider
+    // tracks the mouse and left-drag can go all the way to MIN_COL.
+    var old = widths[colIndex];
+    var nextOld = widths[colIndex + 1];
+    var pairTotal = old + nextOld;
+    var newW = Math.max(MIN_COL, Math.min(desired, pairTotal - MIN_COL));
+    widths[colIndex] = newW;
+    widths[colIndex + 1] = pairTotal - newW;
+    applyCol(colIndex);
+    applyCol(colIndex + 1);
+    syncTableWidth();
   }
+
+  function setColWidthAbsolute(colIndex, desiredPx){
+    widths[colIndex] = Math.max(MIN_COL, Math.round(desiredPx));
+    applyCol(colIndex);
+    syncTableWidth();
+  }
+
+  // Initial layout
+  for(var i = 0; i < widths.length; i++){
+    applyCol(i);
+  }
+  syncTableWidth();
 
   ths.forEach(function(th, colIndex){
     var resizer = th.querySelector('.tc-col-resizer');
@@ -1770,7 +1810,18 @@ function initResizableCompleteTable(){
       ev.preventDefault();
       ev.stopPropagation();
       var def = parseInt(cols[colIndex].getAttribute('data-default-width') || '120', 10);
-      setColWidth(colIndex, def);
+      // Reset this column; for non-last, take/return space from neighbor
+      if(colIndex < widths.length - 1){
+        var pair = widths[colIndex] + widths[colIndex + 1];
+        var w = Math.max(MIN_COL, Math.min(def, pair - MIN_COL));
+        widths[colIndex] = w;
+        widths[colIndex + 1] = pair - w;
+        applyCol(colIndex);
+        applyCol(colIndex + 1);
+        syncTableWidth();
+      } else {
+        setColWidthAbsolute(colIndex, def);
+      }
     });
 
     resizer.addEventListener('pointerdown', function(ev){
@@ -1779,7 +1830,6 @@ function initResizableCompleteTable(){
       ev.stopPropagation();
 
       var startX = ev.clientX;
-      // Style-tracked width is source of truth so left drag works reliably
       var startW = widths[colIndex];
       var dragging = true;
       resizer.classList.add('resizing');
@@ -1789,18 +1839,15 @@ function initResizableCompleteTable(){
       function edgeScroll(clientX){
         if(!wrap) return;
         var rect = wrap.getBoundingClientRect();
-        var zone = 48;
-        var step = 28;
-        if(clientX > rect.right - zone){
-          wrap.scrollLeft += step;
-        } else if(clientX < rect.left + zone){
-          wrap.scrollLeft -= step;
-        }
+        var zone = 40;
+        var step = 24;
+        if(clientX > rect.right - zone) wrap.scrollLeft += step;
+        else if(clientX < rect.left + zone) wrap.scrollLeft -= step;
       }
 
       function onMove(moveEv){
         if(!dragging) return;
-        setColWidth(colIndex, startW + (moveEv.clientX - startX));
+        setColWidthExcel(colIndex, startW + (moveEv.clientX - startX));
         edgeScroll(moveEv.clientX);
       }
 
