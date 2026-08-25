@@ -368,6 +368,7 @@ details[open] .chevron { transform: rotate(90deg); }
   text-transform: uppercase; letter-spacing: .7px; color: #64748B;
   background: #F8FAFC; border-bottom: 2px solid #E2E8F0;
   box-sizing: border-box; white-space: nowrap;
+  overflow: hidden; max-width: 0;
 }
 .tc-th-inner {
   position: relative; display: block; width: 100%;
@@ -392,7 +393,7 @@ body.tc-col-resizing { -webkit-user-select: none; }
 .tc-table td {
   padding: 9px 12px; border-bottom: 1px solid #F1F5F9; vertical-align: top;
   overflow-wrap: anywhere; word-break: break-word; color: #1E293B;
-  box-sizing: border-box;
+  box-sizing: border-box; overflow: hidden; max-width: 0;
 }
 .tc-table tr:last-child td { border-bottom: none; }
 .tc-table tbody tr:hover td { background: #F8FAFC; }
@@ -1594,15 +1595,8 @@ def _render_grouped_failed_cases_panel(rows):
 
 def _render_tab_shell(complete_html, failed_html, grouped_html):
     """Tab navigation + three panels. Default active tab = Failed Cases."""
-    toolbar = (
-        '<div class="report-toolbar">'
-        '<button type="button" class="dl-btn dl-btn-full" onclick="downloadFullReport()">'
-        'Download as Excel</button>'
-        '</div>'
-    )
     return (
-        toolbar
-        + '<div class="tab-bar" role="tablist">'
+        '<div class="tab-bar" role="tablist">'
         '<button type="button" class="tab-btn" data-tab="complete" role="tab"'
         ' aria-selected="false">Test Case + Results Section</button>'
         '<button type="button" class="tab-btn active" data-tab="failed" role="tab"'
@@ -1690,9 +1684,11 @@ function initResizableCompleteTable(){
     var col = cols[colIndex];
     if(!col) return;
     var minW = minWidths[colIndex] || 36;
-    // No max cap — drag right can expand all the way to the far edge
+    // No max cap — drag right expands; left shrinks down to minW
     var next = Math.max(minW, Math.round(widthPx));
     col.style.width = next + 'px';
+    col.style.minWidth = next + 'px';
+    col.style.maxWidth = next + 'px';
     syncTableWidth();
   }
 
