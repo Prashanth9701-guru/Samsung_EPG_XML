@@ -80,10 +80,6 @@ def _upload_s3_html(html_path: Optional[str]) -> str:
         return ""
 
 
-def _has_failed_rows() -> bool:
-    return any(row.get("Status") == "Failed" for row in Validation_Output)
-
-
 def _write_html_report(
     excel_path: str,
     channel_name: str,
@@ -119,6 +115,9 @@ def ssai_template(
 
     Returns:
       {"status": "PASSED"|"FAILED", "stream_url", "drive_link", "s3_html_url", "report_path"}
+
+    status reflects pipeline completion (like NON_SSAI SUCCESS), not whether
+    Validation_Output contains Failed test scenarios. Failed cases stay in Excel/HTML.
     """
     drive_link = ""
     s3_html_url = ""
@@ -269,7 +268,9 @@ def ssai_template(
         drive_link = _upload_drive(zip_file) if zip_file else ""
         s3_html_url = _upload_s3_html(html_path)
 
-        status = "FAILED" if _has_failed_rows() else "PASSED"
+        # Pipeline completed (mirrors NON_SSAI SUCCESS). Failed validation rows
+        # remain in Excel/HTML and do not drive this status.
+        status = "PASSED"
 
         logger.info(
             "%s ssai_template done status=%s drive=%s s3=%s path=%s",
