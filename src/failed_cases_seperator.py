@@ -159,7 +159,7 @@ def failed_cases_seperator():
                                                  'Module': data.get('Module'),
                                                  'Issue Summary': data.get('Issue Summary').replace('lang value', f'{duplicate_values[0]}').replace('channel_lang_value', f'{duplicate_values[1]}')})
 
-            elif 'in-correct-cat' in data.get('Issue Summary'):
+            elif 'invalid' in data.get('Issue Summary'):
                 common_asset_ids = {}
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
                     for date, ids in asset_ids_data.items():
@@ -178,7 +178,32 @@ def failed_cases_seperator():
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
                     updated_summary_list.append({'Asset ID': key,
                                                  'Module': data.get('Module'),
-                                                 'Issue Summary': f"In {', '.join(list(Values.keys()))} days, {data.get('Issue Summary').replace('in-correct-cat', ', '.join(set(duplicate_values)))}"})
+                                                 'Issue Summary': f"In {', '.join(list(Values.keys()))} days, {data.get('Issue Summary').replace('invalid', ', '.join(set(duplicate_values)))}"})
+
+            
+            elif 'in-correct-rating' in data.get('Issue Summary'):
+                common_asset_ids = {}
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
+                    for date, ids in asset_ids_data.items():
+                        for asset_ids in ids:
+                            for asset_id, value in asset_ids.items():
+                                if asset_id not in common_asset_ids:
+                                    common_asset_ids[asset_id] = {}
+
+                                if date not in common_asset_ids[asset_id]:
+                                    common_asset_ids[asset_id][date] = []
+
+                                common_asset_ids[asset_id][date].extend(v for v in value if v not in common_asset_ids[asset_id][date])
+
+                for key, Values in common_asset_ids.items():
+                    duplicate_values = []
+                    duplicate_values.extend(i for v in list(Values.values()) for i in v)
+                    updated_summary_list.append({'Asset ID': key,
+                                                 'Module': data.get('Module'),
+                                                 'Issue Summary': f"In {', '.join(list(Values.keys()))} days, {data.get('Issue Summary').replace('in-correct-rating', ', '.join(set(duplicate_values)))}"})        
+
+
+                    
 
             elif data.get('Scenario').strip() == 'Validate less than 20 minutes (1200 seconds) of Assets are not scheduled in all 7 days':
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
