@@ -259,10 +259,10 @@ def _suite_c_asset_id(
         if not isinstance(prog, dict):
             continue
         key = _program_key(prog)
-        if "asset_id" not in prog:
+        if "id" not in prog:
             _record(not_tested, date, key, ["asset_id not available"])
             continue
-        asset_id = prog.get("asset_id")
+        asset_id = prog.get("id")
         if _is_empty(asset_id):
             _record(not_tested, date, key, ["asset_id empty"])
             continue
