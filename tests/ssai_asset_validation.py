@@ -250,7 +250,10 @@ def _suite_c_asset_id(
     date: str,
     programs: List[dict],
     config: dict,
-    failed: Dict[str, Dict[str, List[Any]]],
+    type_fail: Dict[str, Dict[str, List[Any]]],
+    length_fail: Dict[str, Dict[str, List[Any]]],
+    eq_title: Dict[str, Dict[str, List[Any]]],
+    eq_desc: Dict[str, Dict[str, List[Any]]],
     not_tested: Dict[str, Dict[str, List[Any]]],
 ) -> None:
     max_len = (config.get("lengths") or {}).get("asset_id", 50)
@@ -259,26 +262,28 @@ def _suite_c_asset_id(
         if not isinstance(prog, dict):
             continue
         key = _program_key(prog)
-        if "id" not in prog:
+        if "asset_id" not in prog:
             _record(not_tested, date, key, ["asset_id not available"])
             continue
-        asset_id = prog.get("id")
+        asset_id = prog.get("asset_id")
         if _is_empty(asset_id):
             _record(not_tested, date, key, ["asset_id empty"])
             continue
         if not isinstance(asset_id, str):
-            _record(failed, date, key, [f"asset_id not string: {type(asset_id).__name__}"])
+            _record(type_fail, date, key, [f"asset_id not string: {type(asset_id).__name__}"])
             continue
         if len(asset_id) > max_len:
-            _record(failed, date, key, [f"length={len(asset_id)} max={max_len}", asset_id])
+            _record(length_fail, date, key, [len(asset_id), asset_id])
         title = prog.get("title")
         desc = prog.get("desc")
         if isinstance(title, str) and asset_id == title:
-            _record(failed, date, key, ["asset_id equals title", asset_id])
+            _record(eq_title, date, key, [asset_id])
         if isinstance(desc, str) and asset_id == desc:
-            _record(failed, date, key, ["asset_id equals desc", asset_id])
+            _record(eq_desc, date, key, [asset_id])
 
     logger.info(f"Completed suite_c_asset_id for date: {date}")
+
+
 def _suite_d_title(
     date: str,
     programs: List[dict],
@@ -340,7 +345,7 @@ def _suite_e_poster(
 ) -> None:
     """
     buckets keys: missing, url_missing, url_type, url_len, status, redirect,
-                  format, resolution, type_missing, wh_missing, wh_mismatch
+                  format, resolution, type_missing, width_missing, height_missing, wh_mismatch
     """
     logger.info(f"Running suite_e_poster for date: {date}")
     lengths = config.get("lengths") or {}
@@ -384,8 +389,10 @@ def _suite_e_poster(
         pheight = first.get("height")
         if _is_empty(ptype):
             _record(buckets["type_missing"], date, key, ["type missing"])
-        if _is_empty(pwidth) or _is_empty(pheight):
-            _record(buckets["wh_missing"], date, key, ["width/height missing", pwidth, pheight])
+        if _is_empty(pwidth):
+            _record(buckets["width_missing"], date, key, ["width missing"])
+        if _is_empty(pheight):
+            _record(buckets["height_missing"], date, key, ["height missing"])
 
         response, net_err = _fetch_poster_image(url)
         if net_err:
@@ -422,7 +429,6 @@ def _suite_e_poster(
                 "image/jpeg",
                 "image/jpg",
             }:
-                # type present but not jpg-family — still record if format check needed
                 if str(ptype).lower() not in {fmt, f"image/{fmt}"}:
                     _record(buckets["format"], date, key, [f"json type={ptype}", image.format, url])
         except Exception as exc:
@@ -430,11 +436,13 @@ def _suite_e_poster(
 
     logger.info(f"Completed suite_e_poster for date: {date}")
 
+
 def _suite_f_genre(
     date: str,
     programs: List[dict],
     config: dict,
-    failed: Dict[str, Dict[str, List[Any]]],
+    structure_fail: Dict[str, Dict[str, List[Any]]],
+    allowlist_fail: Dict[str, Dict[str, List[Any]]],
     not_tested: Dict[str, Dict[str, List[Any]]],
 ) -> None:
     allowed = set(config.get("genres") or [])
@@ -451,22 +459,26 @@ def _suite_f_genre(
             _record(not_tested, date, key, ["genre empty"])
             continue
         if not isinstance(genre, list):
-            _record(failed, date, key, [f"genre not a list: {type(genre).__name__}"])
+            _record(structure_fail, date, key, [f"genre not a list: {type(genre).__name__}"])
             continue
         for item in genre:
             if not isinstance(item, dict):
-                _record(failed, date, key, ["genre item not an object"])
+                _record(structure_fail, date, key, ["genre item not an object"])
                 continue
             gid = item.get("id")
             name = item.get("original_name")
+            struct_ok = True
             if _is_empty(gid) or not isinstance(gid, str):
-                _record(failed, date, key, ["genre.id missing or not string", item])
+                _record(structure_fail, date, key, ["genre.id missing or not string", item])
+                struct_ok = False
             if _is_empty(name) or not isinstance(name, str):
-                _record(failed, date, key, ["genre.original_name missing or not string", item])
-            elif name not in allowed:
-                _record(failed, date, key, [f"unexpected genre: {name}"])
+                _record(structure_fail, date, key, ["genre.original_name missing or not string", item])
+                struct_ok = False
+            elif struct_ok and name not in allowed:
+                _record(allowlist_fail, date, key, [name])
 
     logger.info(f"Completed suite_f_genre for date: {date}")
+
 
 def _suite_g_rating(
     date: str,
@@ -531,7 +543,8 @@ def _suite_h_desc(
 def _suite_i_duration(
     date: str,
     programs: List[dict],
-    failed: Dict[str, Dict[str, List[Any]]],
+    type_fail: Dict[str, Dict[str, List[Any]]],
+    zero_fail: Dict[str, Dict[str, List[Any]]],
     not_tested: Dict[str, Dict[str, List[Any]]],
 ) -> None:
     logger.info(f"Running suite_i_duration for date: {date}")
@@ -547,12 +560,13 @@ def _suite_i_duration(
             _record(not_tested, date, key, ["duration empty"])
             continue
         if not isinstance(duration, int) or isinstance(duration, bool):
-            _record(failed, date, key, [f"duration not int: {type(duration).__name__}", duration])
+            _record(type_fail, date, key, [f"duration not int: {type(duration).__name__}", duration])
             continue
         if duration == 0:
-            _record(failed, date, key, ["duration is 0"])
+            _record(zero_fail, date, key, ["duration is 0"])
 
     logger.info(f"Completed suite_i_duration for date: {date}")
+
 
 def _suite_k_content_uri(
     date: str,
@@ -584,7 +598,8 @@ def _suite_k_content_uri(
 def _suite_l_cast(
     date: str,
     programs: List[dict],
-    failed: Dict[str, Dict[str, List[Any]]],
+    type_fail: Dict[str, Dict[str, List[Any]]],
+    empty_fail: Dict[str, Dict[str, List[Any]]],
     not_tested: Dict[str, Dict[str, List[Any]]],
 ) -> None:
     logger.info(f"Running suite_l_cast for date: {date}")
@@ -600,12 +615,13 @@ def _suite_l_cast(
             _record(not_tested, date, key, ["cast not available"])
             continue
         if not isinstance(cast, list):
-            _record(failed, date, key, [f"cast not a list: {type(cast).__name__}"])
+            _record(type_fail, date, key, [f"cast not a list: {type(cast).__name__}"])
             continue
         if len(cast) == 0:
-            _record(failed, date, key, ["cast empty"])
+            _record(empty_fail, date, key, ["cast empty"])
 
     logger.info(f"Completed suite_l_cast for date: {date}")
+
 
 def _suite_j_schedule(
     date: str,
@@ -715,7 +731,10 @@ def run_ssai_day_validations(
     ab_empty: Dict[str, Dict[str, List[Any]]] = {}
     dup_failed: Dict[str, Dict[str, List[Any]]] = {}
 
-    c_failed: Dict[str, Dict[str, List[Any]]] = {}
+    c_type: Dict[str, Dict[str, List[Any]]] = {}
+    c_len: Dict[str, Dict[str, List[Any]]] = {}
+    c_eq_title: Dict[str, Dict[str, List[Any]]] = {}
+    c_eq_desc: Dict[str, Dict[str, List[Any]]] = {}
     c_nt: Dict[str, Dict[str, List[Any]]] = {}
 
     d_type: Dict[str, Dict[str, List[Any]]] = {}
@@ -735,12 +754,14 @@ def run_ssai_day_validations(
         "format",
         "resolution",
         "type_missing",
-        "wh_missing",
+        "width_missing",
+        "height_missing",
         "wh_mismatch",
     )
     poster_buckets = {k: {} for k in poster_keys}
 
-    f_failed: Dict[str, Dict[str, List[Any]]] = {}
+    f_structure: Dict[str, Dict[str, List[Any]]] = {}
+    f_allowlist: Dict[str, Dict[str, List[Any]]] = {}
     f_nt: Dict[str, Dict[str, List[Any]]] = {}
     g_failed: Dict[str, Dict[str, List[Any]]] = {}
     g_nt: Dict[str, Dict[str, List[Any]]] = {}
@@ -750,7 +771,8 @@ def run_ssai_day_validations(
     h_spec: Dict[str, Dict[str, List[Any]]] = {}
     h_nt: Dict[str, Dict[str, List[Any]]] = {}
 
-    i_failed: Dict[str, Dict[str, List[Any]]] = {}
+    i_type: Dict[str, Dict[str, List[Any]]] = {}
+    i_zero: Dict[str, Dict[str, List[Any]]] = {}
     i_nt: Dict[str, Dict[str, List[Any]]] = {}
 
     sched_keys = (
@@ -768,7 +790,8 @@ def run_ssai_day_validations(
 
     k_failed: Dict[str, Dict[str, List[Any]]] = {}
     k_nt: Dict[str, Dict[str, List[Any]]] = {}
-    l_failed: Dict[str, Dict[str, List[Any]]] = {}
+    l_type: Dict[str, Dict[str, List[Any]]] = {}
+    l_empty: Dict[str, Dict[str, List[Any]]] = {}
     l_nt: Dict[str, Dict[str, List[Any]]] = {}
 
     if not by_date:
@@ -788,16 +811,16 @@ def run_ssai_day_validations(
 
         _suite_ab_mandatory(date, programs, config, ab_missing, ab_empty)
         _suite_dup_ids(date, programs, dup_failed)
-        _suite_c_asset_id(date, programs, config, c_failed, c_nt)
+        _suite_c_asset_id(date, programs, config, c_type, c_len, c_eq_title, c_eq_desc, c_nt)
         _suite_d_title(date, programs, config, d_type, d_tba, d_eq, d_len, d_spec, d_nt)
         _suite_e_poster(date, programs, config, poster_buckets)
-        _suite_f_genre(date, programs, config, f_failed, f_nt)
+        _suite_f_genre(date, programs, config, f_structure, f_allowlist, f_nt)
         _suite_g_rating(date, programs, config, g_failed, g_nt)
         _suite_h_desc(date, programs, config, h_type, h_len, h_spec, h_nt)
-        _suite_i_duration(date, programs, i_failed, i_nt)
+        _suite_i_duration(date, programs, i_type, i_zero, i_nt)
         _suite_j_schedule(date, programs, schedules, config, sched_buckets)
         _suite_k_content_uri(date, programs, stream_url, k_failed, k_nt)
-        _suite_l_cast(date, programs, l_failed, l_nt)
+        _suite_l_cast(date, programs, l_type, l_empty, l_nt)
 
     mod = "Asset_Level"
     sch = "Schedule"
@@ -833,15 +856,45 @@ def run_ssai_day_validations(
         "",
     )
 
-    # c
+    asset_id_max = (config.get("lengths") or {}).get("asset_id", 50)
+    empty_nt: Dict[str, Dict[str, List[Any]]] = {}
+
+    # c — Asset ID (4 atomic cases)
     num = _append_row(
         num, mod,
-        "Validate asset_id type/length and inequality vs title/desc",
-        "asset_id should be string, within max length, and not equal title/desc",
-        c_failed, c_nt,
-        "asset_id values are valid",
-        "asset_id validation failed for some assets",
-        "asset_id not available for some assets",
+        "Validate Asset ID Type in all returned days",
+        "Asset ID should be a string for all Assets in all returned days",
+        c_type, c_nt,
+        "Asset ID type is string for all assets",
+        "Asset ID type is in-correct for some assets (not a string)",
+        "Asset ID not available for some assets",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Asset ID Length in all returned days",
+        f"Length of Asset ID should not exceed {asset_id_max} characters in all returned days",
+        c_len, empty_nt,
+        f"Asset ID Length is within the expected limit of {asset_id_max} characters",
+        f"Asset ID length is in-correct-length which is more than expected limit of {asset_id_max} characters",
+        "",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Asset ID should not contain Title in all returned days",
+        "Asset ID and Title should not be same for all Assets in all returned days",
+        c_eq_title, empty_nt,
+        "Asset ID and Title fields are not matching",
+        "Asset ID and Title fields are matching",
+        "",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Asset ID should not contain Description in all returned days",
+        "Asset ID and Description should not be same for all Assets in all returned days",
+        c_eq_desc, empty_nt,
+        "Asset ID and Description fields are not matching",
+        "Asset ID and Description fields are matching",
+        "",
     )
 
     # d
@@ -854,9 +907,6 @@ def run_ssai_day_validations(
         "Some titles are not strings",
         "title not available for some assets",
     )
-    # If d_nt was only for type row, reset nt for subsequent title rows when type passed path used shared nt.
-    # Re-use d_nt only once; subsequent title rows treat absence as already reported.
-    empty_nt: Dict[str, Dict[str, List[Any]]] = {}
     num = _append_row(
         num, mod,
         "Validate title is not TBA / To Be Announced",
@@ -906,11 +956,20 @@ def run_ssai_day_validations(
     )
     num = _append_row(
         num, mod,
-        "Validate poster[0].url availability and type",
-        "poster[0].url should be a non-empty string",
-        {**poster_buckets["url_missing"], **poster_buckets["url_type"]}, empty_nt,
-        "poster[0].url is valid",
-        "poster[0].url missing or wrong type",
+        "Validate Poster URL availability in all returned days",
+        "Poster URL should be available for all Assets in all returned days",
+        poster_buckets["url_missing"], empty_nt,
+        "Poster URL is available for all assets",
+        "Poster URL not available for some assets",
+        "",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Poster URL type is string in all returned days",
+        "Poster URL should be a string for all Assets in all returned days",
+        poster_buckets["url_type"], empty_nt,
+        "Poster URL type is string for all assets",
+        "Poster URL type is in-correct for some assets (not a string)",
         "",
     )
     num = _append_row(
@@ -960,11 +1019,29 @@ def run_ssai_day_validations(
     )
     num = _append_row(
         num, mod,
-        "Validate poster JSON type/width/height present",
-        "poster[0] type, width, height should be present",
-        {**poster_buckets["type_missing"], **poster_buckets["wh_missing"]}, empty_nt,
-        "poster metadata fields present",
-        "poster type/width/height missing",
+        "Validate Poster type present in all returned days",
+        "poster[0].type should be present for all Assets in all returned days",
+        poster_buckets["type_missing"], empty_nt,
+        "Poster type is present for all assets",
+        "Poster type not available for some assets",
+        "",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Poster width present in all returned days",
+        "poster[0].width should be present for all Assets in all returned days",
+        poster_buckets["width_missing"], empty_nt,
+        "Poster width is present for all assets",
+        "Poster width not available for some assets",
+        "",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Poster height present in all returned days",
+        "poster[0].height should be present for all Assets in all returned days",
+        poster_buckets["height_missing"], empty_nt,
+        "Poster height is present for all assets",
+        "Poster height not available for some assets",
         "",
     )
     num = _append_row(
@@ -980,12 +1057,21 @@ def run_ssai_day_validations(
     # f–i
     num = _append_row(
         num, mod,
-        "Validate genre structure and allow-list",
-        "genre should be list of {id, original_name} with expected names",
-        f_failed, f_nt,
-        "All genres are valid",
-        "Some genres are invalid",
+        "Validate Genre structure in all returned days",
+        "genre should be a list of objects with id and original_name for all Assets in all returned days",
+        f_structure, f_nt,
+        "All genre structures are valid",
+        "Some genres have invalid structure",
         "genre not available for some assets",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Genre original_name as per expected list in all returned days",
+        "genre original_name should be present in the expected genre list for all Assets in all returned days",
+        f_allowlist, empty_nt,
+        "All genre original_name values are in the expected list",
+        "Some genre original_name values are invalid",
+        "",
     )
     num = _append_row(
         num, mod,
@@ -1025,12 +1111,21 @@ def run_ssai_day_validations(
     )
     num = _append_row(
         num, mod,
-        "Validate program duration is non-zero int",
-        "duration should be int and not equal to 0",
-        i_failed, i_nt,
-        "All durations are valid non-zero ints",
-        "Some durations are invalid or zero",
+        "Validate Duration type is int in all returned days",
+        "duration should be an int for all Assets in all returned days",
+        i_type, i_nt,
+        "All durations are ints",
+        "Some durations are not ints",
         "duration not available for some assets",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Duration is not zero in all returned days",
+        "duration should not be equal to 0 for all Assets in all returned days",
+        i_zero, empty_nt,
+        "All durations are non-zero",
+        "Some durations are zero",
+        "",
     )
 
     # j schedule
@@ -1128,12 +1223,21 @@ def run_ssai_day_validations(
     )
     num = _append_row(
         num, mod,
-        "Validate cast is a non-empty list",
-        "cast should be a non-empty list",
-        l_failed, l_nt,
-        "All cast lists are non-empty",
-        "Some cast lists are empty or invalid",
+        "Validate Cast is a list in all returned days",
+        "cast should be a list for all Assets in all returned days",
+        l_type, l_nt,
+        "All cast values are lists",
+        "Some cast values are not lists",
         "cast not available for some assets",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Cast is non-empty in all returned days",
+        "cast should be a non-empty list for all Assets in all returned days",
+        l_empty, empty_nt,
+        "All cast lists are non-empty",
+        "Some cast lists are empty",
+        "",
     )
 
     logger.info("%sSSAI day validations complete; next_seq=%s rows=%s", prefix, num, len(Validation_Output))
