@@ -7,6 +7,7 @@ import logging
 from tests.asset_level_test import validate_thumbnail, validate_rating
 from tests.channel_level_test import capture_channel_level_lang
 from utilities.helper import *
+from utilities.test_case_priority import apply_priorities_to_validation_output
 from services.xlsx_service import *
 from tests.xml_json_fetch import *
 from tests.xml_date_format import *
@@ -541,6 +542,7 @@ def template(url,
 
 
                     logger.info(f'{ticket_id} Validation Output: {Validation_Output}')
+                    apply_priorities_to_validation_output(Validation_Output)
                     excel_path = xlsx_report(Validation_Output, report_path)
                     updated_summary_list = failed_cases_seperator()
                     logger.info(f"filtered_list: {updated_summary_list}")

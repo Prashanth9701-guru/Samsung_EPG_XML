@@ -15,6 +15,7 @@ from services.xlsx_service import xlsx_report
 from src.ssai_failed_cases_seperator import ssai_failed_cases_seperator
 from tests.ssai_asset_validation import run_ssai_day_validations
 from utilities.helper import Validation_Output, helper_fuc
+from utilities.test_case_priority import apply_priorities_to_validation_output
 from utilities.ssai_child_template import (
     create_ssai_report_dir,
     fetch_all_epg_days,
@@ -142,6 +143,8 @@ def ssai_template(
             )
             report_path = create_ssai_report_dir(ticket_id)
             try:
+                if Validation_Output:
+                    apply_priorities_to_validation_output(Validation_Output)
                 excel_path = xlsx_report(Validation_Output, report_path) if Validation_Output else None
                 if excel_path:
                     _write_html_report(
@@ -244,6 +247,7 @@ def ssai_template(
         html_path = None
         try:
             if Validation_Output:
+                apply_priorities_to_validation_output(Validation_Output)
                 excel_path = xlsx_report(Validation_Output, report_path)
                 logger.info("%s Excel report: %s", ticket_id, excel_path)
         except Exception as exc:

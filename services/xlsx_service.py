@@ -7,10 +7,16 @@ from openpyxl.styles import PatternFill, Font, Alignment
 
 logger = logging.getLogger(__name__)
 
+REPORT_COLUMNS = [
+    'S.No', 'Module', 'Scenario', 'Expected Results',
+    'Status', 'Priority', 'Issue Summary', 'Asset IDs',
+]
+
+
 def xlsx_report(Validation_Output, file_path):
     wb = openpyxl.Workbook()
     ws = wb.active
-    headers = [key for key in Validation_Output[0].keys()]
+    headers = REPORT_COLUMNS
     ws.append(headers)
     logger.info(f'Xlsx Headers {headers}')
     orange_fill = PatternFill(start_color="FFA500", end_color="FFA500", fill_type="solid")

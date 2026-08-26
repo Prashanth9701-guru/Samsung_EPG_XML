@@ -27,6 +27,8 @@ from datetime import datetime
 import openpyxl
 from openpyxl.styles import Font, Alignment
 
+from utilities.test_case_priority import issue_with_priority_suffix
+
 #from Input import JSON_URL
 
 # ---------------------------------------------------------------------------
@@ -1101,6 +1103,10 @@ def _group_failure_rows(rows):
             # Existing path — shared issue text across all extracted asset IDs.
             asset_ids     = _extract_asset_ids_for_grouping(asset_ids_raw)
             display_issue = _normalize_issue_text(issue_text) if issue_text else issue_text
+            display_issue = issue_with_priority_suffix(
+                display_issue,
+                str(row.get('Priority', '') or '').strip(),
+            )
 
             if asset_ids:
                 for aid in asset_ids:
@@ -1264,19 +1270,21 @@ def _group_failure_rows_from_updated_summary_list(updated_summary_list):
         asset_id     = str(entry.get('Asset_ID', entry.get('Asset ID', '')) or '').strip()
         module_label = str(entry.get('Module',        '') or '').strip()
         issue_text   = str(entry.get('Issue Summary', '') or '').strip()
+        priority     = str(entry.get('Priority', '') or '').strip()
+        display_issue = issue_with_priority_suffix(issue_text, priority)
 
         if asset_id:
             if asset_id not in asset_groups:
                 asset_groups[asset_id] = {'modules': [], 'issues': []}
             if module_label and module_label not in asset_groups[asset_id]['modules']:
                 asset_groups[asset_id]['modules'].append(module_label)
-            if issue_text and issue_text not in asset_groups[asset_id]['issues']:
-                asset_groups[asset_id]['issues'].append(issue_text)
+            if display_issue and display_issue not in asset_groups[asset_id]['issues']:
+                asset_groups[asset_id]['issues'].append(display_issue)
         else:
             if module_label not in module_groups:
                 module_groups[module_label] = {'issues': []}
-            if issue_text and issue_text not in module_groups[module_label]['issues']:
-                module_groups[module_label]['issues'].append(issue_text)
+            if display_issue and display_issue not in module_groups[module_label]['issues']:
+                module_groups[module_label]['issues'].append(display_issue)
 
     return asset_groups, module_groups
 
@@ -1297,6 +1305,7 @@ _COMPLETE_COLUMNS = (
     ('Scenario', 'tc-col-scenario', 240),
     ('Expected Results', 'tc-col-expected', 220),
     ('Status', 'tc-col-status', 110),
+    ('Priority', 'tc-col-priority', 100),
     ('Issue Summary', 'tc-col-issue', 240),
     ('Asset IDs', 'tc-col-assets', 200),
 )
@@ -1411,6 +1420,7 @@ def _render_complete_test_cases_panel(rows, counts):
             f'<td class="tc-col-scenario">{_esc(r.get("Scenario", ""))}</td>'
             f'<td class="tc-col-expected">{_esc(_truncate(r.get("Expected Results", "") or "", 300))}</td>'
             f'<td class="tc-col-status">{badge}</td>'
+            f'<td class="tc-col-priority">{_esc(r.get("Priority", "") or "")}</td>'
             f'<td class="tc-col-issue">{_esc(issue)}</td>'
             f'<td class="tc-col-assets">{assets_html}</td>'
             '</tr>'
@@ -1566,6 +1576,8 @@ def _render_grouped_failed_cases_panel(rows):
 
     items = []
     for issue_summary, failed_rows, asset_ids in prepared:
+        priority = str((failed_rows[0].get('Priority') if failed_rows else '') or '').strip()
+        display_issue = issue_with_priority_suffix(issue_summary, priority)
         id_count = len(asset_ids)
         open_attr = ' open' if id_count <= 3 and id_count > 0 else ''
 
@@ -1578,7 +1590,7 @@ def _render_grouped_failed_cases_panel(rows):
             f'<details class="gf-item"{open_attr}>'
             f'<summary class="gf-summary">'
             f'<span class="chevron">&#9658;</span>'
-            f'<span class="gf-sc-name">{_esc(issue_summary)}</span>'
+            f'<span class="gf-sc-name">{_esc(display_issue)}</span>'
             f'<span class="gf-count">{id_count} asset{"s" if id_count != 1 else ""}</span>'
             f'</summary>'
             f'<div class="gf-body">{body_html}</div>'

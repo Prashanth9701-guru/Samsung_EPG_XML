@@ -209,12 +209,14 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                 "Scenario": data.get("Scenario"),
                 "Issue Summary": data.get("Issue Summary"),
                 "Asset IDs": data.get("Asset IDs"),
+                "Priority": data.get("Priority", ""),
             }
         )
         i += 1
 
     for data in filtered_list:
         module = data.get("Module") or ""
+        priority = data.get("Priority") or ""
         issue_summary = data.get("Issue Summary") or ""
         scenario = (data.get("Scenario") or "").strip()
 
@@ -224,6 +226,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                     "Asset ID": "",
                     "Module": module,
                     "Issue Summary": issue_summary,
+                    "Priority": priority,
                 }
             )
             continue
@@ -235,6 +238,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                     "Asset ID": "",
                     "Module": module,
                     "Issue Summary": issue_summary,
+                    "Priority": priority,
                 }
             )
             continue
@@ -250,6 +254,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                             "Mandatory",
                             f"In {_dates_csv(values)} days, {', '.join(set(map(str, duplicate_values)))}",
                         ),
+                        "Priority": priority,
                     }
                 )
 
@@ -266,6 +271,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                         "Asset ID": key,
                         "Module": module,
                         "Issue Summary": _with_dates_prefix(summary, values),
+                        "Priority": priority,
                     }
                 )
 
@@ -282,6 +288,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                         "Asset ID": key,
                         "Module": module,
                         "Issue Summary": _with_dates_prefix(summary, values),
+                        "Priority": priority,
                     }
                 )
 
@@ -292,6 +299,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                         "Asset ID": key,
                         "Module": module,
                         "Issue Summary": f"In {_dates_csv(values)} days, {issue_summary}",
+                        "Priority": priority,
                     }
                 )
 
@@ -314,6 +322,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                         "Asset ID": key,
                         "Module": module,
                         "Issue Summary": summary,
+                        "Priority": priority,
                     }
                 )
 
@@ -331,6 +340,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                             f"than 20 minutes ({dur_min} seconds) "
                             f"(Asset Scheduled Time: {start_time})"
                         ),
+                        "Priority": priority,
                     }
                 )
 
@@ -348,6 +358,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                             f"than 6 hours ({dur_max} seconds) "
                             f"(Asset Scheduled Time: {start_time})"
                         ),
+                        "Priority": priority,
                     }
                 )
 
@@ -361,6 +372,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                         "Asset ID": asset_id,
                         "Module": module,
                         "Issue Summary": summary,
+                        "Priority": priority,
                     }
                 )
 
@@ -374,6 +386,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                         "Asset ID": asset_id,
                         "Module": module,
                         "Issue Summary": summary,
+                        "Priority": priority,
                     }
                 )
 
@@ -384,6 +397,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                         "Asset ID": key,
                         "Module": module,
                         "Issue Summary": _with_dates_prefix(issue_summary, values),
+                        "Priority": priority,
                     }
                 )
 
