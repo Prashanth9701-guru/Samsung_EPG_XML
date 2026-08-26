@@ -64,18 +64,45 @@ def _merge_day_failures(
     failed_by_date: Dict[str, Dict[str, List[Any]]],
 ) -> str:
     """
-    Build Asset IDs string:
-      [{date: [{program_id: [details]}]}, ...]
+    NON_SSAI Asset_Level Asset IDs cell (no outer list):
+      {date: [{program_id: [details]}, ...]},{date2: [...]}
     """
     if not failed_by_date:
         return ""
-    out: List[Dict[str, List[Dict[str, List[Any]]]]] = []
+    parts: List[str] = []
     for date in sorted(failed_by_date.keys()):
         id_map = failed_by_date[date] or {}
         day_entries = [{pid: details} for pid, details in id_map.items()]
         if day_entries:
-            out.append({date: day_entries})
-    return str(out) if out else ""
+            parts.append(str({date: day_entries}))
+    return ",".join(parts)
+
+
+def _merge_schedule_failures(
+    failed_by_date: Dict[str, Dict[str, List[Any]]],
+) -> str:
+    """
+    NON_SSAI Schedule Asset IDs cell (no outer list):
+      {program_id: [date, ...details]},{program_id2: [...]}
+    """
+    if not failed_by_date:
+        return ""
+    parts: List[str] = []
+    for date in sorted(failed_by_date.keys()):
+        id_map = failed_by_date[date] or {}
+        for pid, details in id_map.items():
+            detail_list = details if isinstance(details, list) else [details]
+            parts.append(str({pid: [date, *detail_list]}))
+    return ",".join(parts)
+
+
+def _serialize_asset_ids(
+    module: str,
+    bucket: Dict[str, Dict[str, List[Any]]],
+) -> str:
+    if (module or "").strip() == "Schedule":
+        return _merge_schedule_failures(bucket)
+    return _merge_day_failures(bucket)
 
 
 def _record(
@@ -175,7 +202,7 @@ def _append_row(
                 expected,
                 "Failed",
                 fail_msg,
-                _merge_day_failures(failed),
+                _serialize_asset_ids(module, failed),
             )
         )
     elif not_tested:
@@ -187,7 +214,7 @@ def _append_row(
                 expected,
                 "Not Tested",
                 not_tested_msg,
-                _merge_day_failures(not_tested),
+                _serialize_asset_ids(module, not_tested),
             )
         )
     else:
@@ -276,9 +303,9 @@ def _suite_c_asset_id(
             _record(length_fail, date, key, [len(asset_id), asset_id])
         title = prog.get("title")
         desc = prog.get("desc")
-        if isinstance(title, str) and asset_id == title:
+        if isinstance(title, str) and title in asset_id:
             _record(eq_title, date, key, [asset_id])
-        if isinstance(desc, str) and asset_id == desc:
+        if isinstance(desc, str) and desc in asset_id:
             _record(eq_desc, date, key, [asset_id])
 
     logger.info(f"Completed suite_c_asset_id for date: {date}")

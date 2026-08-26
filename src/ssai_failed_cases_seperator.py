@@ -1,56 +1,88 @@
 """Filter Failed SSAI validation rows into summary list for HTML reports.
 
-Mirrors NON_SSAI failed_cases_seperator branching, but parses SSAI Asset IDs
-without wrapping them in an extra [...].
+Mirrors NON_SSAI failed_cases_seperator: wrap Asset IDs with [...] then parse.
+Supports Asset_Level ({date: [{id: details}]}) and Schedule ({id: [date, ...]}).
 """
 
 from __future__ import annotations
 
 import ast
 import logging
+import re
 from typing import Any, Dict, List
 
 from utilities.helper import Validation_Output
 
 logger = logging.getLogger(__name__)
 
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}")
+
+
+def _is_date_key(key: Any) -> bool:
+    return bool(_DATE_RE.match(str(key or "").strip()))
+
 
 def _parse_ssai_asset_ids(asset_ids_raw: Any) -> Dict[str, Dict[str, List[Any]]]:
     """
-    Parse SSAI Asset IDs shape: [{date: [{program_id: [details]}]}]
-    into {program_id: {date: [details]}}.
+    Parse NON_SSAI-style Asset IDs cell into {program_id: {date: [details]}}.
+
+    Asset_Level: {date: [{program_id: [details]}, ...]},{date2: [...]}
+    Schedule:    {program_id: [date, ...details]},{program_id2: [...]}
     """
     common_asset_ids: Dict[str, Dict[str, List[Any]]] = {}
     if not asset_ids_raw:
         return common_asset_ids
 
+    raw = asset_ids_raw if isinstance(asset_ids_raw, str) else str(asset_ids_raw)
     try:
-        parsed = ast.literal_eval(asset_ids_raw if isinstance(asset_ids_raw, str) else str(asset_ids_raw))
+        parsed = ast.literal_eval(f"[{raw}]")
     except (ValueError, SyntaxError) as exc:
-        logger.warning("SSAI Asset IDs parse failed: %s raw=%s", exc, str(asset_ids_raw)[:200])
+        logger.warning("SSAI Asset IDs parse failed: %s raw=%s", exc, raw[:200])
         return common_asset_ids
 
     if not isinstance(parsed, list):
         parsed = [parsed]
 
-    for day_entry in parsed:
-        if not isinstance(day_entry, dict):
+    for entry in parsed:
+        if not isinstance(entry, dict):
             continue
-        for date, id_list in day_entry.items():
-            if not isinstance(id_list, list):
-                continue
-            for id_obj in id_list:
-                if not isinstance(id_obj, dict):
+
+        # Detect shape from first key: date-outer (Asset_Level) vs asset-outer (Schedule)
+        keys = list(entry.keys())
+        if not keys:
+            continue
+
+        if all(_is_date_key(k) for k in keys):
+            for date, id_list in entry.items():
+                if not isinstance(id_list, list):
                     continue
-                for asset_id, value in id_obj.items():
-                    if asset_id not in common_asset_ids:
-                        common_asset_ids[asset_id] = {}
-                    if date not in common_asset_ids[asset_id]:
-                        common_asset_ids[asset_id][date] = []
-                    details = value if isinstance(value, list) else [value]
-                    common_asset_ids[asset_id][date].extend(
-                        v for v in details if v not in common_asset_ids[asset_id][date]
-                    )
+                for id_obj in id_list:
+                    if not isinstance(id_obj, dict):
+                        continue
+                    for asset_id, value in id_obj.items():
+                        if asset_id not in common_asset_ids:
+                            common_asset_ids[asset_id] = {}
+                        if date not in common_asset_ids[asset_id]:
+                            common_asset_ids[asset_id][date] = []
+                        details = value if isinstance(value, list) else [value]
+                        common_asset_ids[asset_id][date].extend(
+                            v for v in details if v not in common_asset_ids[asset_id][date]
+                        )
+            continue
+
+        # Schedule-style: {asset_id: [date, ...details]}
+        for asset_id, value in entry.items():
+            details = value if isinstance(value, list) else [value]
+            date = str(details[0]) if details and _is_date_key(details[0]) else "unknown"
+            rest = details[1:] if details and _is_date_key(details[0]) else details
+            if asset_id not in common_asset_ids:
+                common_asset_ids[asset_id] = {}
+            if date not in common_asset_ids[asset_id]:
+                common_asset_ids[asset_id][date] = []
+            common_asset_ids[asset_id][date].extend(
+                v for v in rest if v not in common_asset_ids[asset_id][date]
+            )
+
     return common_asset_ids
 
 
