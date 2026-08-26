@@ -10,7 +10,7 @@ import os
 import re
 import time
 import unicodedata
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -184,6 +184,13 @@ def _has_special_chars(text: str, kind: str) -> bool:
     english = _translate_to_english(cleaned)
     pattern = DESC_SPECIAL_RE if kind == "desc" else TITLE_SPECIAL_RE
     return not bool(pattern.search(english))
+
+
+def _format_schedule_iso(dt: datetime) -> str:
+    """Format datetime as YYYY-MM-DDTHH:MM:SSZ for schedule grouped-report payloads."""
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _parse_starttime(value: Any) -> Optional[datetime]:
@@ -990,19 +997,21 @@ def _suite_j_schedule(
             _record(buckets["dur_parse"], date, curr_key, ["cannot compute gap/overlap; duration unparseable"])
             continue
         delta = int((next_start - curr_start).total_seconds())
+        next_start_iso = _format_schedule_iso(curr_start + timedelta(seconds=delta))
+        curr_end_iso = _format_schedule_iso(curr_start + timedelta(seconds=curr_dur))
         if delta > curr_dur:
             _record(
                 buckets["gap"],
                 date,
                 curr_key,
-                [f"delta={delta}", f"duration={curr_dur}", curr_entry.get("starttime")],
+                [next_start_iso, curr_end_iso],
             )
         elif delta < curr_dur:
             _record(
                 buckets["overlap"],
                 date,
                 curr_key,
-                [f"delta={delta}", f"duration={curr_dur}", curr_entry.get("starttime")],
+                [next_start_iso, curr_end_iso],
             )
 
     logger.info(f"Completed suite_j_schedule for date: {date}")
@@ -1192,11 +1201,11 @@ def run_ssai_day_validations(
     # duplicate ids
     num = _append_row(
         num, mod,
-        "Validate duplicate program.id within each day in all returned days",
-        "program.id should be unique within each day in all returned days",
+        "Validate duplicate program id within each day in all returned days",
+        "program id should be unique within each day in all returned days",
         dup_failed, {},
-        "No duplicate program.id values were found in all returned days",
-        "Duplicate program.id values were found within a day",
+        "No duplicate program id values were found in all returned days",
+        "Duplicate program id values were found within a day",
         "",
     )
 
@@ -1304,16 +1313,16 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate poster list entry type is object in all returned days",
-        "Each poster[] entry should be an object for all Assets in all returned days",
+        "Each poster entry should be an object for all Assets in all returned days",
         poster_buckets["item_type"], empty_nt,
-        "All poster[] entries are objects for all Assets in all returned days",
+        "All poster entries are objects for all Assets in all returned days",
         "Poster list entry type is in-correct (not an object)",
         "",
     )
     num = _append_row(
         num, mod,
         "Validate Poster URL availability in all returned days",
-        "Poster URL should be available for all poster[] entries in all returned days",
+        "Poster URL should be available for all poster entries in all returned days",
         poster_buckets["url_missing"], empty_nt,
         "Poster URL is available for all Assets in all returned days",
         "Poster URL is not available",
@@ -1322,7 +1331,7 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate Poster URL type is string in all returned days",
-        "Poster URL should be a string for all poster[] entries in all returned days",
+        "Poster URL should be a string for all poster entries in all returned days",
         poster_buckets["url_type"], empty_nt,
         "Poster URL type is a string for all Assets in all returned days",
         "Poster URL type is in-correct (not a string)",
@@ -1331,7 +1340,7 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate Poster URL length in all returned days",
-        f"Poster URL length should not exceed {poster_url_max} characters for all poster[] entries in all returned days",
+        f"Poster URL length should not exceed {poster_url_max} characters for all poster entries in all returned days",
         poster_buckets["url_len"], empty_nt,
         f"Poster URL length is within the expected limit of {poster_url_max} characters for all Assets in all returned days",
         f"Poster URL length is in-correct-length which is more than expected limit of {poster_url_max} characters",
@@ -1340,7 +1349,7 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate Poster HTTP status is 200 in all returned days",
-        "Poster URL should return HTTP 200 for all poster[] entries in all returned days",
+        "Poster URL should return HTTP 200 for all poster entries in all returned days",
         poster_buckets["status"], empty_nt,
         "All Poster URLs return HTTP 200 for all Assets in all returned days",
         "Poster URL request is returning in-correct-thumbnail status code",
@@ -1349,7 +1358,7 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate Poster URL has no redirect in all returned days",
-        "Poster URL should not redirect for all poster[] entries in all returned days",
+        "Poster URL should not redirect for all poster entries in all returned days",
         poster_buckets["redirect"], empty_nt,
         "No Poster URL redirects were observed for all Assets in all returned days",
         "Poster URL request is getting re-directed with in-correct-thumbnail status code",
@@ -1358,7 +1367,7 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate Poster image format is JPG/JPEG in all returned days",
-        "Poster image format should be JPG/JPEG for all poster[] entries in all returned days",
+        "Poster image format should be JPG/JPEG for all poster entries in all returned days",
         poster_buckets["format"], empty_nt,
         "All Poster images are JPG/JPEG for all Assets in all returned days",
         "Poster has in-correct-thumbnail format; expected format is JPEG/JPG",
@@ -1367,7 +1376,7 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate Poster resolution is 1920x1080 in all returned days",
-        "Poster actual image size should be 1920x1080 for all poster[] entries in all returned days",
+        "Poster actual image size should be 1920x1080 for all poster entries in all returned days",
         poster_buckets["resolution"], empty_nt,
         "All Poster images are 1920x1080 for all Assets in all returned days",
         "Poster has in-correct-thumbnail resolution; expected resolution is 1920X1080",
@@ -1376,7 +1385,7 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate Poster type present in all returned days",
-        "poster[].type should be present for all poster[] entries in all returned days",
+        "poster type should be present for all poster entries in all returned days",
         poster_buckets["type_missing"], empty_nt,
         "Poster type is present for all Assets in all returned days",
         "Mandatory poster fields are missing",
@@ -1385,7 +1394,7 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate Poster width present in all returned days",
-        "poster[].width should be present for all poster[] entries in all returned days",
+        "poster width should be present for all poster entries in all returned days",
         poster_buckets["width_missing"], empty_nt,
         "Poster width is present for all Assets in all returned days",
         "Mandatory poster fields are missing",
@@ -1394,7 +1403,7 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate Poster height present in all returned days",
-        "poster[].height should be present for all poster[] entries in all returned days",
+        "poster height should be present for all poster entries in all returned days",
         poster_buckets["height_missing"], empty_nt,
         "Poster height is present for all Assets in all returned days",
         "Mandatory poster fields are missing",
@@ -1403,7 +1412,7 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate Poster JSON width match actual image in all returned days",
-        "poster[].width should match the downloaded image width for all poster[] entries in all returned days",
+        "poster width should match the downloaded image width for all poster entries in all returned days",
         poster_buckets["width_mismatch"], empty_nt,
         "Poster JSON width matches the downloaded image for all Assets in all returned days",
         "Poster JSON width is in-correct length and proper-length is in-correct length for the downloaded image",
@@ -1412,7 +1421,7 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate Poster JSON height match actual image in all returned days",
-        "poster[].height should match the downloaded image height for all poster[] entries in all returned days",
+        "poster height should match the downloaded image height for all poster entries in all returned days",
         poster_buckets["height_mismatch"], empty_nt,
         "Poster JSON height matches the downloaded image for all Assets in all returned days",
         "Poster JSON height is in-correct length and proper-length is in-correct length for the downloaded image",
@@ -1432,16 +1441,16 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate Genre item type in all returned days",
-        "Each genre[] entry should be an object for all Assets in all returned days",
+        "Each genre entry should be an object for all Assets in all returned days",
         f_item_type, empty_nt,
-        "All genre[] entries are objects for all Assets in all returned days",
+        "All genre entries are objects for all Assets in all returned days",
         "Genre item type is in-correct (not an object)",
         "",
     )
     num = _append_row(
         num, mod,
         "Validate Genre id type in all returned days",
-        "genre[].id should be a non-empty string for all Assets in all returned days",
+        "genre id should be a non-empty string for all Assets in all returned days",
         f_id_type, empty_nt,
         "Genre id is a string for all Assets in all returned days",
         "Genre id type is in-correct (not a string)",
@@ -1450,7 +1459,7 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate Genre original_name type in all returned days",
-        "genre[].original_name should be a non-empty string for all Assets in all returned days",
+        "genre original_name should be a non-empty string for all Assets in all returned days",
         f_name_type, empty_nt,
         "Genre original_name is a string for all Assets in all returned days",
         "Genre original_name type is in-correct (not a string)",
@@ -1459,7 +1468,7 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate Genre original_name Capitalization in all returned days",
-        "genre[].original_name should be capitalized for all Assets in all returned days",
+        "genre original_name should be capitalized for all Assets in all returned days",
         f_cap, empty_nt,
         "Genre original_name capitalization is valid for all Assets in all returned days",
         "Genre original_name has in-correct capitalization",
@@ -1623,7 +1632,7 @@ def run_ssai_day_validations(
     num = _append_row(
         num, sch,
         "Validate no schedule gaps between consecutive assets in all returned days",
-        "delta(next.start - curr.start) should equal curr.duration in all returned days",
+        "consecutive schedule entries should align without gaps or overlaps in all returned days",
         sched_buckets["gap"], empty_nt,
         "No schedule gaps were observed between consecutive assets in all returned days",
         "A schedule gap is observed between consecutive assets",
@@ -1632,7 +1641,7 @@ def run_ssai_day_validations(
     num = _append_row(
         num, sch,
         "Validate no schedule overlaps between consecutive assets in all returned days",
-        "delta(next.start - curr.start) should equal curr.duration in all returned days",
+        "consecutive schedule entries should align without gaps or overlaps in all returned days",
         sched_buckets["overlap"], empty_nt,
         "No schedule overlaps were observed between consecutive assets in all returned days",
         "A schedule overlap is observed between consecutive assets",
@@ -1640,17 +1649,17 @@ def run_ssai_day_validations(
     )
     num = _append_row(
         num, sch,
-        "Validate schedule content_id exists in program[].id in all returned days",
-        "content_id should match a program.id in all returned days",
+        "Validate schedule content_id exists in program id in all returned days",
+        "content_id should match a program id in all returned days",
         sched_buckets["content_missing"], empty_nt,
-        "All content_id values resolve to a program.id in all returned days",
-        "Schedule content_id does not resolve to a program.id",
+        "All content_id values resolve to a program id in all returned days",
+        "Schedule content_id does not resolve to a program id",
         "",
     )
     num = _append_row(
         num, sch,
         "Validate schedule duration matches program duration in all returned days",
-        "int(schedule.duration) should equal program.duration in all returned days",
+        "schedule_duration should equal program duration in all returned days",
         sched_buckets["duration_mismatch"], empty_nt,
         "Schedule duration matches program duration for all entries in all returned days",
         "Schedule duration does not match program duration",
