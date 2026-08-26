@@ -997,21 +997,20 @@ def _suite_j_schedule(
             _record(buckets["dur_parse"], date, curr_key, ["cannot compute gap/overlap; duration unparseable"])
             continue
         delta = int((next_start - curr_start).total_seconds())
-        next_start_iso = _format_schedule_iso(curr_start + timedelta(seconds=delta))
-        curr_end_iso = _format_schedule_iso(curr_start + timedelta(seconds=curr_dur))
+        starttime = curr_entry.get("starttime")
         if delta > curr_dur:
             _record(
                 buckets["gap"],
                 date,
                 curr_key,
-                [next_start_iso, curr_end_iso],
+                [delta, curr_dur, starttime],
             )
         elif delta < curr_dur:
             _record(
                 buckets["overlap"],
                 date,
                 curr_key,
-                [next_start_iso, curr_end_iso],
+                [delta, curr_dur, starttime],
             )
 
     logger.info(f"Completed suite_j_schedule for date: {date}")

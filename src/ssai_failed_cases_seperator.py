@@ -9,7 +9,6 @@ from __future__ import annotations
 import ast
 import logging
 import re
-from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from utilities.helper import Validation_Output
@@ -97,7 +96,7 @@ def _flat_details(values: Dict[str, List[Any]]) -> List[Any]:
 
 
 def _dates_csv(values: Dict[str, List[Any]]) -> str:
-    return ", ".join(list(values.keys()))
+    return ", ".join(sorted(values.keys()))
 
 
 def _with_dates_prefix(issue_summary: str, values: Dict[str, List[Any]]) -> str:
@@ -132,62 +131,59 @@ def _iter_schedule_asset_entries(asset_ids_raw: Any):
                 yield str(asset_id), details
 
 
-def _parse_schedule_start(value: Any) -> Optional[datetime]:
-    if value is None:
-        return None
-    s = str(value).strip()
-    if not s:
-        return None
-    if s.endswith("Z"):
-        try:
-            return datetime.fromisoformat(s.replace("Z", "+00:00"))
-        except ValueError:
-            pass
-    try:
-        return datetime.fromisoformat(s)
-    except ValueError:
-        return None
-
-
-def _format_schedule_iso(dt: datetime) -> str:
-    if dt.tzinfo is not None:
-        dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
-    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def _gap_overlap_times(details: List[Any]) -> Optional[Tuple[str, str, str]]:
-    """Return (date, current_start, previous_end) for gap/overlap schedule entries."""
+def _parse_gap_overlap_entry(details: List[Any]) -> Optional[Tuple[str, str]]:
+    """Return (date, starttime) from schedule gap/overlap Asset IDs details."""
     if len(details) < 3:
         return None
     date = str(details[0])
-    second = str(details[1])
-    if not second.startswith("delta="):
-        return date, str(details[1]), str(details[2])
+    second = details[1]
 
-    if len(details) < 4:
-        return None
-    try:
-        delta = int(second.split("=", 1)[1])
-        dur = int(str(details[2]).split("=", 1)[1])
-    except (TypeError, ValueError, IndexError):
-        return None
-    curr_start = _parse_schedule_start(details[3])
-    if curr_start is None:
-        return None
-    next_start = _format_schedule_iso(curr_start + timedelta(seconds=delta))
-    curr_end = _format_schedule_iso(curr_start + timedelta(seconds=dur))
-    return date, next_start, curr_end
+    if isinstance(second, str) and second.startswith("delta="):
+        if len(details) < 4:
+            return None
+        return date, str(details[3])
+
+    if isinstance(second, (int, float)) and not isinstance(second, bool):
+        if len(details) < 4:
+            return None
+        return date, str(details[3])
+
+    return None
 
 
-def _gap_overlap_issue_summary(details: List[Any]) -> Optional[str]:
-    parsed = _gap_overlap_times(details)
-    if not parsed:
-        return None
-    date, start_time, prev_end = parsed
+def _schedule_gap_issue_summary(date_csv: str, starttime: str) -> str:
     return (
-        f"In {date} day, Current asset start time is {start_time} "
-        f"and Previous Asset End Time {prev_end} are not matching"
+        f"In {date_csv} days, Observing schedule gap of (delta - duration) "
+        f"between consecutive assets (Asset Start Time's: {starttime})"
     )
+
+
+def _schedule_overlap_issue_summary(date_csv: str, starttime: str) -> str:
+    return (
+        f"In {date_csv} days, Observing schedule overlap of (duration - delta) "
+        f"between consecutive assets (Asset Start Time's: {starttime})"
+    )
+
+
+def _aggregate_schedule_gap_overlap_entries(
+    asset_ids_raw: Any,
+    *,
+    is_overlap: bool,
+):
+    """Yield (asset_id, issue_summary) with merged date prefix per asset + starttime."""
+    grouped: Dict[str, Dict[str, set]] = {}
+    for asset_id, details in _iter_schedule_asset_entries(asset_ids_raw):
+        parsed = _parse_gap_overlap_entry(details)
+        if not parsed:
+            continue
+        date, starttime = parsed
+        grouped.setdefault(asset_id, {}).setdefault(starttime, set()).add(date)
+
+    builder = _schedule_overlap_issue_summary if is_overlap else _schedule_gap_issue_summary
+    for asset_id, by_start in grouped.items():
+        for starttime, dates in by_start.items():
+            date_csv = ", ".join(sorted(dates))
+            yield asset_id, builder(date_csv, starttime)
 
 
 def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
@@ -350,10 +346,10 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                 )
 
         elif "no schedule gaps" in scenario.lower():
-            for asset_id, details in _iter_schedule_asset_entries(data.get("Asset IDs")):
-                summary = _gap_overlap_issue_summary(details)
-                if not summary:
-                    continue
+            for asset_id, summary in _aggregate_schedule_gap_overlap_entries(
+                data.get("Asset IDs"),
+                is_overlap=False,
+            ):
                 updated_summary_list.append(
                     {
                         "Asset ID": asset_id,
@@ -363,10 +359,10 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                 )
 
         elif "no schedule overlaps" in scenario.lower():
-            for asset_id, details in _iter_schedule_asset_entries(data.get("Asset IDs")):
-                summary = _gap_overlap_issue_summary(details)
-                if not summary:
-                    continue
+            for asset_id, summary in _aggregate_schedule_gap_overlap_entries(
+                data.get("Asset IDs"),
+                is_overlap=True,
+            ):
                 updated_summary_list.append(
                     {
                         "Asset ID": asset_id,
