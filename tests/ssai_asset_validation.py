@@ -60,26 +60,54 @@ def _is_empty(value: Any) -> bool:
     return False
 
 
+_EXCEL_ASSET_IDS_MAX = 32000
+
+
 def _merge_day_failures(
     failed_by_date: Dict[str, Dict[str, List[Any]]],
+    max_len: int = _EXCEL_ASSET_IDS_MAX,
 ) -> str:
     """
     NON_SSAI Asset_Level Asset IDs cell (no outer list):
-      {date: [{program_id: [details]}, ...]},{date2: [...]}
+      {date: [{asset_id: [details]}, ...]},{date2: [...]}
+
+    Same construction as NON_SSAI:
+      parts.append({date: result}); ','.join(map(str, parts))
+
+    Clips to max_len with a complete valid literal (never mid-token) for Excel.
     """
     if not failed_by_date:
         return ""
-    parts: List[str] = []
+
+    out_parts: List[Dict[str, List[Dict[str, List[Any]]]]] = []
     for date in sorted(failed_by_date.keys()):
         id_map = failed_by_date[date] or {}
-        day_entries = [{pid: details} for pid, details in id_map.items()]
+        day_entries: List[Dict[str, List[Any]]] = []
+        for pid, details in id_map.items():
+            candidate_entries = day_entries + [{pid: details}]
+            candidate_day = {date: candidate_entries}
+            candidate_parts = out_parts + [candidate_day]
+            candidate_text = ",".join(map(str, candidate_parts))
+            if out_parts or day_entries:
+                if len(candidate_text) > max_len:
+                    if day_entries:
+                        out_parts.append({date: day_entries})
+                    return ",".join(map(str, out_parts)) if out_parts else ""
+                day_entries = candidate_entries
+            else:
+                # First asset ever: always include even if over max_len ( unavoidable )
+                if len(candidate_text) > max_len:
+                    return ",".join(map(str, [candidate_day]))
+                day_entries = candidate_entries
         if day_entries:
-            parts.append(str({date: day_entries}))
-    return ",".join(parts)
+            out_parts.append({date: day_entries})
+
+    return ",".join(map(str, out_parts)) if out_parts else ""
 
 
 def _merge_schedule_failures(
     failed_by_date: Dict[str, Dict[str, List[Any]]],
+    max_len: int = _EXCEL_ASSET_IDS_MAX,
 ) -> str:
     """
     NON_SSAI Schedule Asset IDs cell (no outer list):
@@ -87,13 +115,20 @@ def _merge_schedule_failures(
     """
     if not failed_by_date:
         return ""
-    parts: List[str] = []
+    parts: List[Dict[str, List[Any]]] = []
     for date in sorted(failed_by_date.keys()):
         id_map = failed_by_date[date] or {}
         for pid, details in id_map.items():
             detail_list = details if isinstance(details, list) else [details]
-            parts.append(str({pid: [date, *detail_list]}))
-    return ",".join(parts)
+            candidate = {pid: [date, *detail_list]}
+            candidate_parts = parts + [candidate]
+            candidate_text = ",".join(map(str, candidate_parts))
+            if parts and len(candidate_text) > max_len:
+                return ",".join(map(str, parts))
+            if not parts and len(candidate_text) > max_len:
+                return ",".join(map(str, [candidate]))
+            parts.append(candidate)
+    return ",".join(map(str, parts)) if parts else ""
 
 
 def _serialize_asset_ids(
@@ -194,6 +229,7 @@ def _append_row(
     not_tested_msg: str,
 ) -> int:
     if failed:
+        logger.info(f'failed: {failed}')
         Validation_Output.append(
             helper_fuc(
                 num,

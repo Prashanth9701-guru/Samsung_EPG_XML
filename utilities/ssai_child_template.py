@@ -150,8 +150,9 @@ def record_epg_fetch_status(
     real_failures = [f for f in failed_days if f.get("date")]
 
     if real_failures:
-        asset_ids = str(
-            [{f["date"]: [{"fetch": [f.get("error"), f.get("status_code")]}]} for f in real_failures]
+        asset_ids = ",".join(
+            str({f["date"]: [{"fetch": [f.get("error"), f.get("status_code")]}]})
+            for f in real_failures
         )
         Validation_Output.append(
             helper_fuc(
