@@ -895,7 +895,7 @@ def run_ssai_day_validations(
         "All mandatory fields should be present on every program",
         ab_missing, {},
         "All mandatory fields are present",
-        "Mandatory fields are missing for some assets",
+        "Mandatory fields are missing",
         "",
     )
     num = _append_row(
@@ -904,7 +904,7 @@ def run_ssai_day_validations(
         "All mandatory fields should have non-empty values",
         ab_empty, {},
         "All mandatory field values are non-empty",
-        "Mandatory field values are empty for some assets",
+        "Mandatory field values are not present",
         "",
     )
 
@@ -929,7 +929,7 @@ def run_ssai_day_validations(
         "Asset ID should be a string for all Assets in all returned days",
         c_type, c_nt,
         "Asset ID type is string for all assets",
-        "Asset ID type is in-correct for some assets (not a string)",
+        "Asset ID type is in-correct (not a string)",
         "Asset ID not available for some assets",
     )
     num = _append_row(
@@ -967,7 +967,7 @@ def run_ssai_day_validations(
         "title should be a string",
         d_type, d_nt,
         "All titles are strings",
-        "Some titles are not strings",
+        "Title type is in-correct (not a string)",
         "title not available for some assets",
     )
     num = _append_row(
@@ -976,7 +976,7 @@ def run_ssai_day_validations(
         "title should not be TBA or To Be Announced",
         d_tba, empty_nt,
         "No TBA titles",
-        "Some titles are TBA / To Be Announced",
+        "Asset Title is having To Be Announced instead of actual title",
         "",
     )
     num = _append_row(
@@ -985,7 +985,7 @@ def run_ssai_day_validations(
         "title should not equal desc",
         d_eq, empty_nt,
         "title and desc are distinct",
-        "Some titles equal desc",
+        "Asset Title and Description fields are matching",
         "",
     )
     num = _append_row(
@@ -994,7 +994,7 @@ def run_ssai_day_validations(
         f"title length should be <= {(config.get('lengths') or {}).get('title', 200)}",
         d_len, empty_nt,
         "All title lengths within limit",
-        "Some titles exceed max length",
+        "Asset Title having in-correct-length (chars) which exceeds the maximum allowed length",
         "",
     )
     num = _append_row(
@@ -1003,7 +1003,7 @@ def run_ssai_day_validations(
         "title should match allowed character set",
         d_spec, empty_nt,
         "No unexpected special characters in titles",
-        "Some titles have unexpected special characters",
+        "Asset Title is having unexpected special characters",
         "",
     )
 
@@ -1014,7 +1014,7 @@ def run_ssai_day_validations(
         "poster list with poster[0] should be available",
         {}, poster_buckets["missing"],
         "poster is available for all assets",
-        "poster not available for some assets",
+        "Poster is not available",
         "poster not available for some assets",
     )
     num = _append_row(
@@ -1023,7 +1023,7 @@ def run_ssai_day_validations(
         "Poster URL should be available for all Assets in all returned days",
         poster_buckets["url_missing"], empty_nt,
         "Poster URL is available for all assets",
-        "Poster URL not available for some assets",
+        "Poster URL is not available",
         "",
     )
     num = _append_row(
@@ -1032,16 +1032,17 @@ def run_ssai_day_validations(
         "Poster URL should be a string for all Assets in all returned days",
         poster_buckets["url_type"], empty_nt,
         "Poster URL type is string for all assets",
-        "Poster URL type is in-correct for some assets (not a string)",
+        "Poster URL type is in-correct (not a string)",
         "",
     )
+    poster_url_max = (config.get("lengths") or {}).get("poster_url", 2000)
     num = _append_row(
         num, mod,
         "Validate poster URL length",
-        f"poster URL length should be <= {(config.get('lengths') or {}).get('poster_url', 2000)}",
+        f"poster URL length should be <= {poster_url_max}",
         poster_buckets["url_len"], empty_nt,
         "poster URL lengths within limit",
-        "Some poster URLs exceed max length",
+        f"Poster URL length is in-correct-length which is more than expected limit of {poster_url_max} characters",
         "",
     )
     num = _append_row(
@@ -1050,7 +1051,7 @@ def run_ssai_day_validations(
         "poster URL should return HTTP 200",
         poster_buckets["status"], empty_nt,
         "All poster URLs return 200",
-        "Some poster URLs failed to load",
+        "Poster URL request is returning in-correct-thumbnail status code",
         "",
     )
     num = _append_row(
@@ -1059,7 +1060,7 @@ def run_ssai_day_validations(
         "poster URL should not redirect",
         poster_buckets["redirect"], empty_nt,
         "No poster redirects",
-        "Some poster URLs redirect",
+        "Poster URL request is getting re-directed with in-correct-thumbnail status code",
         "",
     )
     num = _append_row(
@@ -1068,7 +1069,7 @@ def run_ssai_day_validations(
         "poster image format should be JPG/JPEG",
         poster_buckets["format"], empty_nt,
         "All posters are JPG/JPEG",
-        "Some posters have unexpected format",
+        "Poster is having in-correct-thumbnail format. But, expected should be JPEG/JPG format",
         "",
     )
     num = _append_row(
@@ -1077,7 +1078,7 @@ def run_ssai_day_validations(
         "poster actual image size should be 1920x1080",
         poster_buckets["resolution"], empty_nt,
         "All posters are 1920x1080",
-        "Some posters are not 1920x1080",
+        "Poster is having in-correct-thumbnail resolution. But, expected should be 1920X1080 resolution",
         "",
     )
     num = _append_row(
@@ -1086,7 +1087,7 @@ def run_ssai_day_validations(
         "poster[0].type should be present for all Assets in all returned days",
         poster_buckets["type_missing"], empty_nt,
         "Poster type is present for all assets",
-        "Poster type not available for some assets",
+        "Mandatory poster fields are missing",
         "",
     )
     num = _append_row(
@@ -1095,7 +1096,7 @@ def run_ssai_day_validations(
         "poster[0].width should be present for all Assets in all returned days",
         poster_buckets["width_missing"], empty_nt,
         "Poster width is present for all assets",
-        "Poster width not available for some assets",
+        "Mandatory poster fields are missing",
         "",
     )
     num = _append_row(
@@ -1104,7 +1105,7 @@ def run_ssai_day_validations(
         "poster[0].height should be present for all Assets in all returned days",
         poster_buckets["height_missing"], empty_nt,
         "Poster height is present for all assets",
-        "Poster height not available for some assets",
+        "Mandatory poster fields are missing",
         "",
     )
     num = _append_row(
@@ -1124,7 +1125,7 @@ def run_ssai_day_validations(
         "genre should be a list of objects with id and original_name for all Assets in all returned days",
         f_structure, f_nt,
         "All genre structures are valid",
-        "Some genres have invalid structure",
+        "Genre structure is in-correct",
         "genre not available for some assets",
     )
     num = _append_row(
@@ -1133,7 +1134,7 @@ def run_ssai_day_validations(
         "genre original_name should be present in the expected genre list for all Assets in all returned days",
         f_allowlist, empty_nt,
         "All genre original_name values are in the expected list",
-        "Some genre original_name values are invalid",
+        "Genre original_name is not included in Samsung_Supported_Category_List",
         "",
     )
     num = _append_row(
@@ -1142,7 +1143,7 @@ def run_ssai_day_validations(
         "rating should be a string in the expected ratings list",
         g_failed, g_nt,
         "All ratings are valid",
-        "Some ratings are unexpected",
+        "Rating is not included in Samsung_Supported_Rating_List",
         "rating not available for some assets",
     )
     num = _append_row(
@@ -1151,7 +1152,7 @@ def run_ssai_day_validations(
         "desc should be a string",
         h_type, h_nt,
         "All desc values are strings",
-        "Some desc values are not strings",
+        "Description type is in-correct (not a string)",
         "desc not available for some assets",
     )
     num = _append_row(
@@ -1160,7 +1161,7 @@ def run_ssai_day_validations(
         f"desc length should be <= {(config.get('lengths') or {}).get('desc', 4000)}",
         h_len, empty_nt,
         "All desc lengths within limit",
-        "Some desc values exceed max length",
+        "Description having in-correct-length (chars) which exceeds the maximum allowed length",
         "",
     )
     num = _append_row(
@@ -1169,7 +1170,7 @@ def run_ssai_day_validations(
         "desc should match allowed character set",
         h_spec, empty_nt,
         "No unexpected special characters in desc",
-        "Some desc values have unexpected special characters",
+        "Description is having unexpected special characters",
         "",
     )
     num = _append_row(
@@ -1178,7 +1179,7 @@ def run_ssai_day_validations(
         "duration should be an int for all Assets in all returned days",
         i_type, i_nt,
         "All durations are ints",
-        "Some durations are not ints",
+        "Duration type is in-correct (not an int)",
         "duration not available for some assets",
     )
     num = _append_row(
@@ -1187,7 +1188,7 @@ def run_ssai_day_validations(
         "duration should not be equal to 0 for all Assets in all returned days",
         i_zero, empty_nt,
         "All durations are non-zero",
-        "Some durations are zero",
+        "Duration is equal to 0",
         "",
     )
 
@@ -1216,7 +1217,7 @@ def run_ssai_day_validations(
         "starttime should be a parseable ISO datetime",
         sched_buckets["start_parse"], empty_nt,
         "All starttime values parseable",
-        "Some starttime values not parseable",
+        "Schedule starttime is not parseable",
         "",
     )
     num = _append_row(
@@ -1225,7 +1226,7 @@ def run_ssai_day_validations(
         "duration should parse to int seconds",
         sched_buckets["dur_parse"], empty_nt,
         "All schedule durations parseable",
-        "Some schedule durations not parseable",
+        "Schedule duration is not parseable as int seconds",
         "",
     )
     num = _append_row(
@@ -1252,7 +1253,7 @@ def run_ssai_day_validations(
         "content_id should match a program.id",
         sched_buckets["content_missing"], empty_nt,
         "All content_id values resolve to programs",
-        "Some content_id values missing from programs",
+        "Schedule content_id does not resolve to a program.id",
         "",
     )
     num = _append_row(
@@ -1270,7 +1271,7 @@ def run_ssai_day_validations(
         "content_id should differ from schedule_id",
         sched_buckets["id_equals_schedule"], empty_nt,
         "content_id differs from schedule_id",
-        "content_id equals schedule_id for some entries",
+        "Schedule content_id equals schedule_id",
         "",
     )
 
@@ -1281,7 +1282,7 @@ def run_ssai_day_validations(
         "content_uri should equal the control-sheet Stream URL",
         k_failed, k_nt,
         "All content_uri values match Stream URL",
-        "Some content_uri values do not match Stream URL",
+        "content_uri does not match the control-sheet Stream URL",
         "content_uri not available for some assets",
     )
     num = _append_row(
@@ -1290,7 +1291,7 @@ def run_ssai_day_validations(
         "cast should be a list for all Assets in all returned days",
         l_type, l_nt,
         "All cast values are lists",
-        "Some cast values are not lists",
+        "Cast type is in-correct (not a list)",
         "cast not available for some assets",
     )
     num = _append_row(
@@ -1299,7 +1300,7 @@ def run_ssai_day_validations(
         "cast should be a non-empty list for all Assets in all returned days",
         l_empty, empty_nt,
         "All cast lists are non-empty",
-        "Some cast lists are empty",
+        "Cast list is empty",
         "",
     )
 
