@@ -160,6 +160,22 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                     }
                 )
 
+        elif "in-correct length" in issue_summary and "proper-length" in issue_summary:
+            for key, values in common_asset_ids.items():
+                duplicate_values = _flat_details(values)
+                json_val = duplicate_values[0] if duplicate_values else ""
+                actual_val = duplicate_values[1] if len(duplicate_values) > 1 else ""
+                summary = issue_summary.replace("in-correct length", str(actual_val)).replace(
+                    "proper-length", str(json_val)
+                )
+                updated_summary_list.append(
+                    {
+                        "Asset ID": key,
+                        "Module": module,
+                        "Issue Summary": summary,
+                    }
+                )
+
         elif "in-correct-thumbnail" in issue_summary or "in-correct-length" in issue_summary:
             for key, values in common_asset_ids.items():
                 duplicate_values = _flat_details(values)

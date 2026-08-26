@@ -1,4 +1,4 @@
-"""SSAI AN3 program + schedule field validators (suites a–l).
+"""SSAI AN3 program + schedule field validators (suites a–n).
 
 Callable without master/runner via run_ssai_day_validations().
 """
@@ -226,6 +226,59 @@ def _parse_duration_seconds(value: Any) -> Optional[int]:
             return None
 
 
+def _coerce_int(value: Any) -> Optional[int]:
+    if value is None or _is_empty(value):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        try:
+            return int(float(str(value)))
+        except (TypeError, ValueError):
+            return None
+
+
+def _is_word_capitalized(value: str) -> bool:
+    for word in str(value).split():
+        if not word:
+            continue
+        if word[0].isalpha() and not word[0].isupper():
+            return False
+    return True
+
+
+def _is_rating_uppercase(value: str) -> bool:
+    for ch in str(value):
+        if ch.isalpha() and not ch.isupper():
+            return False
+    return True
+
+
+def _strict_starttime_match(value: Any, pattern: str) -> bool:
+    if value is None or _is_empty(value):
+        return False
+    return bool(re.match(pattern, str(value).strip()))
+
+
+def _content_uri_has_ads_macros(uri: str, config: dict) -> bool:
+    markers = config.get("content_uri_required_markers") or ["ads."]
+    macro_keys = config.get("content_uri_macro_keys") or []
+    if not all(marker in uri for marker in markers):
+        return False
+    uri_lower = uri.lower()
+    for key in macro_keys:
+        encoded = f"%7b{key.lower()}%7d"
+        if encoded not in uri_lower:
+            return False
+    return True
+
+
+def _content_uri_encoding_ok(uri: str, config: dict) -> bool:
+    if not config.get("content_uri_forbid_unencoded_macro", True):
+        return True
+    return not bool(re.search(r"\{[A-Z0-9_]+\}", uri))
+
+
 def _append_row(
     num: int,
     module: str,
@@ -410,11 +463,13 @@ def _suite_e_poster(
     date: str,
     programs: List[dict],
     config: dict,
-    buckets: Dict[str, Dict[str, Dict[str, List[Any]]]],
+    buckets: Dict[str, Dict[str, List[Any]]],
 ) -> None:
     """
-    buckets keys: missing, url_missing, url_type, url_len, status, redirect,
-                  format, resolution, type_missing, width_missing, height_missing, wh_mismatch
+    Validate every poster[i] entry per program.
+    buckets: list_type, item_type, missing, url_missing, url_type, url_len, status,
+             redirect, format, resolution, type_missing, width_missing, height_missing,
+             width_mismatch, height_mismatch
     """
     logger.info(f"Running suite_e_poster for date: {date}")
     lengths = config.get("lengths") or {}
@@ -423,6 +478,29 @@ def _suite_e_poster(
     exp_w = int(thumb.get("width", 1920))
     exp_h = int(thumb.get("height", 1080))
     formats = {str(f).lower() for f in (thumb.get("formats") or ["jpg", "jpeg"])}
+    image_cache: Dict[str, Tuple[Optional[Any], Optional[str], Optional[str], Optional[int], Optional[int]]] = {}
+
+    def _load_image(url: str):
+        if url in image_cache:
+            return image_cache[url]
+        response, net_err = _fetch_poster_image(url)
+        if net_err or response is None:
+            image_cache[url] = (None, net_err, None, None, None)
+            return image_cache[url]
+        if response.status_code in (301, 302, 303, 307, 308):
+            image_cache[url] = (response, f"redirect:{response.status_code}", None, None, None)
+            return image_cache[url]
+        if response.status_code != 200:
+            image_cache[url] = (response, f"status:{response.status_code}", None, None, None)
+            return image_cache[url]
+        try:
+            image = Image.open(BytesIO(response.content))
+            width, height = image.size
+            fmt = str(image.format or "").lower()
+            image_cache[url] = (response, None, fmt, width, height)
+        except Exception as exc:
+            image_cache[url] = (response, f"processing error: {exc}", None, None, None)
+        return image_cache[url]
 
     for prog in programs:
         if not isinstance(prog, dict):
@@ -436,72 +514,68 @@ def _suite_e_poster(
             _record(buckets["missing"], date, key, ["poster empty"])
             continue
         if not isinstance(poster, list):
-            _record(buckets["missing"], date, key, ["poster not a list"])
-            continue
-        first = poster[0]
-        if not isinstance(first, dict):
-            _record(buckets["url_missing"], date, key, ["poster[0] not an object"])
+            _record(buckets["list_type"], date, key, [f"poster not a list: {type(poster).__name__}"])
             continue
 
-        url = first.get("url")
-        if _is_empty(url):
-            _record(buckets["url_missing"], date, key, ["poster[0].url missing"])
-            continue
-        if not isinstance(url, str):
-            _record(buckets["url_type"], date, key, [f"url not string: {type(url).__name__}"])
-            continue
-        if len(url) > max_url:
-            _record(buckets["url_len"], date, key, [len(url), url])
+        for idx, entry in enumerate(poster):
+            tag = f"poster[{idx}]"
+            if not isinstance(entry, dict):
+                _record(buckets["item_type"], date, key, [f"{tag} not an object"])
+                continue
 
-        ptype = first.get("type")
-        pwidth = first.get("width")
-        pheight = first.get("height")
-        if _is_empty(ptype):
-            _record(buckets["type_missing"], date, key, ["type missing"])
-        if _is_empty(pwidth):
-            _record(buckets["width_missing"], date, key, ["width missing"])
-        if _is_empty(pheight):
-            _record(buckets["height_missing"], date, key, ["height missing"])
+            url = entry.get("url")
+            if _is_empty(url):
+                _record(buckets["url_missing"], date, key, [f"{tag}.url missing"])
+                continue
+            if not isinstance(url, str):
+                _record(buckets["url_type"], date, key, [f"{tag}.url not string: {type(url).__name__}"])
+                continue
+            if len(url) > max_url:
+                _record(buckets["url_len"], date, key, [len(url), url, tag])
 
-        response, net_err = _fetch_poster_image(url)
-        if net_err:
-            _record(buckets["status"], date, key, [net_err, url])
-            continue
-        assert response is not None
-        if response.status_code in (301, 302, 303, 307, 308):
-            _record(buckets["redirect"], date, key, [response.status_code, url])
-            continue
-        if response.status_code != 200:
-            _record(buckets["status"], date, key, [response.status_code, url])
-            continue
-        try:
-            image = Image.open(BytesIO(response.content))
-            width, height = image.size
-            fmt = str(image.format or "").lower()
-            if fmt not in formats and fmt not in {"jpeg", "jpg"}:
-                _record(buckets["format"], date, key, [image.format, url])
-            if (width, height) != (exp_w, exp_h):
-                _record(buckets["resolution"], date, key, [f"{width}X{height}", url])
-            try:
-                jw = int(pwidth) if pwidth is not None and not _is_empty(pwidth) else None
-                jh = int(pheight) if pheight is not None and not _is_empty(pheight) else None
-            except (TypeError, ValueError):
-                jw, jh = None, None
-                _record(buckets["wh_mismatch"], date, key, ["width/height not numeric", pwidth, pheight, url])
-            if jw is not None and jw != width:
-                _record(buckets["wh_mismatch"], date, key, ["width mismatch", pwidth, width, url])
-            if jh is not None and jh != height:
-                _record(buckets["wh_mismatch"], date, key, ["height mismatch", pheight, height, url])
-            if not _is_empty(ptype) and str(ptype).lower() not in formats and str(ptype).lower() not in {
-                "jpeg",
-                "jpg",
-                "image/jpeg",
-                "image/jpg",
-            }:
-                if str(ptype).lower() not in {fmt, f"image/{fmt}"}:
-                    _record(buckets["format"], date, key, [f"json type={ptype}", image.format, url])
-        except Exception as exc:
-            _record(buckets["status"], date, key, [f"processing error: {exc}", url])
+            ptype = entry.get("type")
+            pwidth = entry.get("width")
+            pheight = entry.get("height")
+            if _is_empty(ptype):
+                _record(buckets["type_missing"], date, key, [f"{tag}.type missing"])
+            if _is_empty(pwidth):
+                _record(buckets["width_missing"], date, key, [f"{tag}.width missing"])
+            if _is_empty(pheight):
+                _record(buckets["height_missing"], date, key, [f"{tag}.height missing"])
+
+            _response, err, img_fmt, img_w, img_h = _load_image(url)
+            if err:
+                if err.startswith("redirect:"):
+                    code = err.split(":", 1)[1]
+                    _record(buckets["redirect"], date, key, [code, url, tag])
+                elif err.startswith("status:"):
+                    code = err.split(":", 1)[1]
+                    _record(buckets["status"], date, key, [code, url, tag])
+                else:
+                    _record(buckets["status"], date, key, [err, url, tag])
+                continue
+
+            if img_fmt and img_fmt not in formats and img_fmt not in {"jpeg", "jpg"}:
+                _record(buckets["format"], date, key, [img_fmt, url, tag])
+            if img_w is not None and img_h is not None and (img_w, img_h) != (exp_w, exp_h):
+                _record(buckets["resolution"], date, key, [f"{img_w}X{img_h}", url, tag])
+
+            jw = _coerce_int(pwidth)
+            jh = _coerce_int(pheight)
+            if pwidth is not None and not _is_empty(pwidth) and jw is None:
+                _record(buckets["width_mismatch"], date, key, ["width not numeric", pwidth, tag])
+            elif jw is not None and img_w is not None and jw != img_w:
+                _record(buckets["width_mismatch"], date, key, [pwidth, img_w, url, tag])
+            if pheight is not None and not _is_empty(pheight) and jh is None:
+                _record(buckets["height_mismatch"], date, key, ["height not numeric", pheight, tag])
+            elif jh is not None and img_h is not None and jh != img_h:
+                _record(buckets["height_mismatch"], date, key, [pheight, img_h, url, tag])
+
+            if not _is_empty(ptype) and img_fmt:
+                ptype_l = str(ptype).lower()
+                if ptype_l not in formats and ptype_l not in {"jpeg", "jpg", "image/jpeg", "image/jpg"}:
+                    if ptype_l not in {img_fmt, f"image/{img_fmt}"}:
+                        _record(buckets["format"], date, key, [f"json type={ptype}", img_fmt, url, tag])
 
     logger.info(f"Completed suite_e_poster for date: {date}")
 
@@ -510,11 +584,16 @@ def _suite_f_genre(
     date: str,
     programs: List[dict],
     config: dict,
-    structure_fail: Dict[str, Dict[str, List[Any]]],
+    list_type_fail: Dict[str, Dict[str, List[Any]]],
+    item_type_fail: Dict[str, Dict[str, List[Any]]],
+    id_type_fail: Dict[str, Dict[str, List[Any]]],
+    name_type_fail: Dict[str, Dict[str, List[Any]]],
+    cap_fail: Dict[str, Dict[str, List[Any]]],
     allowlist_fail: Dict[str, Dict[str, List[Any]]],
     not_tested: Dict[str, Dict[str, List[Any]]],
 ) -> None:
     allowed = set(config.get("genres") or [])
+    check_cap = config.get("genre_capitalization", True)
     logger.info(f"Running suite_f_genre for date: {date}")
     for prog in programs:
         if not isinstance(prog, dict):
@@ -528,23 +607,23 @@ def _suite_f_genre(
             _record(not_tested, date, key, ["genre empty"])
             continue
         if not isinstance(genre, list):
-            _record(structure_fail, date, key, [f"genre not a list: {type(genre).__name__}"])
+            _record(list_type_fail, date, key, [f"genre not a list: {type(genre).__name__}"])
             continue
         for item in genre:
             if not isinstance(item, dict):
-                _record(structure_fail, date, key, ["genre item not an object"])
+                _record(item_type_fail, date, key, ["genre item not an object"])
                 continue
             gid = item.get("id")
             name = item.get("original_name")
-            struct_ok = True
             if _is_empty(gid) or not isinstance(gid, str):
-                _record(structure_fail, date, key, ["genre.id missing or not string", item])
-                struct_ok = False
+                _record(id_type_fail, date, key, ["genre.id missing or not string", item])
             if _is_empty(name) or not isinstance(name, str):
-                _record(structure_fail, date, key, ["genre.original_name missing or not string", item])
-                struct_ok = False
-            elif struct_ok and name not in allowed:
-                _record(allowlist_fail, date, key, [name])
+                _record(name_type_fail, date, key, ["genre.original_name missing or not string", item])
+            elif isinstance(name, str):
+                if check_cap and not _is_word_capitalized(name):
+                    _record(cap_fail, date, key, [name])
+                if name not in allowed:
+                    _record(allowlist_fail, date, key, [name])
 
     logger.info(f"Completed suite_f_genre for date: {date}")
 
@@ -553,10 +632,12 @@ def _suite_g_rating(
     date: str,
     programs: List[dict],
     config: dict,
-    failed: Dict[str, Dict[str, List[Any]]],
+    allowlist_fail: Dict[str, Dict[str, List[Any]]],
+    cap_fail: Dict[str, Dict[str, List[Any]]],
     not_tested: Dict[str, Dict[str, List[Any]]],
 ) -> None:
     allowed = {str(r) for r in (config.get("ratings") or [])}
+    check_cap = config.get("rating_require_uppercase", True)
     logger.info(f"Running suite_g_rating for date: {date}")
     for prog in programs:
         if not isinstance(prog, dict):
@@ -570,10 +651,12 @@ def _suite_g_rating(
             _record(not_tested, date, key, ["rating empty"])
             continue
         if not isinstance(rating, str):
-            _record(failed, date, key, [f"rating not string: {type(rating).__name__}"])
+            _record(allowlist_fail, date, key, [f"rating not string: {type(rating).__name__}"])
             continue
+        if check_cap and not _is_rating_uppercase(rating):
+            _record(cap_fail, date, key, [rating])
         if rating not in allowed:
-            _record(failed, date, key, [rating])
+            _record(allowlist_fail, date, key, [rating])
 
     logger.info(f"Completed suite_g_rating for date: {date}")
 
@@ -641,7 +724,10 @@ def _suite_k_content_uri(
     date: str,
     programs: List[dict],
     stream_url: str,
-    failed: Dict[str, Dict[str, List[Any]]],
+    config: dict,
+    stream_fail: Dict[str, Dict[str, List[Any]]],
+    ads_fail: Dict[str, Dict[str, List[Any]]],
+    encoding_fail: Dict[str, Dict[str, List[Any]]],
     not_tested: Dict[str, Dict[str, List[Any]]],
 ) -> None:
     logger.info(f"Running suite_k_content_uri for date: {date}")
@@ -657,12 +743,121 @@ def _suite_k_content_uri(
             _record(not_tested, date, key, ["content_uri empty"])
             continue
         if not isinstance(uri, str):
-            _record(failed, date, key, [f"content_uri not string: {type(uri).__name__}"])
             continue
         if uri != stream_url:
-            _record(failed, date, key, [uri, stream_url])
+            _record(stream_fail, date, key, [uri, stream_url])
+        if not _content_uri_has_ads_macros(uri, config):
+            _record(ads_fail, date, key, [uri])
+        if not _content_uri_encoding_ok(uri, config):
+            _record(encoding_fail, date, key, [uri])
 
     logger.info(f"Completed suite_k_content_uri for date: {date}")
+
+
+def _suite_m_episode_release(
+    date: str,
+    programs: List[dict],
+    episode_type_fail: Dict[str, Dict[str, List[Any]]],
+    episode_nt: Dict[str, Dict[str, List[Any]]],
+    release_fail: Dict[str, Dict[str, List[Any]]],
+    release_nt: Dict[str, Dict[str, List[Any]]],
+) -> None:
+    logger.info(f"Running suite_m_episode_release for date: {date}")
+    for prog in programs:
+        if not isinstance(prog, dict):
+            continue
+        key = _program_key(prog)
+        if "episode_num" not in prog:
+            _record(episode_nt, date, key, ["episode_num not available"])
+        else:
+            ep = prog.get("episode_num")
+            if _is_empty(ep) and ep != 0:
+                _record(episode_nt, date, key, ["episode_num empty"])
+            elif not isinstance(ep, str):
+                _record(episode_type_fail, date, key, [f"episode_num not string: {type(ep).__name__}", ep])
+
+        if "release_year" not in prog:
+            _record(release_nt, date, key, ["release_year not available"])
+        else:
+            ry = prog.get("release_year")
+            if _is_empty(ry):
+                _record(release_nt, date, key, ["release_year empty"])
+            elif not isinstance(ry, str) or not re.match(r"^\d{4}$", ry):
+                _record(release_fail, date, key, [ry])
+
+    logger.info(f"Completed suite_m_episode_release for date: {date}")
+
+
+def _suite_n_soft_fields(
+    date: str,
+    programs: List[dict],
+    schedules: List[dict],
+    config: dict,
+    connecting_fail: Dict[str, Dict[str, List[Any]]],
+    connecting_nt: Dict[str, Dict[str, List[Any]]],
+    link_uri_fail: Dict[str, Dict[str, List[Any]]],
+    link_uri_nt: Dict[str, Dict[str, List[Any]]],
+    tags_fail: Dict[str, Dict[str, List[Any]]],
+    tags_nt: Dict[str, Dict[str, List[Any]]],
+    link_type_fail: Dict[str, Dict[str, List[Any]]],
+    link_type_nt: Dict[str, Dict[str, List[Any]]],
+    program_type_fail: Dict[str, Dict[str, List[Any]]],
+    program_type_nt: Dict[str, Dict[str, List[Any]]],
+    repeat_type_fail: Dict[str, Dict[str, List[Any]]],
+    repeat_type_nt: Dict[str, Dict[str, List[Any]]],
+    repeat_expire_fail: Dict[str, Dict[str, List[Any]]],
+    repeat_expire_nt: Dict[str, Dict[str, List[Any]]],
+) -> None:
+    soft_prog = config.get("soft_empty_program_fields") or {}
+    soft_sched = config.get("soft_empty_schedule_fields") or {}
+    soft_repeat = config.get("soft_empty_repeat_fields") or {}
+    prog_buckets = {
+        "connecting_id": (connecting_fail, connecting_nt),
+        "link_uri": (link_uri_fail, link_uri_nt),
+        "tags": (tags_fail, tags_nt),
+        "link_type": (link_type_fail, link_type_nt),
+    }
+
+    for prog in programs:
+        if not isinstance(prog, dict):
+            continue
+        key = _program_key(prog)
+        for field, expected in soft_prog.items():
+            fail_b, nt_b = prog_buckets.get(field, (None, None))
+            if fail_b is None:
+                continue
+            if field not in prog:
+                _record(nt_b, date, key, [f"{field} not available"])
+            elif prog.get(field) != expected:
+                _record(fail_b, date, key, [prog.get(field), expected])
+
+    for entry in schedules:
+        if not isinstance(entry, dict):
+            continue
+        cid = entry.get("content_id")
+        key = str(cid) if not _is_empty(cid) else str(entry.get("schedule_id") or "unknown")
+        for field, expected in soft_sched.items():
+            if field not in entry:
+                _record(program_type_nt, date, key, [f"{field} not available"])
+            elif entry.get(field) != expected:
+                _record(program_type_fail, date, key, [entry.get(field), expected])
+
+        if "repeat" not in entry:
+            _record(repeat_type_nt, date, key, ["repeat not available"])
+            continue
+        repeat = entry.get("repeat")
+        if not isinstance(repeat, dict):
+            _record(repeat_type_fail, date, key, ["repeat not an object", repeat])
+            continue
+        if "type" not in repeat:
+            _record(repeat_type_nt, date, key, ["repeat.type not available"])
+        elif repeat.get("type") != soft_repeat.get("type", "none"):
+            _record(repeat_type_fail, date, key, [repeat.get("type"), soft_repeat.get("type", "none")])
+        if "expire_date" not in repeat:
+            _record(repeat_expire_nt, date, key, ["repeat.expire_date not available"])
+        elif repeat.get("expire_date") != soft_repeat.get("expire_date", ""):
+            _record(repeat_expire_fail, date, key, [repeat.get("expire_date"), soft_repeat.get("expire_date", "")])
+
 
 def _suite_l_cast(
     date: str,
@@ -697,20 +892,25 @@ def _suite_j_schedule(
     programs: List[dict],
     schedules: List[dict],
     config: dict,
-    buckets: Dict[str, Dict[str, Dict[str, List[Any]]]],
+    buckets: Dict[str, Dict[str, List[Any]]],
 ) -> None:
     """
     buckets: missing_fields, empty_fields, gap, overlap, content_missing,
-             duration_mismatch, id_equals_schedule, start_parse, dur_parse
+             duration_mismatch, id_equals_schedule, start_parse, dur_parse,
+             field_type, service_id_inconsistent, dur_min, dur_max, start_strict
     """
     logger.info(f"Running suite_j_schedule for date: {date}")
     mand = config.get("schedule_mandatory_fields") or []
+    dur_min = int(config.get("schedule_duration_min", 1200))
+    dur_max = int(config.get("schedule_duration_max", 21600))
+    strict_re = config.get("schedule_starttime_strict_regex") or r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$"
     program_by_id: Dict[str, dict] = {}
     for prog in programs:
         if isinstance(prog, dict) and prog.get("id") is not None:
             program_by_id[str(prog.get("id"))] = prog
 
     parsed_rows: List[Tuple[datetime, dict, str, Optional[int]]] = []
+    service_ids_seen: set = set()
 
     for entry in schedules:
         if not isinstance(entry, dict):
@@ -724,14 +924,29 @@ def _suite_j_schedule(
                 _record(buckets["missing_fields"], date, key, [f"{field} missing"])
             elif _is_empty(entry.get(field)):
                 _record(buckets["empty_fields"], date, key, [f"{field} empty"])
+            elif not isinstance(entry.get(field), str):
+                _record(buckets["field_type"], date, key, [f"{field} not string: {type(entry.get(field)).__name__}"])
 
-        start = _parse_starttime(entry.get("starttime"))
-        if entry.get("starttime") is not None and not _is_empty(entry.get("starttime")) and start is None:
-            _record(buckets["start_parse"], date, key, [entry.get("starttime")])
+        sid = entry.get("service_id")
+        if not _is_empty(sid):
+            service_ids_seen.add(str(sid))
+
+        start_raw = entry.get("starttime")
+        start = _parse_starttime(start_raw)
+        if start_raw is not None and not _is_empty(start_raw) and start is None:
+            _record(buckets["start_parse"], date, key, [start_raw])
+        if start_raw is not None and not _is_empty(start_raw) and isinstance(start_raw, str):
+            if not _strict_starttime_match(start_raw, strict_re):
+                _record(buckets["start_strict"], date, key, [start_raw])
 
         dur = _parse_duration_seconds(entry.get("duration"))
         if entry.get("duration") is not None and not _is_empty(entry.get("duration")) and dur is None:
             _record(buckets["dur_parse"], date, key, [entry.get("duration")])
+        if dur is not None:
+            if dur < dur_min:
+                _record(buckets["dur_min"], date, key, [dur, dur_min, entry.get("starttime")])
+            if dur > dur_max:
+                _record(buckets["dur_max"], date, key, [dur, dur_max, entry.get("starttime")])
 
         if not _is_empty(cid):
             cid_s = str(cid)
@@ -747,12 +962,25 @@ def _suite_j_schedule(
                             key,
                             [f"program_duration={prog_dur}", f"schedule_duration={dur}"],
                         )
-            sid = entry.get("schedule_id")
-            if not _is_empty(sid) and str(cid) == str(sid):
-                _record(buckets["id_equals_schedule"], date, key, [cid, sid])
+            sched_id = entry.get("schedule_id")
+            if not _is_empty(sched_id) and str(cid) == str(sched_id):
+                _record(buckets["id_equals_schedule"], date, key, [cid, sched_id])
 
         if start is not None:
             parsed_rows.append((start, entry, key, dur))
+
+    if len(service_ids_seen) > 1:
+        for entry in schedules:
+            if not isinstance(entry, dict):
+                continue
+            cid = entry.get("content_id")
+            key = str(cid) if not _is_empty(cid) else str(entry.get("schedule_id") or "unknown")
+            _record(
+                buckets["service_id_inconsistent"],
+                date,
+                key,
+                [entry.get("service_id"), sorted(service_ids_seen)],
+            )
 
     parsed_rows.sort(key=lambda row: row[0])
     for i in range(len(parsed_rows) - 1):
@@ -786,7 +1014,7 @@ def run_ssai_day_validations(
     ticket_id: str = "",
 ) -> int:
     """
-    Run suites a–l across all days in by_date and append Validation_Output rows.
+    Run suites a–n across all days in by_date and append Validation_Output rows.
 
     by_date: {date: {program: [...], schedule: [...]}}
     Returns next sequence_number.
@@ -813,6 +1041,8 @@ def run_ssai_day_validations(
     d_nt: Dict[str, Dict[str, List[Any]]] = {}
 
     poster_keys = (
+        "list_type",
+        "item_type",
         "missing",
         "url_missing",
         "url_type",
@@ -824,14 +1054,21 @@ def run_ssai_day_validations(
         "type_missing",
         "width_missing",
         "height_missing",
-        "wh_mismatch",
+        "width_mismatch",
+        "height_mismatch",
     )
     poster_buckets = {k: {} for k in poster_keys}
 
-    f_structure: Dict[str, Dict[str, List[Any]]] = {}
+    f_list_type: Dict[str, Dict[str, List[Any]]] = {}
+    f_item_type: Dict[str, Dict[str, List[Any]]] = {}
+    f_id_type: Dict[str, Dict[str, List[Any]]] = {}
+    f_name_type: Dict[str, Dict[str, List[Any]]] = {}
+    f_cap: Dict[str, Dict[str, List[Any]]] = {}
     f_allowlist: Dict[str, Dict[str, List[Any]]] = {}
     f_nt: Dict[str, Dict[str, List[Any]]] = {}
-    g_failed: Dict[str, Dict[str, List[Any]]] = {}
+
+    g_allow_fail: Dict[str, Dict[str, List[Any]]] = {}
+    g_cap_fail: Dict[str, Dict[str, List[Any]]] = {}
     g_nt: Dict[str, Dict[str, List[Any]]] = {}
 
     h_type: Dict[str, Dict[str, List[Any]]] = {}
@@ -853,14 +1090,45 @@ def run_ssai_day_validations(
         "id_equals_schedule",
         "start_parse",
         "dur_parse",
+        "field_type",
+        "service_id_inconsistent",
+        "dur_min",
+        "dur_max",
+        "start_strict",
     )
     sched_buckets = {k: {} for k in sched_keys}
 
-    k_failed: Dict[str, Dict[str, List[Any]]] = {}
+    k_stream_fail: Dict[str, Dict[str, List[Any]]] = {}
+    k_ads_fail: Dict[str, Dict[str, List[Any]]] = {}
+    k_encoding_fail: Dict[str, Dict[str, List[Any]]] = {}
     k_nt: Dict[str, Dict[str, List[Any]]] = {}
+
+    m_ep_type: Dict[str, Dict[str, List[Any]]] = {}
+    m_ep_nt: Dict[str, Dict[str, List[Any]]] = {}
+    m_ry_fail: Dict[str, Dict[str, List[Any]]] = {}
+    m_ry_nt: Dict[str, Dict[str, List[Any]]] = {}
+
+    n_connecting_fail: Dict[str, Dict[str, List[Any]]] = {}
+    n_connecting_nt: Dict[str, Dict[str, List[Any]]] = {}
+    n_link_uri_fail: Dict[str, Dict[str, List[Any]]] = {}
+    n_link_uri_nt: Dict[str, Dict[str, List[Any]]] = {}
+    n_tags_fail: Dict[str, Dict[str, List[Any]]] = {}
+    n_tags_nt: Dict[str, Dict[str, List[Any]]] = {}
+    n_link_type_fail: Dict[str, Dict[str, List[Any]]] = {}
+    n_link_type_nt: Dict[str, Dict[str, List[Any]]] = {}
+    n_program_type_fail: Dict[str, Dict[str, List[Any]]] = {}
+    n_program_type_nt: Dict[str, Dict[str, List[Any]]] = {}
+    n_repeat_type_fail: Dict[str, Dict[str, List[Any]]] = {}
+    n_repeat_type_nt: Dict[str, Dict[str, List[Any]]] = {}
+    n_repeat_expire_fail: Dict[str, Dict[str, List[Any]]] = {}
+    n_repeat_expire_nt: Dict[str, Dict[str, List[Any]]] = {}
+
     l_type: Dict[str, Dict[str, List[Any]]] = {}
     l_empty: Dict[str, Dict[str, List[Any]]] = {}
     l_nt: Dict[str, Dict[str, List[Any]]] = {}
+
+    sched_dur_min = int(config.get("schedule_duration_min", 1200))
+    sched_dur_max = int(config.get("schedule_duration_max", 21600))
 
     if not by_date:
         logger.warning("%srun_ssai_day_validations: empty by_date", prefix)
@@ -882,12 +1150,29 @@ def run_ssai_day_validations(
         _suite_c_asset_id(date, programs, config, c_type, c_len, c_eq_title, c_eq_desc, c_nt)
         _suite_d_title(date, programs, config, d_type, d_tba, d_eq, d_len, d_spec, d_nt)
         _suite_e_poster(date, programs, config, poster_buckets)
-        _suite_f_genre(date, programs, config, f_structure, f_allowlist, f_nt)
-        _suite_g_rating(date, programs, config, g_failed, g_nt)
+        _suite_f_genre(
+            date, programs, config,
+            f_list_type, f_item_type, f_id_type, f_name_type, f_cap, f_allowlist, f_nt,
+        )
+        _suite_g_rating(date, programs, config, g_allow_fail, g_cap_fail, g_nt)
         _suite_h_desc(date, programs, config, h_type, h_len, h_spec, h_nt)
         _suite_i_duration(date, programs, i_type, i_zero, i_nt)
         _suite_j_schedule(date, programs, schedules, config, sched_buckets)
-        _suite_k_content_uri(date, programs, stream_url, k_failed, k_nt)
+        _suite_k_content_uri(
+            date, programs, stream_url, config,
+            k_stream_fail, k_ads_fail, k_encoding_fail, k_nt,
+        )
+        _suite_m_episode_release(date, programs, m_ep_type, m_ep_nt, m_ry_fail, m_ry_nt)
+        _suite_n_soft_fields(
+            date, programs, schedules, config,
+            n_connecting_fail, n_connecting_nt,
+            n_link_uri_fail, n_link_uri_nt,
+            n_tags_fail, n_tags_nt,
+            n_link_type_fail, n_link_type_nt,
+            n_program_type_fail, n_program_type_nt,
+            n_repeat_type_fail, n_repeat_type_nt,
+            n_repeat_expire_fail, n_repeat_expire_nt,
+        )
         _suite_l_cast(date, programs, l_type, l_empty, l_nt)
 
     mod = "Asset_Level"
@@ -897,9 +1182,9 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Validate mandatory fields presence for Assets in all returned days",
-        "All mandatory fields should be present on every program",
+        "All mandatory fields should be present on every program in all returned days",
         ab_missing, {},
-        "All mandatory fields are present",
+        "All mandatory fields are present for all Assets in all returned days",
         "Mandatory Fields are not available",
         "",
     )
@@ -907,15 +1192,18 @@ def run_ssai_day_validations(
     # duplicate ids
     num = _append_row(
         num, mod,
-        "Validate duplicate program.id within each day",
-        "program.id should be unique within a day",
+        "Validate duplicate program.id within each day in all returned days",
+        "program.id should be unique within each day in all returned days",
         dup_failed, {},
-        "No duplicate program.id values",
-        "Duplicate program.id values found",
+        "No duplicate program.id values were found in all returned days",
+        "Duplicate program.id values were found within a day",
         "",
     )
 
     asset_id_max = (config.get("lengths") or {}).get("asset_id", 50)
+    title_max = (config.get("lengths") or {}).get("title", 200)
+    desc_max = (config.get("lengths") or {}).get("desc", 4000)
+    poster_url_max = (config.get("lengths") or {}).get("poster_url", 2000)
     empty_nt: Dict[str, Dict[str, List[Any]]] = {}
 
     # c — Asset ID (4 atomic cases)
@@ -924,16 +1212,16 @@ def run_ssai_day_validations(
         "Validate Asset ID Type in all returned days",
         "Asset ID should be a string for all Assets in all returned days",
         c_type, c_nt,
-        "Asset ID type is string for all assets",
+        "Asset ID type is a string for all Assets in all returned days",
         "Asset ID type is in-correct (not a string)",
-        "Asset ID not available for some assets",
+        "Asset ID is not available for the asset",
     )
     num = _append_row(
         num, mod,
         "Validate Asset ID Length in all returned days",
         f"Length of Asset ID should not exceed {asset_id_max} characters in all returned days",
         c_len, empty_nt,
-        f"Asset ID Length is within the expected limit of {asset_id_max} characters",
+        f"Asset ID length is within the expected limit of {asset_id_max} characters for all Assets in all returned days",
         f"Asset ID length is in-correct-length which is more than expected limit of {asset_id_max} characters",
         "",
     )
@@ -942,7 +1230,7 @@ def run_ssai_day_validations(
         "Validate Asset ID should not contain Title in all returned days",
         "Asset ID and Title should not be same for all Assets in all returned days",
         c_eq_title, empty_nt,
-        "Asset ID and Title fields are not matching",
+        "Asset ID and Title fields are not matching for all Assets in all returned days",
         "Asset ID and Title fields are matching",
         "",
     )
@@ -951,222 +1239,284 @@ def run_ssai_day_validations(
         "Validate Asset ID should not contain Description in all returned days",
         "Asset ID and Description should not be same for all Assets in all returned days",
         c_eq_desc, empty_nt,
-        "Asset ID and Description fields are not matching",
+        "Asset ID and Description fields are not matching for all Assets in all returned days",
         "Asset ID and Description fields are matching",
         "",
     )
 
-    # d
+    # d — Title
     num = _append_row(
         num, mod,
-        "Validate title is a string",
-        "title should be a string",
+        "Validate Title type in all returned days",
+        "Title should be a string for all Assets in all returned days",
         d_type, d_nt,
-        "All titles are strings",
+        "Title type is a string for all Assets in all returned days",
         "Title type is in-correct (not a string)",
-        "title not available for some assets",
+        "Title is not available for the asset",
     )
     num = _append_row(
         num, mod,
-        "Validate title is not TBA / To Be Announced",
-        "title should not be TBA or To Be Announced",
+        "Validate Title is not TBA / To Be Announced in all returned days",
+        "Title should not be TBA or To Be Announced for all Assets in all returned days",
         d_tba, empty_nt,
-        "No TBA titles",
-        "Asset Title is having To Be Announced instead of actual title",
+        "No Title values are TBA or To Be Announced in all returned days",
+        "Asset Title contains To Be Announced instead of the actual title",
         "",
     )
     num = _append_row(
         num, mod,
-        "Validate title is not equal to desc",
-        "title should not equal desc",
+        "Validate Title is not equal to Description in all returned days",
+        "Title should not equal Description for all Assets in all returned days",
         d_eq, empty_nt,
-        "title and desc are distinct",
+        "Title and Description are distinct for all Assets in all returned days",
         "Asset Title and Description fields are matching",
         "",
     )
     num = _append_row(
         num, mod,
-        "Validate title length",
-        f"title length should be <= {(config.get('lengths') or {}).get('title', 200)}",
+        "Validate Title length in all returned days",
+        f"Title length should not exceed {title_max} characters for all Assets in all returned days",
         d_len, empty_nt,
-        "All title lengths within limit",
-        "Asset Title having in-correct-length (chars) which exceeds the maximum allowed length",
+        f"Title length is within the expected limit of {title_max} characters for all Assets in all returned days",
+        f"Asset Title has in-correct-length (chars) which exceeds the maximum allowed length of {title_max} characters",
         "",
     )
     num = _append_row(
         num, mod,
-        "Validate title has no unexpected special characters",
-        "title should match allowed character set",
+        "Validate Title has no unexpected special characters in all returned days",
+        "Title should match the allowed character set for all Assets in all returned days",
         d_spec, empty_nt,
-        "No unexpected special characters in titles",
-        "Asset Title is having unexpected special characters",
+        "No unexpected special characters are present in Title for all Assets in all returned days",
+        "Asset Title contains unexpected special characters",
         "",
     )
 
-    # e poster
+    # e — poster
     num = _append_row(
         num, mod,
-        "Validate poster availability (poster[0])",
-        "poster list with poster[0] should be available",
-        {}, poster_buckets["missing"],
-        "poster is available for all assets",
-        "Poster is not available",
-        "poster not available for some assets",
+        "Validate poster type is list in all returned days",
+        "poster should be a list for all Assets in all returned days",
+        poster_buckets["list_type"], poster_buckets["missing"],
+        "Poster is a list for all Assets in all returned days",
+        "Poster type is in-correct (not a list)",
+        "Poster is not available for the asset",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate poster list entry type is object in all returned days",
+        "Each poster[] entry should be an object for all Assets in all returned days",
+        poster_buckets["item_type"], empty_nt,
+        "All poster[] entries are objects for all Assets in all returned days",
+        "Poster list entry type is in-correct (not an object)",
+        "",
     )
     num = _append_row(
         num, mod,
         "Validate Poster URL availability in all returned days",
-        "Poster URL should be available for all Assets in all returned days",
+        "Poster URL should be available for all poster[] entries in all returned days",
         poster_buckets["url_missing"], empty_nt,
-        "Poster URL is available for all assets",
+        "Poster URL is available for all Assets in all returned days",
         "Poster URL is not available",
         "",
     )
     num = _append_row(
         num, mod,
         "Validate Poster URL type is string in all returned days",
-        "Poster URL should be a string for all Assets in all returned days",
+        "Poster URL should be a string for all poster[] entries in all returned days",
         poster_buckets["url_type"], empty_nt,
-        "Poster URL type is string for all assets",
+        "Poster URL type is a string for all Assets in all returned days",
         "Poster URL type is in-correct (not a string)",
         "",
     )
-    poster_url_max = (config.get("lengths") or {}).get("poster_url", 2000)
     num = _append_row(
         num, mod,
-        "Validate poster URL length",
-        f"poster URL length should be <= {poster_url_max}",
+        "Validate Poster URL length in all returned days",
+        f"Poster URL length should not exceed {poster_url_max} characters for all poster[] entries in all returned days",
         poster_buckets["url_len"], empty_nt,
-        "poster URL lengths within limit",
+        f"Poster URL length is within the expected limit of {poster_url_max} characters for all Assets in all returned days",
         f"Poster URL length is in-correct-length which is more than expected limit of {poster_url_max} characters",
         "",
     )
     num = _append_row(
         num, mod,
-        "Validate poster HTTP status is 200",
-        "poster URL should return HTTP 200",
+        "Validate Poster HTTP status is 200 in all returned days",
+        "Poster URL should return HTTP 200 for all poster[] entries in all returned days",
         poster_buckets["status"], empty_nt,
-        "All poster URLs return 200",
+        "All Poster URLs return HTTP 200 for all Assets in all returned days",
         "Poster URL request is returning in-correct-thumbnail status code",
         "",
     )
     num = _append_row(
         num, mod,
-        "Validate poster URL has no redirect",
-        "poster URL should not redirect",
+        "Validate Poster URL has no redirect in all returned days",
+        "Poster URL should not redirect for all poster[] entries in all returned days",
         poster_buckets["redirect"], empty_nt,
-        "No poster redirects",
+        "No Poster URL redirects were observed for all Assets in all returned days",
         "Poster URL request is getting re-directed with in-correct-thumbnail status code",
         "",
     )
     num = _append_row(
         num, mod,
-        "Validate poster image format is JPG/JPEG",
-        "poster image format should be JPG/JPEG",
+        "Validate Poster image format is JPG/JPEG in all returned days",
+        "Poster image format should be JPG/JPEG for all poster[] entries in all returned days",
         poster_buckets["format"], empty_nt,
-        "All posters are JPG/JPEG",
-        "Poster is having in-correct-thumbnail format. But, expected should be JPEG/JPG format",
+        "All Poster images are JPG/JPEG for all Assets in all returned days",
+        "Poster has in-correct-thumbnail format; expected format is JPEG/JPG",
         "",
     )
     num = _append_row(
         num, mod,
-        "Validate poster resolution is 1920x1080",
-        "poster actual image size should be 1920x1080",
+        "Validate Poster resolution is 1920x1080 in all returned days",
+        "Poster actual image size should be 1920x1080 for all poster[] entries in all returned days",
         poster_buckets["resolution"], empty_nt,
-        "All posters are 1920x1080",
-        "Poster is having in-correct-thumbnail resolution. But, expected should be 1920X1080 resolution",
+        "All Poster images are 1920x1080 for all Assets in all returned days",
+        "Poster has in-correct-thumbnail resolution; expected resolution is 1920X1080",
         "",
     )
     num = _append_row(
         num, mod,
         "Validate Poster type present in all returned days",
-        "poster[0].type should be present for all Assets in all returned days",
+        "poster[].type should be present for all poster[] entries in all returned days",
         poster_buckets["type_missing"], empty_nt,
-        "Poster type is present for all assets",
+        "Poster type is present for all Assets in all returned days",
         "Mandatory poster fields are missing",
         "",
     )
     num = _append_row(
         num, mod,
         "Validate Poster width present in all returned days",
-        "poster[0].width should be present for all Assets in all returned days",
+        "poster[].width should be present for all poster[] entries in all returned days",
         poster_buckets["width_missing"], empty_nt,
-        "Poster width is present for all assets",
+        "Poster width is present for all Assets in all returned days",
         "Mandatory poster fields are missing",
         "",
     )
     num = _append_row(
         num, mod,
         "Validate Poster height present in all returned days",
-        "poster[0].height should be present for all Assets in all returned days",
+        "poster[].height should be present for all poster[] entries in all returned days",
         poster_buckets["height_missing"], empty_nt,
-        "Poster height is present for all assets",
+        "Poster height is present for all Assets in all returned days",
         "Mandatory poster fields are missing",
         "",
     )
     num = _append_row(
         num, mod,
-        "Validate poster JSON width/height match actual image",
-        "poster JSON width/height should match downloaded image",
-        poster_buckets["wh_mismatch"], empty_nt,
-        "poster metadata matches image",
-        "poster width/height mismatch vs image",
+        "Validate Poster JSON width match actual image in all returned days",
+        "poster[].width should match the downloaded image width for all poster[] entries in all returned days",
+        poster_buckets["width_mismatch"], empty_nt,
+        "Poster JSON width matches the downloaded image for all Assets in all returned days",
+        "Poster JSON width is in-correct length and proper-length is in-correct length for the downloaded image",
+        "",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Poster JSON height match actual image in all returned days",
+        "poster[].height should match the downloaded image height for all poster[] entries in all returned days",
+        poster_buckets["height_mismatch"], empty_nt,
+        "Poster JSON height matches the downloaded image for all Assets in all returned days",
+        "Poster JSON height is in-correct length and proper-length is in-correct length for the downloaded image",
         "",
     )
 
-    # f–i
+    # f — genre
     num = _append_row(
         num, mod,
-        "Validate Genre structure in all returned days",
-        "genre should be a list of objects with id and original_name for all Assets in all returned days",
-        f_structure, f_nt,
-        "All genre structures are valid",
-        "Genre structure is in-correct",
-        "genre not available for some assets",
+        "Validate Genre list type in all returned days",
+        "genre should be a list for all Assets in all returned days",
+        f_list_type, f_nt,
+        "Genre is a list for all Assets in all returned days",
+        "Genre type is in-correct (not a list)",
+        "Genre is not available for the asset",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Genre item type in all returned days",
+        "Each genre[] entry should be an object for all Assets in all returned days",
+        f_item_type, empty_nt,
+        "All genre[] entries are objects for all Assets in all returned days",
+        "Genre item type is in-correct (not an object)",
+        "",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Genre id type in all returned days",
+        "genre[].id should be a non-empty string for all Assets in all returned days",
+        f_id_type, empty_nt,
+        "Genre id is a string for all Assets in all returned days",
+        "Genre id type is in-correct (not a string)",
+        "",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Genre original_name type in all returned days",
+        "genre[].original_name should be a non-empty string for all Assets in all returned days",
+        f_name_type, empty_nt,
+        "Genre original_name is a string for all Assets in all returned days",
+        "Genre original_name type is in-correct (not a string)",
+        "",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Genre original_name Capitalization in all returned days",
+        "genre[].original_name should be capitalized for all Assets in all returned days",
+        f_cap, empty_nt,
+        "Genre original_name capitalization is valid for all Assets in all returned days",
+        "Genre original_name has in-correct capitalization",
+        "",
     )
     num = _append_row(
         num, mod,
         "Validate Genre original_name as per expected list in all returned days",
         "genre original_name should be present in the expected genre list for all Assets in all returned days",
         f_allowlist, empty_nt,
-        "All genre original_name values are in the expected list",
+        "All Genre original_name values are in the expected list for all Assets in all returned days",
         "Genre original_name is not included in Samsung_Supported_Category_List",
         "",
     )
     num = _append_row(
         num, mod,
-        "Validate rating against expected list",
-        "rating should be a string in the expected ratings list",
-        g_failed, g_nt,
-        "All ratings are valid",
+        "Validate Rating Capitalization in all returned days",
+        "Rating alphabet should be capital letters for all Assets in all returned days",
+        g_cap_fail, g_nt,
+        "All Rating values have valid capitalization for all Assets in all returned days",
+        "Rating has in-correct-rating capitalization",
+        "Rating is not available for the asset",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Rating against expected list in all returned days",
+        "Rating should be a string in the expected ratings list for all Assets in all returned days",
+        g_allow_fail, empty_nt,
+        "All Rating values are valid for all Assets in all returned days",
         "Rating is not included in Samsung_Supported_Rating_List",
-        "rating not available for some assets",
-    )
-    num = _append_row(
-        num, mod,
-        "Validate desc is a string",
-        "desc should be a string",
-        h_type, h_nt,
-        "All desc values are strings",
-        "Description type is in-correct (not a string)",
-        "desc not available for some assets",
-    )
-    num = _append_row(
-        num, mod,
-        "Validate desc length",
-        f"desc length should be <= {(config.get('lengths') or {}).get('desc', 4000)}",
-        h_len, empty_nt,
-        "All desc lengths within limit",
-        "Description having in-correct-length (chars) which exceeds the maximum allowed length",
         "",
     )
     num = _append_row(
         num, mod,
-        "Validate desc has no unexpected special characters",
-        "desc should match allowed character set",
+        "Validate Description type in all returned days",
+        "Description should be a string for all Assets in all returned days",
+        h_type, h_nt,
+        "Description type is a string for all Assets in all returned days",
+        "Description type is in-correct (not a string)",
+        "Description is not available for the asset",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Description length in all returned days",
+        f"Description length should not exceed {desc_max} characters for all Assets in all returned days",
+        h_len, empty_nt,
+        f"Description length is within the expected limit of {desc_max} characters for all Assets in all returned days",
+        f"Description has in-correct-length (chars) which exceeds the maximum allowed length of {desc_max} characters",
+        "",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate Description has no unexpected special characters in all returned days",
+        "Description should match the allowed character set for all Assets in all returned days",
         h_spec, empty_nt,
-        "No unexpected special characters in desc",
-        "Description is having unexpected special characters",
+        "No unexpected special characters are present in Description for all Assets in all returned days",
+        "Description contains unexpected special characters",
         "",
     )
     num = _append_row(
@@ -1174,128 +1524,274 @@ def run_ssai_day_validations(
         "Validate Duration type is int in all returned days",
         "duration should be an int for all Assets in all returned days",
         i_type, i_nt,
-        "All durations are ints",
+        "Duration type is an int for all Assets in all returned days",
         "Duration type is in-correct (not an int)",
-        "duration not available for some assets",
+        "Duration is not available for the asset",
     )
     num = _append_row(
         num, mod,
         "Validate Duration is not zero in all returned days",
         "duration should not be equal to 0 for all Assets in all returned days",
         i_zero, empty_nt,
-        "All durations are non-zero",
+        "All Duration values are non-zero for all Assets in all returned days",
         "Duration is equal to 0",
         "",
     )
 
-    # j schedule
+    # j — schedule
     num = _append_row(
         num, sch,
-        "Validate schedule mandatory fields presence",
-        "service_id, content_id, schedule_id, starttime, duration should be present",
+        "Validate schedule mandatory fields presence in all returned days",
+        "service_id, content_id, schedule_id, starttime, duration should be present in all returned days",
         sched_buckets["missing_fields"], empty_nt,
-        "All schedule mandatory fields present",
-        "Schedule mandatory fields missing",
+        "All schedule mandatory fields are present in all returned days",
+        "Schedule mandatory fields are missing",
         "",
     )
     num = _append_row(
         num, sch,
-        "Validate schedule mandatory fields non-empty",
-        "Schedule mandatory fields should be non-empty",
+        "Validate schedule mandatory fields non-empty in all returned days",
+        "Schedule mandatory fields should be non-empty in all returned days",
         sched_buckets["empty_fields"], empty_nt,
-        "All schedule mandatory values non-empty",
-        "Schedule mandatory values empty",
+        "All schedule mandatory field values are non-empty in all returned days",
+        "Schedule mandatory field values are empty",
         "",
     )
     num = _append_row(
         num, sch,
-        "Validate schedule starttime parseable",
-        "starttime should be a parseable ISO datetime",
+        "Validate schedule starttime parseable in all returned days",
+        "starttime should be a parseable ISO datetime in all returned days",
         sched_buckets["start_parse"], empty_nt,
-        "All starttime values parseable",
+        "All starttime values are parseable in all returned days",
         "Schedule starttime is not parseable",
         "",
     )
     num = _append_row(
         num, sch,
-        "Validate schedule duration parseable as int seconds",
-        "duration should parse to int seconds",
+        "Validate schedule duration parseable as int seconds in all returned days",
+        "duration should parse to int seconds in all returned days",
         sched_buckets["dur_parse"], empty_nt,
-        "All schedule durations parseable",
+        "All schedule duration values are parseable as int seconds in all returned days",
         "Schedule duration is not parseable as int seconds",
         "",
     )
     num = _append_row(
         num, sch,
-        "Validate no schedule gaps between consecutive assets",
-        "delta(next.start - curr.start) should equal curr.duration",
+        "Validate schedule field types are string in all returned days",
+        "service_id, content_id, schedule_id, starttime, duration should be strings in all returned days",
+        sched_buckets["field_type"], empty_nt,
+        "All schedule mandatory field types are strings in all returned days",
+        "Schedule field type is in-correct (not a string)",
+        "",
+    )
+    num = _append_row(
+        num, sch,
+        "Validate service_id is constant per day in all returned days",
+        "service_id should be the same for all schedule entries within each day in all returned days",
+        sched_buckets["service_id_inconsistent"], empty_nt,
+        "service_id is constant for all schedule entries in all returned days",
+        "Schedule service_id is not constant within the day",
+        "",
+    )
+    num = _append_row(
+        num, sch,
+        f"Validate schedule duration is at least {sched_dur_min} seconds in all returned days",
+        f"Scheduled duration should be greater than or equal to {sched_dur_min} seconds (20 minutes) in all returned days",
+        sched_buckets["dur_min"], empty_nt,
+        f"All schedule durations are greater than or equal to {sched_dur_min} seconds in all returned days",
+        f"Scheduled asset duration is less than the required 20 minutes ({sched_dur_min} seconds)",
+        "",
+    )
+    num = _append_row(
+        num, sch,
+        f"Validate schedule duration is at most {sched_dur_max} seconds in all returned days",
+        f"Scheduled duration should be less than or equal to {sched_dur_max} seconds (6 hours) in all returned days",
+        sched_buckets["dur_max"], empty_nt,
+        f"All schedule durations are less than or equal to {sched_dur_max} seconds in all returned days",
+        f"Scheduled asset duration exceeds the maximum allowed duration of 6 hours ({sched_dur_max} seconds)",
+        "",
+    )
+    num = _append_row(
+        num, sch,
+        "Validate schedule starttime strict format in all returned days",
+        "starttime should match YYYY-MM-DDTHH:MM:SSZ format in all returned days",
+        sched_buckets["start_strict"], empty_nt,
+        "All starttime values match the strict ISO format in all returned days",
+        "Schedule starttime format is in-correct",
+        "",
+    )
+    num = _append_row(
+        num, sch,
+        "Validate no schedule gaps between consecutive assets in all returned days",
+        "delta(next.start - curr.start) should equal curr.duration in all returned days",
         sched_buckets["gap"], empty_nt,
-        "No schedule gaps",
-        "Schedule gaps observed",
+        "No schedule gaps were observed between consecutive assets in all returned days",
+        "A schedule gap is observed between consecutive assets",
         "",
     )
     num = _append_row(
         num, sch,
-        "Validate no schedule overlaps between consecutive assets",
-        "delta(next.start - curr.start) should equal curr.duration",
+        "Validate no schedule overlaps between consecutive assets in all returned days",
+        "delta(next.start - curr.start) should equal curr.duration in all returned days",
         sched_buckets["overlap"], empty_nt,
-        "No schedule overlaps",
-        "Schedule overlaps observed",
+        "No schedule overlaps were observed between consecutive assets in all returned days",
+        "A schedule overlap is observed between consecutive assets",
         "",
     )
     num = _append_row(
         num, sch,
-        "Validate schedule content_id exists in program[].id",
-        "content_id should match a program.id",
+        "Validate schedule content_id exists in program[].id in all returned days",
+        "content_id should match a program.id in all returned days",
         sched_buckets["content_missing"], empty_nt,
-        "All content_id values resolve to programs",
+        "All content_id values resolve to a program.id in all returned days",
         "Schedule content_id does not resolve to a program.id",
         "",
     )
     num = _append_row(
         num, sch,
-        "Validate schedule duration matches program duration",
-        "int(schedule.duration) should equal program.duration",
+        "Validate schedule duration matches program duration in all returned days",
+        "int(schedule.duration) should equal program.duration in all returned days",
         sched_buckets["duration_mismatch"], empty_nt,
-        "Schedule and program durations match",
-        "Schedule/program duration mismatches",
+        "Schedule duration matches program duration for all entries in all returned days",
+        "Schedule duration does not match program duration",
         "",
     )
     num = _append_row(
         num, sch,
-        "Validate content_id is not equal to schedule_id",
-        "content_id should differ from schedule_id",
+        "Validate content_id is not equal to schedule_id in all returned days",
+        "content_id should differ from schedule_id in all returned days",
         sched_buckets["id_equals_schedule"], empty_nt,
-        "content_id differs from schedule_id",
+        "content_id differs from schedule_id for all entries in all returned days",
         "Schedule content_id equals schedule_id",
         "",
     )
 
-    # k–l
+    # k — content_uri + m — episode/release + n — soft fields
     num = _append_row(
         num, mod,
-        "Validate content_uri equals sheet Stream URL",
-        "content_uri should equal the control-sheet Stream URL",
-        k_failed, k_nt,
-        "All content_uri values match Stream URL",
+        "Validate content_uri equals sheet Stream URL in all returned days",
+        "content_uri should equal the control-sheet Stream URL for all Assets in all returned days",
+        k_stream_fail, k_nt,
+        "All content_uri values match the control-sheet Stream URL for all Assets in all returned days",
         "content_uri does not match the control-sheet Stream URL",
-        "content_uri not available for some assets",
+        "content_uri is not available for the asset",
     )
+    num = _append_row(
+        num, mod,
+        "Validate content_uri ads macro keys in all returned days",
+        "content_uri should contain ads. parameters with required macro keys for all Assets in all returned days",
+        k_ads_fail, empty_nt,
+        "All content_uri values contain required ads. macro keys for all Assets in all returned days",
+        "content_uri is missing required ads. macro keys",
+        "",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate content_uri macro encoding in all returned days",
+        "content_uri macro placeholders should be URL-encoded for all Assets in all returned days",
+        k_encoding_fail, empty_nt,
+        "All content_uri macro placeholders are URL-encoded for all Assets in all returned days",
+        "content_uri contains unencoded macro placeholders",
+        "",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate episode_num type is string in all returned days",
+        "episode_num should be a string for all Assets in all returned days",
+        m_ep_type, m_ep_nt,
+        "episode_num is a string for all Assets in all returned days",
+        "episode_num type is in-correct (not a string)",
+        "episode_num is not available for the asset",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate release_year format in all returned days",
+        "release_year should be a string in YYYY format for all Assets in all returned days",
+        m_ry_fail, m_ry_nt,
+        "release_year is in YYYY format for all Assets in all returned days",
+        "release_year is in-correct (expected YYYY string format)",
+        "release_year is not available for the asset",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate connecting_id soft empty value in all returned days",
+        'connecting_id should be empty string ("") for all Assets in all returned days',
+        n_connecting_fail, n_connecting_nt,
+        "connecting_id has the expected empty value for all Assets in all returned days",
+        "connecting_id does not have the expected empty value",
+        "connecting_id is not available for the asset",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate link_uri soft empty value in all returned days",
+        'link_uri should be empty string ("") for all Assets in all returned days',
+        n_link_uri_fail, n_link_uri_nt,
+        "link_uri has the expected empty value for all Assets in all returned days",
+        "link_uri does not have the expected empty value",
+        "link_uri is not available for the asset",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate tags soft empty value in all returned days",
+        'tags should be empty string ("") for all Assets in all returned days',
+        n_tags_fail, n_tags_nt,
+        "tags has the expected empty value for all Assets in all returned days",
+        "tags does not have the expected empty value",
+        "tags is not available for the asset",
+    )
+    num = _append_row(
+        num, mod,
+        "Validate link_type soft empty value in all returned days",
+        'link_type should be "none" for all Assets in all returned days',
+        n_link_type_fail, n_link_type_nt,
+        'link_type has the expected value "none" for all Assets in all returned days',
+        'link_type does not have the expected value "none"',
+        "link_type is not available for the asset",
+    )
+    num = _append_row(
+        num, sch,
+        "Validate program_type soft empty value in all returned days",
+        'program_type should be empty string ("") for all schedule entries in all returned days',
+        n_program_type_fail, n_program_type_nt,
+        "program_type has the expected empty value for all schedule entries in all returned days",
+        "program_type does not have the expected empty value",
+        "program_type is not available for the schedule entry",
+    )
+    num = _append_row(
+        num, sch,
+        "Validate repeat.type soft empty value in all returned days",
+        'repeat.type should be "none" for all schedule entries in all returned days',
+        n_repeat_type_fail, n_repeat_type_nt,
+        'repeat.type has the expected value "none" for all schedule entries in all returned days',
+        'repeat.type does not have the expected value "none"',
+        "repeat is not available for the schedule entry",
+    )
+    num = _append_row(
+        num, sch,
+        "Validate repeat.expire_date soft empty value in all returned days",
+        'repeat.expire_date should be empty string ("") for all schedule entries in all returned days',
+        n_repeat_expire_fail, n_repeat_expire_nt,
+        "repeat.expire_date has the expected empty value for all schedule entries in all returned days",
+        "repeat.expire_date does not have the expected empty value",
+        "repeat.expire_date is not available for the schedule entry",
+    )
+
+    # l — cast
     num = _append_row(
         num, mod,
         "Validate Cast is a list in all returned days",
         "cast should be a list for all Assets in all returned days",
         l_type, l_nt,
-        "All cast values are lists",
+        "Cast is a list for all Assets in all returned days",
         "Cast type is in-correct (not a list)",
-        "cast not available for some assets",
+        "Cast is not available for the asset",
     )
     num = _append_row(
         num, mod,
         "Validate Cast is non-empty in all returned days",
         "cast should be a non-empty list for all Assets in all returned days",
         l_empty, empty_nt,
-        "All cast lists are non-empty",
+        "Cast is a non-empty list for all Assets in all returned days",
         "Cast list is empty",
         "",
     )

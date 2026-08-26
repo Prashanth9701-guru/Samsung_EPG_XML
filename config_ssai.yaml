@@ -112,6 +112,55 @@ genres:
   - 토크쇼
   - 로드무비
 
+schedule_duration_min: 1200
+schedule_duration_max: 21600
+schedule_starttime_strict_regex: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
+
+content_uri_required_markers:
+  - ads.
+content_uri_macro_keys:
+  - APP_BUNDLE
+  - APP_DOMAIN
+  - APP_NAME
+  - APP_STORE_URL
+  - CONTENT_LIVESTREAM
+  - PSID
+  - TARGETOPT
+  - GDPR
+  - GDPR_CONSENT
+  - GPP
+  - GPP_SID
+  - IC
+  - IDTYPE
+  - IFA_TYPE
+  - INV_PARTNER_DOMAIN
+  - IS_LAT
+  - IU
+  - LMT
+  - POD_AD_SLOTS
+  - PRODQ
+  - SCHAIN
+  - TC_STRING
+  - URL
+  - US_PRIVACY
+content_uri_forbid_unencoded_macro: true
+
+soft_empty_program_fields:
+  connecting_id: ""
+  link_uri: ""
+  tags: ""
+  link_type: "none"
+
+soft_empty_schedule_fields:
+  program_type: ""
+
+soft_empty_repeat_fields:
+  type: "none"
+  expire_date: ""
+
+genre_capitalization: true
+rating_require_uppercase: true
+
 ratings:
   - TV-Y
   - TV-Y7
