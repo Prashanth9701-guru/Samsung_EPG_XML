@@ -224,12 +224,13 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                 )
 
         else:
+            # NON_SSAI else branch: keep raw Issue Summary (no date prefix)
             for key, values in common_asset_ids.items():
                 updated_summary_list.append(
                     {
                         "Asset ID": key,
                         "Module": module,
-                        "Issue Summary": f"In {_dates_csv(values)} days, {issue_summary}",
+                        "Issue Summary": issue_summary,
                     }
                 )
 

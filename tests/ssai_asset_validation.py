@@ -60,7 +60,7 @@ def _is_empty(value: Any) -> bool:
     return False
 
 
-_EXCEL_ASSET_IDS_MAX = 32000
+_EXCEL_ASSET_IDS_MAX = 32767
 
 
 def _merge_day_failures(
@@ -71,37 +71,46 @@ def _merge_day_failures(
     NON_SSAI Asset_Level Asset IDs cell (no outer list):
       {date: [{asset_id: [details]}, ...]},{date2: [...]}
 
-    Same construction as NON_SSAI:
-      parts.append({date: result}); ','.join(map(str, parts))
-
-    Clips to max_len with a complete valid literal (never mid-token) for Excel.
+    Round-robins one entry per day so every failing day appears when clipped
+    to Excel's cell limit (complete valid literal, never mid-token).
     """
     if not failed_by_date:
         return ""
 
-    out_parts: List[Dict[str, List[Dict[str, List[Any]]]]] = []
-    for date in sorted(failed_by_date.keys()):
+    dates = sorted(failed_by_date.keys())
+    day_queues: Dict[str, List[Dict[str, List[Any]]]] = {}
+    for date in dates:
         id_map = failed_by_date[date] or {}
-        day_entries: List[Dict[str, List[Any]]] = []
-        for pid, details in id_map.items():
-            candidate_entries = day_entries + [{pid: details}]
-            candidate_day = {date: candidate_entries}
-            candidate_parts = out_parts + [candidate_day]
-            candidate_text = ",".join(map(str, candidate_parts))
-            if out_parts or day_entries:
-                if len(candidate_text) > max_len:
-                    if day_entries:
-                        out_parts.append({date: day_entries})
-                    return ",".join(map(str, out_parts)) if out_parts else ""
-                day_entries = candidate_entries
-            else:
-                # First asset ever: always include even if over max_len ( unavoidable )
-                if len(candidate_text) > max_len:
-                    return ",".join(map(str, [candidate_day]))
-                day_entries = candidate_entries
-        if day_entries:
-            out_parts.append({date: day_entries})
+        day_queues[date] = [{pid: details} for pid, details in id_map.items()]
 
+    selected: Dict[str, List[Dict[str, List[Any]]]] = {d: [] for d in dates}
+    indices = {d: 0 for d in dates}
+    progressed = True
+    while progressed:
+        progressed = False
+        for date in dates:
+            idx = indices[date]
+            queue = day_queues[date]
+            if idx >= len(queue):
+                continue
+            trial = {d: list(selected[d]) for d in dates}
+            trial[date] = trial[date] + [queue[idx]]
+            parts = [{d: trial[d]} for d in dates if trial[d]]
+            candidate_text = ",".join(map(str, parts))
+            if selected[date] or any(selected[d] for d in dates if d != date):
+                if len(candidate_text) > max_len:
+                    continue
+            elif len(candidate_text) > max_len and not any(selected.values()):
+                # First asset ever: include even if over max_len (unavoidable)
+                selected[date] = [queue[idx]]
+                indices[date] = idx + 1
+                progressed = True
+                continue
+            selected[date] = trial[date]
+            indices[date] = idx + 1
+            progressed = True
+
+    out_parts = [{d: selected[d]} for d in dates if selected[d]]
     return ",".join(map(str, out_parts)) if out_parts else ""
 
 
@@ -270,8 +279,8 @@ def _suite_ab_mandatory(
     programs: List[dict],
     config: dict,
     missing: Dict[str, Dict[str, List[Any]]],
-    empty: Dict[str, Dict[str, List[Any]]],
 ) -> None:
+    """Presence-only (NON_SSAI-aligned). Empty/value checks live in dedicated suites."""
     logger.info(f"Running suite_ab_mandatory for date: {date}")
     fields = config.get("mandatory_fields") or []
     for prog in programs:
@@ -279,12 +288,9 @@ def _suite_ab_mandatory(
             _record(missing, date, "unknown", ["program entry is not an object"])
             continue
         key = _program_key(prog)
-        logger.info(f'Mandatory Fields Validation {date}: {fields} and {prog}')
         for field in fields:
             if field not in prog:
                 _record(missing, date, key, [f"{field} missing"])
-            elif _is_empty(prog.get(field)):
-                _record(empty, date, key, [f"{field} empty"])
 
     logger.info(f"Completed suite_ab_mandatory for date: {date}")
 
@@ -791,7 +797,6 @@ def run_ssai_day_validations(
 
     # Accumulators across dates
     ab_missing: Dict[str, Dict[str, List[Any]]] = {}
-    ab_empty: Dict[str, Dict[str, List[Any]]] = {}
     dup_failed: Dict[str, Dict[str, List[Any]]] = {}
 
     c_type: Dict[str, Dict[str, List[Any]]] = {}
@@ -872,7 +877,7 @@ def run_ssai_day_validations(
             len(schedules),
         )
 
-        _suite_ab_mandatory(date, programs, config, ab_missing, ab_empty)
+        _suite_ab_mandatory(date, programs, config, ab_missing)
         _suite_dup_ids(date, programs, dup_failed)
         _suite_c_asset_id(date, programs, config, c_type, c_len, c_eq_title, c_eq_desc, c_nt)
         _suite_d_title(date, programs, config, d_type, d_tba, d_eq, d_len, d_spec, d_nt)
@@ -888,23 +893,14 @@ def run_ssai_day_validations(
     mod = "Asset_Level"
     sch = "Schedule"
 
-    # a–b
+    # a — mandatory presence only (empty/value checks are dedicated suites)
     num = _append_row(
         num, mod,
         "Validate mandatory fields presence for Assets in all returned days",
         "All mandatory fields should be present on every program",
         ab_missing, {},
         "All mandatory fields are present",
-        "Mandatory fields are missing",
-        "",
-    )
-    num = _append_row(
-        num, mod,
-        "Validate mandatory fields non-empty for Assets in all returned days",
-        "All mandatory fields should have non-empty values",
-        ab_empty, {},
-        "All mandatory field values are non-empty",
-        "Mandatory field values are not present",
+        "Mandatory Fields are not available",
         "",
     )
 
