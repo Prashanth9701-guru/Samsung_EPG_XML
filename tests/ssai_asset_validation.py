@@ -216,6 +216,7 @@ def _suite_ab_mandatory(
             _record(missing, date, "unknown", ["program entry is not an object"])
             continue
         key = _program_key(prog)
+        logger.info(f'Mandatory Fields Validation {date}: {fields} and {prog}')
         for field in fields:
             if field not in prog:
                 _record(missing, date, key, [f"{field} missing"])

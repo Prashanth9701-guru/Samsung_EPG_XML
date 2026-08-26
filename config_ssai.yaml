@@ -1,14 +1,13 @@
 # Samsung SSAI AN3 EPG validation config
 
 mandatory_fields:
-  - asset_id
+  - id
   - cast
   - content_uri
   - desc
   - duration
   - episode_num
   - genre
-  - id
   - poster
   - rating
   - title
