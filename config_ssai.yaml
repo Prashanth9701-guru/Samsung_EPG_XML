@@ -20,7 +20,7 @@ schedule_mandatory_fields:
   - duration
 
 lengths:
-  asset_id: 50
+  id: 50
   title: 200
   desc: 4000
   poster_url: 2000
