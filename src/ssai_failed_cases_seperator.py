@@ -99,6 +99,38 @@ def _dates_csv(values: Dict[str, List[Any]]) -> str:
     return ", ".join(list(values.keys()))
 
 
+def _with_dates_prefix(issue_summary: str, values: Dict[str, List[Any]]) -> str:
+    """Prefix Issue Summary with failing day(s), matching NON-SSAI grouped tab style."""
+    dates = _dates_csv(values)
+    if not dates:
+        return issue_summary
+    return f"In {dates} days, {issue_summary}"
+
+
+def _iter_schedule_asset_entries(asset_ids_raw: Any):
+    """Yield (asset_id, [date, ...details]) for schedule-shaped Asset IDs cells."""
+    if not asset_ids_raw:
+        return
+    raw = asset_ids_raw if isinstance(asset_ids_raw, str) else str(asset_ids_raw)
+    try:
+        parsed = ast.literal_eval(f"[{raw}]")
+    except (ValueError, SyntaxError) as exc:
+        logger.warning("SSAI schedule Asset IDs parse failed: %s raw=%s", exc, raw[:200])
+        return
+    if not isinstance(parsed, list):
+        parsed = [parsed]
+    for entry in parsed:
+        if not isinstance(entry, dict):
+            continue
+        keys = list(entry.keys())
+        if keys and all(_is_date_key(k) for k in keys):
+            continue
+        for asset_id, value in entry.items():
+            details = value if isinstance(value, list) else [value]
+            if details and _is_date_key(details[0]):
+                yield str(asset_id), details
+
+
 def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
     """Build updated_summary_list for summary_report_writer (NON_SSAI-style)."""
     filtered_list: List[Dict[str, Any]] = []
@@ -172,7 +204,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                     {
                         "Asset ID": key,
                         "Module": module,
-                        "Issue Summary": summary,
+                        "Issue Summary": _with_dates_prefix(summary, values),
                     }
                 )
 
@@ -188,7 +220,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                     {
                         "Asset ID": key,
                         "Module": module,
-                        "Issue Summary": summary,
+                        "Issue Summary": _with_dates_prefix(summary, values),
                     }
                 )
 
@@ -224,6 +256,40 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                     }
                 )
 
+        elif "duration is at least" in scenario.lower():
+            for asset_id, details in _iter_schedule_asset_entries(data.get("Asset IDs")):
+                if len(details) < 4:
+                    continue
+                date, dur, dur_min, start_time = details[0], details[1], details[2], details[3]
+                updated_summary_list.append(
+                    {
+                        "Asset ID": asset_id,
+                        "Module": module,
+                        "Issue Summary": (
+                            f"In {date} day, Scheduled asset duration is {dur} sec which is less "
+                            f"than 20 minutes ({dur_min} seconds) "
+                            f"(Asset Scheduled Time: {start_time})"
+                        ),
+                    }
+                )
+
+        elif "duration is at most" in scenario.lower():
+            for asset_id, details in _iter_schedule_asset_entries(data.get("Asset IDs")):
+                if len(details) < 4:
+                    continue
+                date, dur, dur_max, start_time = details[0], details[1], details[2], details[3]
+                updated_summary_list.append(
+                    {
+                        "Asset ID": asset_id,
+                        "Module": module,
+                        "Issue Summary": (
+                            f"In {date} day, Scheduled asset duration is {dur} sec which is greater "
+                            f"than 6 hours ({dur_max} seconds) "
+                            f"(Asset Scheduled Time: {start_time})"
+                        ),
+                    }
+                )
+
         elif "gap" in scenario.lower() or "overlap" in scenario.lower():
             for key, values in common_asset_ids.items():
                 duplicate_values = _flat_details(values)
@@ -240,13 +306,12 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                 )
 
         else:
-            # NON_SSAI else branch: keep raw Issue Summary (no date prefix)
             for key, values in common_asset_ids.items():
                 updated_summary_list.append(
                     {
                         "Asset ID": key,
                         "Module": module,
-                        "Issue Summary": issue_summary,
+                        "Issue Summary": _with_dates_prefix(issue_summary, values),
                     }
                 )
 
