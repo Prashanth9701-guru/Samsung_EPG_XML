@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import re
-from typing import Dict, Iterable, List, Sequence, Tuple
+from typing import Dict, Iterable, Tuple
 
 PRIORITY_BLOCKER = "Blocker"
 
-BLOCKER_CATALOG: Sequence[Tuple[str, str]] = (
+# Reference catalog (path, summary) — used as documentation only; lookup is explicit.
+BLOCKER_CATALOG: Tuple[Tuple[str, str], ...] = (
     ("XML Nodes", "Check Availability of Top_Level Keys"),
     ("XML Nodes", "Check Availability of Top_Level Node Value"),
     ("programs", "Check availability of programs Nodes"),
@@ -55,40 +56,6 @@ BLOCKER_CATALOG: Sequence[Tuple[str, str]] = (
     ("schedules->starttime", "Validate starttime format"),
 )
 
-_EXPLICIT_BLOCKER_KEYS: Dict[Tuple[str, str], str] = {
-    ("Asset_Level", "validate asset id type"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate title type"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate title length"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate length of asset title"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate title has no unexpected special characters"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate description type"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate description length"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate description has no unexpected special characters"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate poster type is list"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate poster list entry type is object"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate poster url type is string"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate poster type present"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate poster width present"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate poster height present"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate poster resolution is 1920x1080"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate poster image format is jpg/jpeg"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate rating capitalization"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate rating against expected list"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate duration type is int"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate duplicate program id within each day"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate content_uri equals sheet stream url"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate content_uri ads macro keys"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate content_uri macro encoding"): PRIORITY_BLOCKER,
-    ("Asset_Level", "validate assets having in-correct content_type"): PRIORITY_BLOCKER,
-    ("Schedule", "validate schedule field types are string"): PRIORITY_BLOCKER,
-    ("Schedule", "validate schedule starttime strict format"): PRIORITY_BLOCKER,
-    ("Schedule", "validate schedule starttime parseable"): PRIORITY_BLOCKER,
-    ("Schedule", "validate schedule duration parseable as int seconds"): PRIORITY_BLOCKER,
-    ("Schedule", "validate schedule duration matches program duration"): PRIORITY_BLOCKER,
-    ("Schedule", "validate schedule content_id exists in program id"): PRIORITY_BLOCKER,
-    ("Schedule", "validate service_id is constant per day"): PRIORITY_BLOCKER,
-}
-
 
 def _normalize_scenario(text: str) -> str:
     s = re.sub(r"\s+", " ", (text or "").lower().strip())
@@ -99,112 +66,70 @@ def _normalize_scenario(text: str) -> str:
     return re.sub(r"\s+", " ", s).strip()
 
 
-_NORMALIZED_CATALOG: List[Tuple[str, str]] = [
-    (path, _normalize_scenario(summary))
-    for path, summary in BLOCKER_CATALOG
-    if _normalize_scenario(summary)
-]
+def _key(module: str, scenario: str) -> Tuple[str, str]:
+    return ((module or "").strip(), _normalize_scenario(scenario))
 
 
-def _infer_paths(module: str, scenario: str) -> List[str]:
-    mod = (module or "").strip()
-    s = _normalize_scenario(scenario)
-    paths: List[str] = []
-
-    if mod == "URL":
-        if "top_level" in s or "top level" in s:
-            paths.append("XML Nodes")
-        return paths
-
-    if mod == "Channel_Level":
-        if "top_level" in s or "top level" in s:
-            paths.append("XML Nodes")
-        if "programs" in s:
-            paths.append("programs")
-        if "schedules" in s or "schedule" in s:
-            paths.append("schedules")
-        return paths
-
-    if mod == "Asset_Level":
-        if "asset_id" in s or "asset id" in (scenario or "").lower():
-            paths.append("programs->asset_id")
-        if "program id" in s or ("duplicate" in s and "id" in s):
-            paths.append("programs->program->id")
-        if "title" in s:
-            paths.append("programs->program->title")
-        if "desc" in s or "description" in (scenario or "").lower():
-            paths.append("programs->program->desc")
-        if "poster" in s:
-            paths.append("programs->program->poster")
-        if "rating" in s:
-            paths.append("programs->program->rating")
-        if "content_uri" in s or "content uri" in (scenario or "").lower():
-            paths.append("programs->program->content_uri")
-        if "content_type" in s or "content type" in (scenario or "").lower():
-            paths.append("programs->program->content_type")
-        if "duration" in s and "schedule" not in s:
-            paths.append("programs->program->duration")
-
-    if mod == "Schedule":
-        paths.append("schedules")
-        if "content_id" in s or "content id" in (scenario or "").lower():
-            paths.append("schedules->content_id")
-        if "duration" in s:
-            paths.append("schedules->duration")
-        if "starttime" in s or "start time" in (scenario or "").lower():
-            paths.append("schedules->starttime")
-        if "service_id" in s or "service id" in (scenario or "").lower():
-            paths.append("schedules->service_id")
-        if "schedule_id" in s or "schedule id" in (scenario or "").lower():
-            paths.append("schedules->schedule_id")
-
-    return list(dict.fromkeys(paths))
-
-
-def _path_compatible(catalog_path: str, inferred_paths: Sequence[str]) -> bool:
-    if not inferred_paths:
-        return False
-    for path in inferred_paths:
-        if catalog_path == path:
-            return True
-        if catalog_path.startswith(path + "->") or path.startswith(catalog_path + "->"):
-            return True
-    return False
-
-
-def _token_match(catalog_summary: str, runtime_summary: str) -> bool:
-    stop = {"validate", "type", "the", "and", "for", "all", "per", "as", "is", "in", "of", "a"}
-    tokens = [t for t in catalog_summary.split() if t not in stop and len(t) > 2]
-    return bool(tokens) and all(token in runtime_summary for token in tokens)
+# Explicit runtime (module, normalized scenario) keys only — no fuzzy matching.
+_EXPLICIT_BLOCKER_KEYS: Dict[Tuple[str, str], str] = {}
+for module, scenario in [
+    # --- SSAI Asset_Level ---
+    ("Asset_Level", "Validate Asset ID Type in all returned days"),
+    ("Asset_Level", "Validate Title type in all returned days"),
+    ("Asset_Level", "Validate Title length in all returned days"),
+    ("Asset_Level", "Validate Title has no unexpected special characters in all returned days"),
+    ("Asset_Level", "Validate Description type in all returned days"),
+    ("Asset_Level", "Validate Description length in all returned days"),
+    ("Asset_Level", "Validate Description has no unexpected special characters in all returned days"),
+    ("Asset_Level", "Validate poster type is list in all returned days"),
+    ("Asset_Level", "Validate poster list entry type is object in all returned days"),
+    ("Asset_Level", "Validate Poster URL type is string in all returned days"),
+    ("Asset_Level", "Validate Poster type present in all returned days"),
+    ("Asset_Level", "Validate Poster width present in all returned days"),
+    ("Asset_Level", "Validate Poster height present in all returned days"),
+    ("Asset_Level", "Validate Poster image format is JPG/JPEG in all returned days"),
+    ("Asset_Level", "Validate Poster resolution is 1920x1080 in all returned days"),
+    ("Asset_Level", "Validate Rating Capitalization in all returned days"),
+    ("Asset_Level", "Validate Rating against expected list in all returned days"),
+    ("Asset_Level", "Validate Duration type is int in all returned days"),
+    ("Asset_Level", "Validate duplicate program id within each day in all returned days"),
+    ("Asset_Level", "Validate content_uri equals sheet Stream URL in all returned days"),
+    ("Asset_Level", "Validate content_uri ads macro keys in all returned days"),
+    ("Asset_Level", "Validate content_uri macro encoding in all returned days"),
+    ("Asset_Level", "Validate assets having in-correct content_type in all returned days"),
+    # --- NON-SSAI Asset_Level ---
+    ("Asset_Level", "Validate Length of Asset Title in all 7 days"),
+    ("Asset_Level", "Validate Special Characters in Asset Title in all 7 days"),
+    ("Asset_Level", "Validate Length of Description in all 7 days"),
+    ("Asset_Level", "Validate Special Characters in Description in all 7 days"),
+    ("Asset_Level", "Validate assets having in-correct content_type in all 7 days"),
+    ("Asset_Level", "Validate Asset Thumbnail availability in all 7 days"),
+    ("Asset_Level", "Validate Asset Thumbnail_Width availability in all 7 days"),
+    ("Asset_Level", "Validate Asset Thumbnail_Height availability in all 7 days"),
+    ("Asset_Level", "Validate Asset Thumbnail_URL Length in all 7 days"),
+    ("Asset_Level", "Validate Asset Thumbnail Format in all 7 days"),
+    ("Asset_Level", "Validate Asset Thumbnail Resolution in all 7 days"),
+    ("Asset_Level", "Validate Asset Thumbnail_Width XML_thumbnail_width in all 7 days"),
+    ("Asset_Level", "Validate Asset Thumbnail_Height XML_thumbnail_height in all 7 days"),
+    ("Asset_Level", "Validate Asset Thumbnail Aspect Ratio in all 7 days"),
+    ("Asset_Level", "Validate Rating Value as per Samsung standard in all 7 days"),
+    # --- SSAI Schedule ---
+    ("Schedule", "Validate schedule field types are string in all returned days"),
+    ("Schedule", "Validate schedule starttime strict format in all returned days"),
+    ("Schedule", "Validate schedule starttime parseable in all returned days"),
+    ("Schedule", "Validate schedule duration parseable as int seconds in all returned days"),
+    ("Schedule", "Validate schedule duration matches program duration in all returned days"),
+    ("Schedule", "Validate schedule content_id exists in program id in all returned days"),
+    ("Schedule", "Validate service_id is constant per day in all returned days"),
+    # --- NON-SSAI Schedule ---
+    ("Schedule", "Validate Asset Duration in minutes match with Minutes Value in all 7 days"),
+    ("Schedule", "Validate Asset Duration in seconds match with Seconds Value in all 7 days"),
+]:
+    _EXPLICIT_BLOCKER_KEYS[_key(module, scenario)] = PRIORITY_BLOCKER
 
 
 def lookup_priority(module: str, scenario: str) -> str:
-    norm_scenario = _normalize_scenario(scenario)
-    explicit = _EXPLICIT_BLOCKER_KEYS.get(((module or "").strip(), norm_scenario))
-    if explicit:
-        return explicit
-
-    inferred = _infer_paths(module, scenario)
-    best_score = 0
-    matched = False
-
-    for path, norm_summary in _NORMALIZED_CATALOG:
-        if not _path_compatible(path, inferred):
-            continue
-        if norm_summary == norm_scenario:
-            return PRIORITY_BLOCKER
-        if norm_summary in norm_scenario or norm_scenario in norm_summary:
-            score = len(norm_summary)
-            if score > best_score:
-                best_score = score
-                matched = True
-        elif _token_match(norm_summary, norm_scenario):
-            score = len(norm_summary)
-            if score > best_score:
-                best_score = score
-                matched = True
-
-    return PRIORITY_BLOCKER if matched else ""
+    return _EXPLICIT_BLOCKER_KEYS.get(_key(module, scenario), "")
 
 
 def apply_priorities_to_validation_output(rows: Iterable[dict]) -> None:
