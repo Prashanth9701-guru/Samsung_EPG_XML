@@ -104,7 +104,7 @@ def _with_dates_prefix(issue_summary: str, values: Dict[str, List[Any]]) -> str:
     dates = _dates_csv(values)
     if not dates:
         return issue_summary
-    return f"In {dates} days, {issue_summary}"
+    return f"In {dates} day, {issue_summary}"
 
 
 def _iter_schedule_asset_entries(asset_ids_raw: Any):
@@ -158,14 +158,14 @@ def _parse_gap_overlap_entry(
 
 def _schedule_gap_issue_summary(date_csv: str, differ: int, starttime: str) -> str:
     return (
-        f"In {date_csv} days, Observing schedule gap of {differ} seconds"
+        f"In {date_csv} day, Observing schedule gap of {differ} seconds"
         f"between consecutive assets (Asset Start Time's: {starttime})"
     )
 
 
 def _schedule_overlap_issue_summary(date_csv: str, differ: int, starttime: str) -> str:
     return (
-        f"In {date_csv} days, Observing schedule overlap of {differ} seconds"
+        f"In {date_csv} day, Observing schedule overlap of {differ} seconds"
         f"between consecutive assets (Asset Start Time's: {starttime})"
     )
 
@@ -252,7 +252,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                         "Module": module,
                         "Issue Summary": issue_summary.replace(
                             "Mandatory",
-                            f"In {_dates_csv(values)} days, {', '.join(set(map(str, duplicate_values)))}",
+                            f"In {_dates_csv(values)} day, {', '.join(set(map(str, duplicate_values)))}",
                         ),
                         "Priority": priority,
                     }
@@ -298,7 +298,7 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                     {
                         "Asset ID": key,
                         "Module": module,
-                        "Issue Summary": f"In {_dates_csv(values)} days, {issue_summary}",
+                        "Issue Summary": f"In {_dates_csv(values)} day, {issue_summary}",
                         "Priority": priority,
                     }
                 )
@@ -309,12 +309,12 @@ def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
                 token = "in-correct-rating" if "in-correct-rating" in issue_summary else "invalid"
                 if token in issue_summary:
                     summary = (
-                        f"In {_dates_csv(values)} days, "
+                        f"In {_dates_csv(values)} day, "
                         f"{issue_summary.replace(token, ', '.join(set(map(str, duplicate_values))))}"
                     )
                 else:
                     summary = (
-                        f"In {_dates_csv(values)} days, {issue_summary}"
+                        f"In {_dates_csv(values)} day, {issue_summary}"
                         f" ({', '.join(set(map(str, duplicate_values)))})"
                     )
                 updated_summary_list.append(
