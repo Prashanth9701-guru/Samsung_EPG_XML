@@ -27,7 +27,11 @@ from datetime import datetime
 import openpyxl
 from openpyxl.styles import Font, Alignment
 
-from utilities.test_case_priority import issue_with_priority_suffix
+from utilities.test_case_priority import (
+    PRIORITY_BLOCKER,
+    PRIORITY_CRITICAL,
+    issue_with_priority_suffix,
+)
 
 #from Input import JSON_URL
 
@@ -446,6 +450,8 @@ body.tc-col-resizing { -webkit-user-select: none; }
 }
 .gf-summary::-webkit-details-marker { display: none; }
 .gf-sc-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: #1E293B; }
+.pri-blocker { color: #DC2626; font-weight: 700; }
+.pri-critical { color: #38BDF8; font-weight: 700; }
 .gf-count {
   flex-shrink: 0; background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5;
   border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700;
@@ -1541,6 +1547,18 @@ def _render_grouped_asset_ids_body(asset_ids):
     )
 
 
+def _issue_with_priority_suffix_html(issue_text, priority):
+    """Tab 3 accordion title: plain issue text + colored (Blocker|Critical) suffix."""
+    p = (priority or '').strip() or PRIORITY_CRITICAL
+    cls = 'pri-blocker' if p == PRIORITY_BLOCKER else 'pri-critical'
+    if p != PRIORITY_BLOCKER:
+        p = PRIORITY_CRITICAL
+    return (
+        f'{_esc(issue_text)} '
+        f'(<span class="{cls}">{_esc(p)}</span>)'
+    )
+
+
 def _render_grouped_failed_cases_panel(rows):
     """Tab 3: Failed cases accordion grouped by Issue Summary; body shows Asset IDs only.
 
@@ -1577,7 +1595,7 @@ def _render_grouped_failed_cases_panel(rows):
     items = []
     for issue_summary, failed_rows, asset_ids in prepared:
         priority = str((failed_rows[0].get('Priority') if failed_rows else '') or '').strip()
-        display_issue = issue_with_priority_suffix(issue_summary, priority)
+        display_issue_html = _issue_with_priority_suffix_html(issue_summary, priority)
         id_count = len(asset_ids)
         open_attr = ' open' if id_count <= 3 and id_count > 0 else ''
 
@@ -1590,7 +1608,7 @@ def _render_grouped_failed_cases_panel(rows):
             f'<details class="gf-item"{open_attr}>'
             f'<summary class="gf-summary">'
             f'<span class="chevron">&#9658;</span>'
-            f'<span class="gf-sc-name">{_esc(display_issue)}</span>'
+            f'<span class="gf-sc-name">{display_issue_html}</span>'
             f'<span class="gf-count">{id_count} asset{"s" if id_count != 1 else ""}</span>'
             f'</summary>'
             f'<div class="gf-body">{body_html}</div>'

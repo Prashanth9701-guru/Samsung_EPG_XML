@@ -6,6 +6,7 @@ import re
 from typing import Dict, Iterable, Tuple
 
 PRIORITY_BLOCKER = "Blocker"
+PRIORITY_CRITICAL = "Critical"
 
 # Reference catalog (path, summary) — used as documentation only; lookup is explicit.
 BLOCKER_CATALOG: Tuple[Tuple[str, str], ...] = (
@@ -126,8 +127,8 @@ for module, scenario in [
     ("Asset_Level", "Validate Asset Thumbnail_Height XML_thumbnail_height in all 7 days"),
     ("Asset_Level", "Validate Asset Thumbnail Aspect Ratio in all 7 days"),
     ("Asset_Level", "Validate Rating Value as per Samsung standard in all 7 days"),
-    ('Asset_Level', 'Validate language node availability for title tag in all 7 days')
-    ('Asset_Level', 'Validate Asset Title availability in all 7 days')
+    ('Asset_Level', 'Validate language node availability for title tag in all 7 days'),
+    ('Asset_Level', 'Validate Asset Title availability in all 7 days'),
     ('Asset_Level', 'Validate To Be Announced Assets in all 7 days'),
     ('Asset_Level', 'Validate Asset Title and Description are matching in all 7 days'),
     ('Asset_Level', 'Validate Title_Language node match with Channel_Language in all 7 days'),
@@ -165,7 +166,6 @@ for module, scenario in [
     ('URL', 'Validate scheduling API / EPG delivery availability'),
     ('URL', 'Validate EPG day JSON load status for all returned days'),
     ('Asset_Level', 'Validate mandatory fields presence for Assets in all returned days'),
-    (),
     # --- SSAI Schedule ---
     ("Schedule", "Validate schedule field types are string in all returned days"),
     ("Schedule", "Validate schedule starttime strict format in all returned days"),
@@ -180,7 +180,6 @@ for module, scenario in [
     ('Schedule', 'Validate schedule duration is at most 21600 seconds in all returned days'),
     ('Schedule', 'Validate no schedule gaps between consecutive assets in all returned days'),
     ('Schedule', 'Validate no schedule overlaps between consecutive assets in all returned days'),
-    (),
     # --- NON-SSAI Schedule ---
     ("Schedule", "Validate Asset Duration in minutes match with Minutes Value in all 7 days"),
     ("Schedule", "Validate Asset Duration in seconds match with Seconds Value in all 7 days"),
@@ -197,7 +196,7 @@ for module, scenario in [
 
 
 def lookup_priority(module: str, scenario: str) -> str:
-    return _EXPLICIT_BLOCKER_KEYS.get(_key(module, scenario), "")
+    return _EXPLICIT_BLOCKER_KEYS.get(_key(module, scenario), PRIORITY_CRITICAL)
 
 
 def apply_priorities_to_validation_output(rows: Iterable[dict]) -> None:
@@ -206,5 +205,5 @@ def apply_priorities_to_validation_output(rows: Iterable[dict]) -> None:
 
 
 def issue_with_priority_suffix(issue_text: str, priority: str) -> str:
-    p = (priority or "").strip()
-    return f"{issue_text} ({p})" if p else issue_text
+    p = (priority or "").strip() or PRIORITY_CRITICAL
+    return f"{issue_text} ({p})"
