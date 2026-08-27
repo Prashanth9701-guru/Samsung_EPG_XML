@@ -58,7 +58,7 @@ def failed_cases_seperator():
                 for key, Values in common_asset_ids.items():
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), data.get('Issue Summary').replace('Mandatory', f'In {', '.join(list(Values.keys()))} days, {', '.join(set(duplicate_values))}'), priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), data.get('Issue Summary').replace('Mandatory', f'In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {', '.join(set(duplicate_values))}'), priority))
 
             elif 'Some assets are having wrong datetime format' in data.get('Issue Summary'):
                 common_asset_ids = {}
@@ -77,7 +77,7 @@ def failed_cases_seperator():
                 for key, Values in common_asset_ids.items():
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f'In {', '.join(list(Values.keys()))} days are having, wrong date format (Ex:{duplicate_values[0]}) which is not expected as per platform standard', priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f'In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'} are having, wrong date format (Ex:{duplicate_values[0]}) which is not expected as per platform standard', priority))
 
             elif 'in-correct-thumbnail' in data.get('Issue Summary') or 'in-correct-length' in data.get('Issue Summary') or 'in-correct_content_type' in data.get('Issue Summary'):
                 common_asset_ids = {}
@@ -175,7 +175,7 @@ def failed_cases_seperator():
                 for key, Values in common_asset_ids.items():
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} days, {data.get('Issue Summary').replace('invalid', ', '.join(set(duplicate_values)))}", priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('invalid', ', '.join(set(duplicate_values)))}", priority))
 
             
             elif 'in-correct-rating' in data.get('Issue Summary'):
@@ -195,7 +195,7 @@ def failed_cases_seperator():
                 for key, Values in common_asset_ids.items():
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} days, {data.get('Issue Summary').replace('in-correct-rating', ', '.join(set(duplicate_values)))}", priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('in-correct-rating', ', '.join(set(duplicate_values)))}", priority))
 
 
                     
