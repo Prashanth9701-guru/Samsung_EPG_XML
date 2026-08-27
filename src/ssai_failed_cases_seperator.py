@@ -158,14 +158,14 @@ def _parse_gap_overlap_entry(
 
 def _schedule_gap_issue_summary(date_csv: str, differ: int, starttime: str) -> str:
     return (
-        f"In {date_csv} days, Observing schedule gap of {differ} "
+        f"In {date_csv} days, Observing schedule gap of {differ} seconds"
         f"between consecutive assets (Asset Start Time's: {starttime})"
     )
 
 
 def _schedule_overlap_issue_summary(date_csv: str, differ: int, starttime: str) -> str:
     return (
-        f"In {date_csv} days, Observing schedule overlap of {differ} "
+        f"In {date_csv} days, Observing schedule overlap of {differ} seconds"
         f"between consecutive assets (Asset Start Time's: {starttime})"
     )
 
