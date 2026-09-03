@@ -1598,7 +1598,7 @@ def _render_grouped_failed_cases_panel(rows):
         priority = str((failed_rows[0].get('Priority') if failed_rows else '') or '').strip()
         display_issue_html = _issue_with_priority_suffix_html(issue_summary, priority)
         id_count = len(asset_ids)
-        open_attr = ' open' if id_count <= 3 and id_count > 0 else ''
+        open_attr = ''
 
         if asset_ids:
             body_html = _render_grouped_asset_ids_body(asset_ids)
