@@ -113,6 +113,7 @@ for module, scenario in [
     ('Asset_Level', 'Validate Cast is non-empty in all returned days'),
     # --- NON-SSAI Asset_Level ---
     ("Asset_Level", "Validate Length of Asset Title in all 7 days"),
+    ("Asset_Level", "Validate mandatory fields availability for Assets in all 7 days"),
     ("Asset_Level", "Validate Special Characters in Asset Title in all 7 days"),
     ("Asset_Level", "Validate Length of Description in all 7 days"),
     ("Asset_Level", "Validate Special Characters in Description in all 7 days"),
