@@ -8,7 +8,7 @@ import re
 from requests.auth import HTTPBasicAuth
 
 
-config = yaml.safe_load(open('config/settings.yaml'))
+config = yaml.safe_load(open('config.yaml'))
 
 
 
