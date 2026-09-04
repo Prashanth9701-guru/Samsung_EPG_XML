@@ -72,20 +72,21 @@ def non_ssai_jira_fetch():
             issue = jira.issue(issues)
             fields = issue["fields"]
             if fields.get('customfield_11736'):
-                if 'samsung' in (fields.get('customfield_11736', 'not_available')).lower():
-                    region_field = fields.get('customfield_12278')
-                    Delivery_region = ''
-                    for region in region_field:
-                        Delivery_region = region.get('value', None)
+                if fields.get('customfield_12054'):
+                    if 'samsung' in (fields.get('customfield_11736', 'not_available')).lower() and 'non-ssai' in (fields.get('customfield_12054', 'not_available')).lower():
+                        region_field = fields.get('customfield_12278')
+                        Delivery_region = ''
+                        for region in region_field:
+                            Delivery_region = region.get('value', None)
 
-                    ticket_data.append({
-                        "EPG_XML_URL": fields.get('customfield_11760', 'not_available') if fields.get('customfield_11760', 'not_available') else 'not_available',
-                        "Channel Name": fields.get('customfield_12211', 'not_available') if fields.get('customfield_12211', 'not_available') else 'not_available',
-                        "Content Partner Name": fields.get('customfield_11296', 'not_available') if fields.get('customfield_11296', 'not_available') else 'not_available',
-                        "PSD": f'https://amagiengg.atlassian.net/browse/{issues}',
-                        "ASSET_TYPES_SUPPORTED": "Episode",
-                        "RUN/STOP": "RUN"
-                    })
+                        ticket_data.append({
+                            "EPG_XML_URL": fields.get('customfield_11760', 'not_available') if fields.get('customfield_11760', 'not_available') else 'not_available',
+                            "Channel Name": fields.get('customfield_12211', 'not_available') if fields.get('customfield_12211', 'not_available') else 'not_available',
+                            "Content Partner Name": fields.get('customfield_11296', 'not_available') if fields.get('customfield_11296', 'not_available') else 'not_available',
+                            "PSD": f'https://amagiengg.atlassian.net/browse/{issues}',
+                            "ASSET_TYPES_SUPPORTED": "Episode",
+                            "RUN/STOP": "RUN"
+                        })
 
 
 
