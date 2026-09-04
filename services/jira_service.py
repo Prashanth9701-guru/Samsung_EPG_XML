@@ -73,7 +73,7 @@ def non_ssai_jira_fetch():
             fields = issue["fields"]
             if fields.get('customfield_11736'):
                 if fields.get('customfield_12054'):
-                    if 'samsung' in (fields.get('customfield_11736', 'not_available')).lower() and 'non-ssai' in (fields.get('customfield_12054', 'not_available')).lower():
+                    if 'samsung' in (fields.get('customfield_11736', 'not_available')).lower() and 'non-ssai' in str(fields.get('customfield_12054', 'not_available')).lower():
                         region_field = fields.get('customfield_12278')
                         Delivery_region = ''
                         for region in region_field:
