@@ -1,3 +1,5 @@
+import logging
+
 import requests
 import json
 
@@ -10,7 +12,7 @@ from requests.auth import HTTPBasicAuth
 
 config = yaml.safe_load(open('config.yaml'))
 
-
+logger = logging.getLogger(__name__)
 
 def non_ssai_jira_fetch():
 
@@ -94,7 +96,7 @@ def non_ssai_jira_fetch():
 
 
 def ssai_jira_fetch():
-
+    logger.info(f'Entered to collect Jira Data')
     jira = Jira(
         url=config["jira"]["base_url"],
         username=config["jira"]["username"],
@@ -169,6 +171,6 @@ def ssai_jira_fetch():
                             "RUN/STOP": "RUN"
                         })
 
-
+    logger.info(f'Completed Jira Fetch ticket data: {ticket_data}')
 
     return ticket_data
