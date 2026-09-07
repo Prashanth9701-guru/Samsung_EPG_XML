@@ -156,18 +156,24 @@ def ssai_jira_fetch():
             fields = issue["fields"]
             if fields.get('customfield_11736'):
                 if fields.get('customfield_12054'):
-                    if 'samsung' in (fields.get('customfield_11736', 'not_available')).lower() and 'non-ssai' in str(fields.get('customfield_12054', 'not_available')).lower():
+                    if 'samsung' in (fields.get('customfield_11736', 'not_available')).lower() and 'ssai hls' == str(fields.get('customfield_12054', 'not_available')).lower():
                         region_field = fields.get('customfield_12278')
                         Delivery_region = ''
                         for region in region_field:
                             Delivery_region = region.get('value', None)
+
+                        epg_delivery = ''
+                        if fields.get('customfield_11759') and ((fields.get('customfield_11759')).lower() == 'an3' or 'now3' in (fields.get('customfield_11759')).lower()):
+                            epg_delivery = 'AN3'
+                        else:
+                            epg_delivery = 'AMGEPG'
 
                         ticket_data.append({
                             "Stream URL": fields.get('customfield_12569', 'not_available') if fields.get('customfield_12569', 'not_available') else 'not_available',
                             "Channel Name": fields.get('customfield_12211', 'not_available') if fields.get('customfield_12211', 'not_available') else 'not_available',
                             "Content Partner Name": fields.get('customfield_11296', 'not_available') if fields.get('customfield_11296', 'not_available') else 'not_available',
                             "PSD": f'https://amagiengg.atlassian.net/browse/{issues}',
-                            "EPG Delivery": fields.get('customfield_11759', 'not_available') if fields.get('customfield_11759', 'not_available') else 'not_available',
+                            "EPG Delivery": epg_delivery if epg_delivery else 'not_available',
                             "RUN/STOP": "RUN"
                         })
 
