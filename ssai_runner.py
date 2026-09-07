@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 
 from services import slack_service
 from services.amagi_api_service import get_oauth_token
-from services.gsheet_service import ssai_appened_data
+from services.ssai_gsheet_service import ssai_appened_data
 from services.jira_service import ssai_jira_fetch
 from services.ssai_gsheet_service import (
     append_ssai_execution_result,

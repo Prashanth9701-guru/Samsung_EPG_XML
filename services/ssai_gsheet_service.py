@@ -9,6 +9,8 @@ import logging
 import os
 from datetime import datetime
 from typing import Any, List, Optional, Tuple
+import gspread
+from google.oauth2.service_account import Credentials
 
 logger = logging.getLogger(__name__)
 
@@ -113,3 +115,24 @@ def update_ssai_current_day_status(
     except Exception as exc:
         logger.error("SSAI current-day status update failed (non-fatal): %s", exc)
         return False
+
+
+
+def ssai_appened_data(ticket_data):
+    scope = ["https://www.googleapis.com/auth/spreadsheets",
+             "https://www.googleapis.com/auth/drive"]
+
+    creds = Credentials.from_service_account_file(SA_JSON, scopes=scope)
+    client = gspread.authorize(creds)
+    sheet = client.open_by_key(SPREADSHEET_ID)
+
+    worksheet = sheet.get_worksheet_by_id(SSAI_INPUT_SHEET_GID)
+    sheet_data = worksheet.get_all_records()
+    for data in ticket_data:
+        if data.get('PSD') not in str(sheet_data):
+            worksheet.append_row([data.get('Stream URL'),
+                                  data.get('Channel Name'),
+                                  data.get('Content Partner Name'),
+                                  data.get('PSD'),
+                                  data.get('EPG Delivery'),
+                                  data.get('RUN/STOP')])
