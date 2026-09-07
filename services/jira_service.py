@@ -157,7 +157,10 @@ def ssai_jira_fetch():
             if fields.get('customfield_11736'):
                 if fields.get('customfield_12054'):
                     logger.info(f'Delivery Type: {fields.get('customfield_12054')}')
-                    if 'samsung' in (fields.get('customfield_11736', 'not_available')).lower() and 'ssai hls' == str(fields.get('customfield_12054', 'not_available')).lower():
+                    delivery_type = (fields.get('customfield_12054')).get('value') if fields.get('customfield_12054') else 'not_available'
+
+                    if 'samsung' in (fields.get('customfield_11736', 'not_available')).lower() and 'ssai hls' == delivery_type.lower():
+                        logger.info(f'Delivery Type after filter: {fields.get('customfield_12054')}')
                         region_field = fields.get('customfield_12278')
                         Delivery_region = ''
                         for region in region_field:
