@@ -156,6 +156,7 @@ def ssai_jira_fetch():
             fields = issue["fields"]
             if fields.get('customfield_11736'):
                 if fields.get('customfield_12054'):
+                    logger.info(f'Delivery Type: {fields.get('customfield_12054')}')
                     if 'samsung' in (fields.get('customfield_11736', 'not_available')).lower() and 'ssai hls' == str(fields.get('customfield_12054', 'not_available')).lower():
                         region_field = fields.get('customfield_12278')
                         Delivery_region = ''
