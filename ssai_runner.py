@@ -8,6 +8,8 @@ from typing import Any, Dict, List, Optional
 
 from services import slack_service
 from services.amagi_api_service import get_oauth_token
+from services.gsheet_service import ssai_appened_data
+from services.jira_service import ssai_jira_fetch
 from services.ssai_gsheet_service import (
     append_ssai_execution_result,
     build_number,
@@ -63,7 +65,8 @@ def _row_inputs(row: Dict[str, Any]) -> Dict[str, str]:
 def main() -> None:
     execution_results: List[Dict[str, Any]] = []
     session_start = datetime.today()
-
+    ticket_data = ssai_jira_fetch()
+    ssai_appened_data(ticket_data)
     token = get_oauth_token()
     if not token:
         logger.warning("Initial OAuth token is missing; ssai_template may refresh per channel")

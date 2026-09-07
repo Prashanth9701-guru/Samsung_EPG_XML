@@ -74,3 +74,22 @@ def non_ssai_appened_data(ticket_data):
                                   data.get('PSD'),
                                   data.get('ASSET_TYPES_SUPPORTED'),
                                   data.get('RUN/STOP')])
+
+def ssai_appened_data(ticket_data):
+    scope = ["https://www.googleapis.com/auth/spreadsheets",
+             "https://www.googleapis.com/auth/drive"]
+
+    creds = Credentials.from_service_account_file(SA_JSON, scopes=scope)
+    client = gspread.authorize(creds)
+    sheet = client.open_by_key(SPREADSHEET_ID)
+
+    worksheet = sheet.get_worksheet_by_id(0)
+    sheet_data = worksheet.get_all_records()
+    for data in ticket_data:
+        if data.get('PSD') not in str(sheet_data):
+            worksheet.append_row([data.get('Stream URL'),
+                                  data.get('Channel Name'),
+                                  data.get('Content Partner Name'),
+                                  data.get('PSD'),
+                                  data.get('EPG Delivery'),
+                                  data.get('RUN/STOP')])
