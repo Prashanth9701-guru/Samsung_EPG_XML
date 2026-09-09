@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timezone
+from typing import Any, Dict, List
 
+from services import mongo_service
 from services import slack_service
 from services.amagi_api_service import get_oauth_token
 from services.ssai_gsheet_service import ssai_appened_data
@@ -18,6 +19,7 @@ from services.ssai_gsheet_service import (
     ssai_validation_data,
     update_ssai_current_day_status,
 )
+from utilities.helper import Validation_Output
 from utilities.logger_setup import set_up_log
 from utilities.ssai_master_template import ssai_template
 
@@ -62,9 +64,61 @@ def _row_inputs(row: Dict[str, Any]) -> Dict[str, str]:
     }
 
 
+def _is_ssai_executable(row: Dict[str, Any], today: str, today_format: str) -> bool:
+    """True when the row would enter the AN3/now3 execution path (incl. missing-field FAIL)."""
+    if not _is_run_eligible(row, today, today_format):
+        return False
+    fields = _row_inputs(row)
+    if fields["epg_delivery"].strip().upper() != "AN3":
+        return False
+    if not _is_now3_stream_url(fields["stream_url"]):
+        return False
+    return True
+
+
+def _store_ssai_mongo_result(
+    *,
+    execution_date: str,
+    input_name: str,
+    pipeline_status: str,
+    input_start: datetime,
+    input_end: datetime,
+    ticket_id: str = "",
+    input_url: str = "",
+    partner: str = "",
+    html_link: str = "",
+    drive_link: str = "",
+) -> None:
+    try:
+        validation_snapshot = list(Validation_Output)
+        mongo_status = mongo_service.normalize_input_status(
+            pipeline_status, validation_snapshot
+        )
+        payload = mongo_service.build_input_payload(
+            input_name=input_name,
+            status=mongo_status,
+            execution_start_time=input_start,
+            execution_end_time=input_end,
+            result=validation_snapshot,
+            ticket_id=ticket_id,
+            input_url=input_url,
+            partner=partner,
+            html_link=html_link,
+            drive_link=drive_link,
+        )
+        mongo_service.store_input_result(
+            mongo_service.PIPELINE_SSAI,
+            payload,
+            execution_date=execution_date,
+        )
+    except Exception as exc:
+        logger.error("Mongo store_input_result failed (non-fatal): %s", exc)
+
+
 def main() -> None:
     execution_results: List[Dict[str, Any]] = []
     session_start = datetime.today()
+    execution_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     ticket_data = ssai_jira_fetch()
     ssai_appened_data(ticket_data)
     token = get_oauth_token()
@@ -78,6 +132,20 @@ def main() -> None:
     except Exception as exc:
         logger.error("SSAI control sheet unavailable — aborting run: %s", exc)
         return
+
+    eligible_count = sum(
+        1 for row in sheet_data if _is_ssai_executable(row, today, today_format)
+    )
+    try:
+        mongo_service.init_daily_execution(
+            mongo_service.PIPELINE_SSAI,
+            eligible_count,
+            execution_date=execution_date,
+            build_number=build_number,
+            build_url=build_url,
+        )
+    except Exception as exc:
+        logger.error("Mongo init failed (non-fatal): %s", exc)
 
     for inx, data in enumerate(sheet_data):
         try:
@@ -127,6 +195,7 @@ def main() -> None:
                     "Missing Stream URL or Ticket ID at row index=%s — marking FAILED",
                     inx,
                 )
+                input_start = datetime.now(timezone.utc)
                 append_ssai_execution_result(
                     spreadsheet,
                     [
@@ -155,8 +224,20 @@ def main() -> None:
                         "json_link": "",
                     }
                 )
+                input_end = datetime.now(timezone.utc)
+                _store_ssai_mongo_result(
+                    execution_date=execution_date,
+                    input_name=channel_name or f"row_{inx}",
+                    pipeline_status="FAILED",
+                    input_start=input_start,
+                    input_end=input_end,
+                    ticket_id=ticket_id,
+                    input_url=stream_url,
+                    partner=partner,
+                )
                 continue
 
+            input_start = datetime.now(timezone.utc)
             results = ssai_template(
                 stream_url=stream_url,
                 ticket_id=ticket_id,
@@ -164,6 +245,7 @@ def main() -> None:
                 content_partner_name=partner,
                 token=token,
             )
+            input_end = datetime.now(timezone.utc)
 
             status = (results or {}).get("status") or "FAILED"
             drive_link = (results or {}).get("drive_link") or ""
@@ -208,6 +290,18 @@ def main() -> None:
                 channel_name,
                 status,
             )
+            _store_ssai_mongo_result(
+                execution_date=execution_date,
+                input_name=channel_name or f"row_{inx}",
+                pipeline_status=status,
+                input_start=input_start,
+                input_end=input_end,
+                ticket_id=ticket_id,
+                input_url=stream_url,
+                partner=partner,
+                html_link=s3_html_url,
+                drive_link=drive_link,
+            )
 
         except Exception as exc:
             logger.error(
@@ -246,6 +340,17 @@ def main() -> None:
                         "json_link": "",
                     }
                 )
+                fail_end = datetime.now(timezone.utc)
+                _store_ssai_mongo_result(
+                    execution_date=execution_date,
+                    input_name=fields.get("channel_name") or f"row_{inx}",
+                    pipeline_status="FAILED",
+                    input_start=fail_end,
+                    input_end=fail_end,
+                    ticket_id=fields.get("ticket_id", ""),
+                    input_url=fields.get("stream_url", ""),
+                    partner=fields.get("content_partner_name", ""),
+                )
             except Exception as inner:
                 logger.error("SSAI failure bookkeeping also failed: %s", inner)
             continue
@@ -261,6 +366,14 @@ def main() -> None:
         )
     except Exception as exc:
         logger.error("Slack summary failed (non-fatal): %s", exc)
+
+    try:
+        mongo_service.mark_daily_execution_completed(
+            mongo_service.PIPELINE_SSAI,
+            execution_date=execution_date,
+        )
+    except Exception as exc:
+        logger.error("Mongo mark completed failed (non-fatal): %s", exc)
 
 
 if __name__ == "__main__":
