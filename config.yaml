@@ -1,3 +1,9 @@
+jira:
+  base_url: "https://amagiengg.atlassian.net"
+  username: "rama.subhrahmanyam@amagi.com"
+  api_token: "ATATT3xFfGF0FEJI41GosGGXlCAqGzbl6pJDpdbuljRew6dn6TRJaoBZ4Rk_aNgkvD4LGzIyHJqU-GsCv1HFYRCHC-kMqXQpfcj8xaANr0Ab42Td8UdU-Se2U8n730AvK_gOVXBuWY8rWCfqpbxLOiPclTkwKMVCye0GLXwlgRI4qPVGsYsEv7Q=CFE0C71B"
+  project_key: "PSD"
+
 'episode' : ['sub-title',
              'episode-num',
              '@start',

@@ -3,6 +3,7 @@ from datetime import datetime
 from services import slack_service
 from services.amagi_api_service import get_oauth_token
 from services.gsheet_service import validation_data
+from services.jira_service import non_ssai_jira_fetch
 from utilities.helper import *
 from utilities.logger_setup import *
 from utilities.master_template import *
@@ -11,6 +12,8 @@ from utilities.master_template import *
 
 def main():
     execution_results = []
+    ticket_data = non_ssai_jira_fetch()
+    non_ssai_appened_data(ticket_data)
     token = get_oauth_token()
     sheet_data, work_sheet, new_column_number, sheet_service, today, today_format = validation_data()
     session_start = datetime.today()

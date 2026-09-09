@@ -6,6 +6,7 @@ xmltodict == 1.0.4
 pycountry == 24.6.1
 Pillow == 12.1.1
 slack_sdk==3.35.0
+atlassian-python-api==4.0.3
 gspread
 google-auth
 google-api-python-client
