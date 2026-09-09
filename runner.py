@@ -45,21 +45,26 @@ def main():
                                      'html_link':results.get('s3_html_url'),
                                      'json_link':results.get('drive_link')})
 
-            work_sheet_2 = sheet_service.get_worksheet_by_id('653083829')
-            print(work_sheet_2.get_all_records())
-            row = len(work_sheet_2.get_all_records())+2
-            work_sheet_2.update(
-                range_name=f"A{row}:N{row}",
-                values=[output]
-            )
-
-            today_date = datetime.today().strftime("%d-%b-%Y")
-            if results.get('status') == 'SUCCESS':
-                work_sheet.update_cell(1, new_column_number, today_date)
-                work_sheet.update_cell(inx+2, new_column_number, "✔")
-            else:
-                work_sheet.update_cell(1, new_column_number, today_date)
-                work_sheet.update_cell(inx + 2, new_column_number, "❌")
+            for i in range(10):
+                try:
+                    work_sheet_2 = sheet_service.get_worksheet_by_id('653083829')
+                    print(work_sheet_2.get_all_records())
+                    row = len(work_sheet_2.get_all_records())+2
+                    work_sheet_2.update(
+                        range_name=f"A{row}:N{row}",
+                        values=[output]
+                    )
+        
+                    today_date = datetime.today().strftime("%d-%b-%Y")
+                    if results.get('status') == 'SUCCESS':
+                        work_sheet.update_cell(1, new_column_number, today_date)
+                        work_sheet.update_cell(inx+2, new_column_number, "✔")
+                    else:
+                        work_sheet.update_cell(1, new_column_number, today_date)
+                        work_sheet.update_cell(inx + 2, new_column_number, "❌")
+                    break
+                except requests.exceptions.ConnectionError as e:
+                    logger.info(f"Connection error while accessing Google Sheets: {e}")
         else:
             logger.info(f'There is no Data to run for this day')
 
