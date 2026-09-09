@@ -66,10 +66,10 @@ def non_ssai_jira_fetch():
         for issue in issues:
             all_issues.append(issue.get('key'))
 
-        #if not next_page_token:
-            #break
-
-        for issues in all_issues:
+        if not next_page_token:
+            break
+    
+    for issues in all_issues:
 
             issue = jira.issue(issues)
             fields = issue["fields"]
@@ -89,10 +89,8 @@ def non_ssai_jira_fetch():
                             "ASSET_TYPES_SUPPORTED": "Episode",
                             "RUN/STOP": "RUN"
                         })
-
-
-        if not next_page_token:
-            break
+     
+    logger.info(f'Completed Jira Fetch ticket data: {ticket_data}')
     return ticket_data
 
 
@@ -148,10 +146,10 @@ def ssai_jira_fetch():
         for issue in issues:
             all_issues.append(issue.get('key'))
 
-        #if not next_page_token:
-            #break
-
-        for issues in all_issues:
+        if not next_page_token:
+            break
+    
+    for issues in all_issues:
 
             issue = jira.issue(issues)
             fields = issue["fields"]
@@ -181,8 +179,6 @@ def ssai_jira_fetch():
                             "EPG Delivery": epg_delivery if epg_delivery else 'not_available',
                             "RUN/STOP": "RUN"
                         })
-        if not next_page_token:
-            break
     logger.info(f'Completed Jira Fetch ticket data: {ticket_data}')
 
     return ticket_data
