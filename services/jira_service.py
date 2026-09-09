@@ -66,8 +66,8 @@ def non_ssai_jira_fetch():
         for issue in issues:
             all_issues.append(issue.get('key'))
 
-        if not next_page_token:
-            break
+        #if not next_page_token:
+            #break
 
         for issues in all_issues:
 
@@ -91,7 +91,8 @@ def non_ssai_jira_fetch():
                         })
 
 
-
+        if not next_page_token:
+            break
     return ticket_data
 
 
@@ -147,8 +148,8 @@ def ssai_jira_fetch():
         for issue in issues:
             all_issues.append(issue.get('key'))
 
-        if not next_page_token:
-            break
+        #if not next_page_token:
+            #break
 
         for issues in all_issues:
 
@@ -180,7 +181,8 @@ def ssai_jira_fetch():
                             "EPG Delivery": epg_delivery if epg_delivery else 'not_available',
                             "RUN/STOP": "RUN"
                         })
-
+        if not next_page_token:
+            break
     logger.info(f'Completed Jira Fetch ticket data: {ticket_data}')
 
     return ticket_data
