@@ -192,14 +192,14 @@ def _aggregate_schedule_gap_overlap_entries(
             yield asset_id, builder(date_csv, differ, starttime)
 
 
-def ssai_failed_cases_seperator() -> List[Dict[str, Any]]:
+def ssai_failed_cases_seperator(mongo_fetched) -> List[Dict[str, Any]]:
     """Build updated_summary_list for summary_report_writer (NON_SSAI-style)."""
     filtered_list: List[Dict[str, Any]] = []
     updated_summary_list: List[Dict[str, Any]] = []
     i = 1
     logger.info("Started SSAI filtering of Failed Cases")
 
-    for data in Validation_Output:
+    for data in mongo_fetched:
         if data.get("Status") != "Failed":
             continue
         filtered_list.append(

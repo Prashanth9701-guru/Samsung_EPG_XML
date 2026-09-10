@@ -15,13 +15,13 @@ def _failure_summary_entry(asset_id, module, issue_summary, priority=''):
     }
 
 
-def failed_cases_seperator():
+def failed_cases_seperator(mongo_fetched):
 
     filtered_list = []
     updated_summary_list = []
     i = 1
     logger.info(f'Started Filtering of Failed Cases')
-    for data in Validation_Output:
+    for data in mongo_fetched:
         module = data.get('Module')
         scenario = data.get('Scenario')
         status = data.get('Status')

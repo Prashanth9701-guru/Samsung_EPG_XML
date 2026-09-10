@@ -217,7 +217,7 @@ def ssai_template(
                     ticket_id,
                     mongo_fetched,
                 )
-                updated_summary_list = ssai_failed_cases_seperator()
+                updated_summary_list = ssai_failed_cases_seperator(mongo_fetched)
                 if excel_path:
                     _write_html_report(
                         excel_path,
@@ -344,7 +344,7 @@ def ssai_template(
         )
 
         try:
-            updated_summary_list = ssai_failed_cases_seperator()
+            updated_summary_list = ssai_failed_cases_seperator(mongo_fetched)
             if excel_path:
                 html_path = _write_html_report(
                     excel_path,

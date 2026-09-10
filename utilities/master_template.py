@@ -632,7 +632,7 @@ def template(url,
                         mongo_fetched,
                     )
 
-                    updated_summary_list = failed_cases_seperator()
+                    updated_summary_list = failed_cases_seperator(mongo_fetched)
                     logger.info(f"filtered_list: {updated_summary_list}")
 
                     html_path = summary_report_writer(
@@ -658,8 +658,8 @@ def template(url,
                     except Exception as exc:
                         logger.warning(f"S3 HTML upload failed: {exc}")
                     logger.info(f"S3_HTML URL: {s3_html_url}")
-                    filtered_list = failed_cases_seperator()
-                    logger.info(f"filtered_list: {filtered_list}")
+                    #filtered_list = failed_cases_seperator()
+                    #logger.info(f"filtered_list: {filtered_list}")
 
 
             except Exception as e:
