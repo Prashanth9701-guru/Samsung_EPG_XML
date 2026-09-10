@@ -113,6 +113,17 @@ def main():
                     payload,
                     execution_date=execution_date,
                 )
+                try:
+                    mongo_service.fetch_and_log_today_input(
+                        mongo_service.PIPELINE_NON_SSAI,
+                        ticket_id,
+                        execution_date=execution_date,
+                    )
+                except Exception as fetch_exc:
+                    logger.error(
+                        "Mongo fetch_and_log_today_input failed (non-fatal): %s",
+                        fetch_exc,
+                    )
             except Exception as exc:
                 logger.error("Mongo store_input_result failed (non-fatal): %s", exc)
         else:

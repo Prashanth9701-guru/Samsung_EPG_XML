@@ -491,6 +491,57 @@ def get_input_result(
         return None
 
 
+def fetch_and_log_today_input(
+    pipeline: str,
+    ticket_id: str,
+    *,
+    execution_date: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """
+    Fetch today's Mongo entry for the given ticket_id and log summary + full result.
+
+    Uses current UTC date when ``execution_date`` is omitted. Non-fatal.
+    """
+    if not is_enabled():
+        _log_disabled_once()
+        return None
+    try:
+        date_str = _execution_date_str(execution_date)
+        tid = str(ticket_id or "").strip() or "unknown"
+        fetched = get_input_result(date_str, pipeline, tid)
+        if not fetched:
+            logger.warning(
+                "Mongo no result for date=%s pipeline=%s ticket_id=%s",
+                date_str,
+                pipeline,
+                tid,
+            )
+            return None
+        result_rows = fetched.get("result") or []
+        logger.info(
+            "Mongo fetched input date=%s pipeline=%s ticket_id=%s rows=%s status=%s",
+            date_str,
+            pipeline,
+            tid,
+            len(result_rows),
+            fetched.get("status"),
+        )
+        logger.info(
+            "Mongo Validation_Output result for ticket_id=%s: %s",
+            tid,
+            result_rows,
+        )
+        return fetched
+    except Exception as exc:
+        logger.error(
+            "Mongo fetch_and_log_today_input failed pipeline=%s ticket_id=%s (non-fatal): %s",
+            pipeline,
+            ticket_id,
+            exc,
+        )
+        return None
+
+
 def get_daily_statistics(
     execution_date: str,
     pipeline: str,
