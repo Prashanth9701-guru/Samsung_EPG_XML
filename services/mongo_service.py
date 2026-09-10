@@ -531,7 +531,7 @@ def fetch_and_log_today_input(
             tid,
             result_rows,
         )
-        return fetched
+        return result_rows
     except Exception as exc:
         logger.error(
             "Mongo fetch_and_log_today_input failed pipeline=%s ticket_id=%s (non-fatal): %s",
