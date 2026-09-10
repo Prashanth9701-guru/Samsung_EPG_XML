@@ -24,7 +24,12 @@ Example document
   "total_inputs": 5,
   "completed_inputs": 5,
   "results": [
-    {"input_name": "Channel_A", "status": "PASS", "result": [/* Validation_Output */]},
+    {
+      "input_name": "Channel_A",
+      "ticket_id": "PSD-123",
+      "status": "PASS",
+      "result": [/* Validation_Output */]
+    },
     ...
   ]
 }
@@ -32,7 +37,7 @@ Example document
 Query examples
 --------------
   get_daily_execution("2026-09-09", "non_ssai")
-  get_input_result("2026-09-09", "non_ssai", "Channel_A")
+  get_input_result("2026-09-09", "non_ssai", "PSD-123")
   get_daily_statistics("2026-09-09", "ssai")
 """
 
@@ -279,8 +284,9 @@ def store_input_result(
     """
     Append or replace one input result on today's document.
 
-    If ``input_name`` already exists (same-day rerun), replace in place without
-    double-incrementing ``completed_inputs``. Otherwise ``$push`` + ``$inc``.
+    Same-day identity is ``ticket_id`` (PSD / Ticket ID). If that ticket already
+    exists, replace in place without double-incrementing ``completed_inputs``.
+    Otherwise ``$push`` + ``$inc``.
     """
     if not is_enabled():
         _log_disabled_once()
@@ -290,12 +296,20 @@ def store_input_result(
         if coll is None:
             return False
         date_str = _execution_date_str(execution_date)
-        input_name = (input_payload or {}).get("input_name") or "unknown"
+        ticket_id = str((input_payload or {}).get("ticket_id") or "").strip()
+        if not ticket_id:
+            ticket_id = "unknown"
+            input_payload = dict(input_payload or {})
+            input_payload["ticket_id"] = ticket_id
+            logger.warning(
+                "Mongo store_input_result missing ticket_id — using fallback %r",
+                ticket_id,
+            )
         now = _utc_now()
 
-        # Idempotent replace when this input already exists for the day.
+        # Idempotent replace when this ticket already exists for the day.
         replace_result = coll.update_one(
-            {"execution_date": date_str, "results.input_name": input_name},
+            {"execution_date": date_str, "results.ticket_id": ticket_id},
             {
                 "$set": {
                     "results.$": input_payload,
@@ -306,10 +320,10 @@ def store_input_result(
         )
         if replace_result.matched_count:
             logger.info(
-                "Mongo replaced input result date=%s pipeline=%s input=%s",
+                "Mongo replaced input result date=%s pipeline=%s ticket_id=%s",
                 date_str,
                 pipeline,
-                input_name,
+                ticket_id,
             )
             return True
 
@@ -343,7 +357,7 @@ def store_input_result(
             push_result = coll.update_one(
                 {
                     "execution_date": date_str,
-                    "results.input_name": {"$ne": input_name},
+                    "results.ticket_id": {"$ne": ticket_id},
                 },
                 {
                     "$push": {"results": input_payload},
@@ -352,25 +366,25 @@ def store_input_result(
                 },
             )
             if push_result.matched_count == 0:
-                # Race: another writer added same input — replace.
+                # Race: another writer added same ticket — replace.
                 coll.update_one(
-                    {"execution_date": date_str, "results.input_name": input_name},
+                    {"execution_date": date_str, "results.ticket_id": ticket_id},
                     {"$set": {"results.$": input_payload, "updated_at": now}},
                 )
 
         logger.info(
-            "Mongo stored input result date=%s pipeline=%s input=%s status=%s",
+            "Mongo stored input result date=%s pipeline=%s ticket_id=%s status=%s",
             date_str,
             pipeline,
-            input_name,
+            ticket_id,
             input_payload.get("status"),
         )
         return True
     except Exception as exc:
         logger.error(
-            "Mongo store_input_result failed pipeline=%s input=%s (non-fatal): %s",
+            "Mongo store_input_result failed pipeline=%s ticket_id=%s (non-fatal): %s",
             pipeline,
-            (input_payload or {}).get("input_name"),
+            (input_payload or {}).get("ticket_id"),
             exc,
         )
         return False
@@ -453,9 +467,9 @@ def get_daily_execution(
 def get_input_result(
     execution_date: str,
     pipeline: str,
-    input_name: str,
+    ticket_id: str,
 ) -> Optional[Dict[str, Any]]:
-    """Return one input's entry from the daily document's results array."""
+    """Return one input's entry by PSD/Ticket ID from the daily results array."""
     if not is_enabled():
         _log_disabled_once()
         return None
@@ -463,9 +477,10 @@ def get_input_result(
         coll = get_collection(pipeline)
         if coll is None:
             return None
+        tid = str(ticket_id or "").strip()
         doc = coll.find_one(
-            {"execution_date": execution_date, "results.input_name": input_name},
-            {"results": {"$elemMatch": {"input_name": input_name}}},
+            {"execution_date": execution_date, "results.ticket_id": tid},
+            {"results": {"$elemMatch": {"ticket_id": tid}}},
         )
         if not doc:
             return None

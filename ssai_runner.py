@@ -84,6 +84,7 @@ def _store_ssai_mongo_result(
     input_start: datetime,
     input_end: datetime,
     ticket_id: str = "",
+    row_index: int = 0,
     input_url: str = "",
     partner: str = "",
     html_link: str = "",
@@ -94,13 +95,14 @@ def _store_ssai_mongo_result(
         mongo_status = mongo_service.normalize_input_status(
             pipeline_status, validation_snapshot
         )
+        resolved_ticket = (ticket_id or "").strip() or f"row_{row_index}"
         payload = mongo_service.build_input_payload(
             input_name=input_name,
             status=mongo_status,
             execution_start_time=input_start,
             execution_end_time=input_end,
             result=validation_snapshot,
-            ticket_id=ticket_id,
+            ticket_id=resolved_ticket,
             input_url=input_url,
             partner=partner,
             html_link=html_link,
@@ -232,6 +234,7 @@ def main() -> None:
                     input_start=input_start,
                     input_end=input_end,
                     ticket_id=ticket_id,
+                    row_index=inx,
                     input_url=stream_url,
                     partner=partner,
                 )
@@ -297,6 +300,7 @@ def main() -> None:
                 input_start=input_start,
                 input_end=input_end,
                 ticket_id=ticket_id,
+                row_index=inx,
                 input_url=stream_url,
                 partner=partner,
                 html_link=s3_html_url,
@@ -348,6 +352,7 @@ def main() -> None:
                     input_start=fail_end,
                     input_end=fail_end,
                     ticket_id=fields.get("ticket_id", ""),
+                    row_index=inx,
                     input_url=fields.get("stream_url", ""),
                     partner=fields.get("content_partner_name", ""),
                 )

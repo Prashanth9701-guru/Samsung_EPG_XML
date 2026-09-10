@@ -95,13 +95,14 @@ def main():
                 mongo_status = mongo_service.normalize_input_status(
                     results.get('status'), validation_snapshot
                 )
+                ticket_id = (data.get('PSD') or "").strip() or f"row_{inx}"
                 payload = mongo_service.build_input_payload(
                     input_name=data.get('Channel Name') or f"row_{inx}",
                     status=mongo_status,
                     execution_start_time=input_start,
                     execution_end_time=input_end,
                     result=validation_snapshot,
-                    ticket_id=data.get('PSD') or "",
+                    ticket_id=ticket_id,
                     input_url=data.get('EPG_XML_URL') or "",
                     partner=data.get('Content Partner Name') or "",
                     html_link=results.get('s3_html_url') or "",
