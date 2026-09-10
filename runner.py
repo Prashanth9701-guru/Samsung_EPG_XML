@@ -43,14 +43,12 @@ def main():
         Validation_Output.clear()
         if _is_non_ssai_eligible(data, today, today_format):
             content_type = (data.get('ASSET_TYPES_SUPPORTED')).lower() if (data.get('ASSET_TYPES_SUPPORTED')).lower() == 'episode' else 'others'
-            input_start = datetime.now(timezone.utc)
             results = template(data.get('EPG_XML_URL'),
                                content_type,
                                data.get('PSD'),
                                data.get('Channel Name'),
                                data.get('Content Partner Name'),
                                token=token)
-            input_end = datetime.now(timezone.utc)
             output = [data.get('EPG_XML_URL'),
                       data.get('Channel Name'),
                       data.get('Content Partner Name'),
@@ -89,43 +87,6 @@ def main():
                     break
                 except requests.exceptions.ConnectionError as e:
                     logger.info(f"Connection error while accessing Google Sheets: {e}")
-
-            try:
-                validation_snapshot = list(Validation_Output)
-                mongo_status = mongo_service.normalize_input_status(
-                    results.get('status'), validation_snapshot
-                )
-                ticket_id = (data.get('PSD') or "").strip() or f"row_{inx}"
-                payload = mongo_service.build_input_payload(
-                    input_name=data.get('Channel Name') or f"row_{inx}",
-                    status=mongo_status,
-                    execution_start_time=input_start,
-                    execution_end_time=input_end,
-                    result=validation_snapshot,
-                    ticket_id=ticket_id,
-                    input_url=data.get('EPG_XML_URL') or "",
-                    partner=data.get('Content Partner Name') or "",
-                    html_link=results.get('s3_html_url') or "",
-                    drive_link=results.get('drive_link') or "",
-                )
-                mongo_service.store_input_result(
-                    mongo_service.PIPELINE_NON_SSAI,
-                    payload,
-                    execution_date=execution_date,
-                )
-                try:
-                    mongo_service.fetch_and_log_today_input(
-                        mongo_service.PIPELINE_NON_SSAI,
-                        ticket_id,
-                        execution_date=execution_date,
-                    )
-                except Exception as fetch_exc:
-                    logger.error(
-                        "Mongo fetch_and_log_today_input failed (non-fatal): %s",
-                        fetch_exc,
-                    )
-            except Exception as exc:
-                logger.error("Mongo store_input_result failed (non-fatal): %s", exc)
         else:
             logger.info(f'There is no Data to run for this day')
 

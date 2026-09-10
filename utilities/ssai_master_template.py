@@ -6,9 +6,11 @@ import logging
 import os
 import re
 import shutil
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 from urllib.parse import urlsplit
 
+from services import mongo_service
 from services.ssai_gsheet_service import SSAI_DRIVE_FOLDER_ID
 from services.ssai_schedule_api import fetch_schedule_with_token_retry
 from services.xlsx_service import xlsx_report
@@ -25,6 +27,61 @@ from utilities.ssai_url_parser import parse_now3_stream_url
 
 logger = logging.getLogger(__name__)
 
+
+def _store_and_fetch_mongo_ssai(
+    *,
+    ticket_id: str,
+    channel_name: str,
+    content_partner_name: str,
+    stream_url: str,
+    pipeline_status: str,
+    input_start: datetime,
+    drive_link: str = "",
+    s3_html_url: str = "",
+):
+    """
+    Push Validation_Output to Mongo for today, then fetch and log.
+
+    Returns the fetched Mongo input document (including ``result``), or None.
+    Non-fatal on errors.
+    """
+    try:
+        input_end = datetime.now(timezone.utc)
+        execution_date = input_end.strftime("%Y-%m-%d")
+        tid = (ticket_id or "").strip() or "unknown"
+        validation_snapshot = list(Validation_Output)
+        mongo_status = mongo_service.normalize_input_status(
+            pipeline_status, validation_snapshot
+        )
+        payload = mongo_service.build_input_payload(
+            input_name=channel_name or tid,
+            status=mongo_status,
+            execution_start_time=input_start,
+            execution_end_time=input_end,
+            result=validation_snapshot,
+            ticket_id=tid,
+            input_url=stream_url or "",
+            partner=content_partner_name or "",
+            html_link=s3_html_url or "",
+            drive_link=drive_link or "",
+        )
+        mongo_service.store_input_result(
+            mongo_service.PIPELINE_SSAI,
+            payload,
+            execution_date=execution_date,
+        )
+        return mongo_service.fetch_and_log_today_input(
+            mongo_service.PIPELINE_SSAI,
+            tid,
+            execution_date=execution_date,
+        )
+    except Exception as exc:
+        logger.error(
+            "Mongo store/fetch failed for ticket_id=%s (non-fatal): %s",
+            ticket_id,
+            exc,
+        )
+        return None
 
 def _stream_url_for_html_report(stream_url: str, ticket_id: str = "") -> str:
     """
@@ -123,6 +180,7 @@ def ssai_template(
     drive_link = ""
     s3_html_url = ""
     report_path = ""
+    input_start = datetime.now(timezone.utc)
 
     try:
         Validation_Output.clear()
@@ -146,6 +204,20 @@ def ssai_template(
                 if Validation_Output:
                     apply_priorities_to_validation_output(Validation_Output)
                 excel_path = xlsx_report(Validation_Output, report_path) if Validation_Output else None
+                mongo_fetched = _store_and_fetch_mongo_ssai(
+                    ticket_id=ticket_id,
+                    channel_name=channel_name,
+                    content_partner_name=content_partner_name,
+                    stream_url=stream_url,
+                    pipeline_status="FAILED",
+                    input_start=input_start,
+                )
+                logger.info(
+                    "%s Mongo fetched result returned: %s",
+                    ticket_id,
+                    mongo_fetched,
+                )
+                updated_summary_list = ssai_failed_cases_seperator()
                 if excel_path:
                     _write_html_report(
                         excel_path,
@@ -153,7 +225,7 @@ def ssai_template(
                         content_partner_name,
                         ticket_id,
                         stream_url,
-                        updated_summary_list=ssai_failed_cases_seperator(),
+                        updated_summary_list=updated_summary_list,
                     )
             except Exception as exc:
                 logger.warning("%s Early report write failed: %s", ticket_id, exc)
@@ -245,6 +317,7 @@ def ssai_template(
         # --- Reporting ---
         excel_path = None
         html_path = None
+        mongo_fetched = None
         try:
             if Validation_Output:
                 apply_priorities_to_validation_output(Validation_Output)
@@ -252,6 +325,23 @@ def ssai_template(
                 logger.info("%s Excel report: %s", ticket_id, excel_path)
         except Exception as exc:
             logger.warning("%s Excel report failed: %s", ticket_id, exc)
+
+        # Push to DB and fetch today's result after Excel, before failed-case separator
+        mongo_fetched = _store_and_fetch_mongo_ssai(
+            ticket_id=ticket_id,
+            channel_name=channel_name,
+            content_partner_name=content_partner_name,
+            stream_url=stream_url,
+            pipeline_status="PASSED",
+            input_start=input_start,
+            drive_link=drive_link,
+            s3_html_url=s3_html_url,
+        )
+        logger.info(
+            "%s Mongo fetched result returned: %s",
+            ticket_id,
+            mongo_fetched,
+        )
 
         try:
             updated_summary_list = ssai_failed_cases_seperator()
@@ -294,6 +384,16 @@ def ssai_template(
 
     except Exception as exc:
         logger.error("%s ssai_template unexpected error: %s", ticket_id, exc)
+        _store_and_fetch_mongo_ssai(
+            ticket_id=ticket_id,
+            channel_name=channel_name,
+            content_partner_name=content_partner_name,
+            stream_url=stream_url,
+            pipeline_status="FAILED",
+            input_start=input_start,
+            drive_link=drive_link,
+            s3_html_url=s3_html_url,
+        )
         return {
             "status": "FAILED",
             "stream_url": stream_url,

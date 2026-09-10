@@ -1,4 +1,5 @@
 import os.path
+from datetime import datetime, timezone
 
 import requests
 import yaml
@@ -18,9 +19,65 @@ from services.upload_drive_service import *
 from src.failed_cases_seperator import *
 from services.summary_report import *
 from services.S3_html_local import *
+from services import mongo_service
 
 logger = logging.getLogger(__name__)
 
+
+def _store_and_fetch_mongo_non_ssai(
+    *,
+    ticket_id: str,
+    channel_name: str,
+    content_partner_name: str,
+    url: str,
+    pipeline_status: str,
+    input_start: datetime,
+    drive_link: str = "",
+    s3_html_url: str = "",
+):
+    """
+    Push Validation_Output to Mongo for today, then fetch and log.
+
+    Returns the fetched Mongo input document (including ``result``), or None.
+    Non-fatal on errors.
+    """
+    try:
+        input_end = datetime.now(timezone.utc)
+        execution_date = input_end.strftime("%Y-%m-%d")
+        tid = (ticket_id or "").strip() or "unknown"
+        validation_snapshot = list(Validation_Output)
+        mongo_status = mongo_service.normalize_input_status(
+            pipeline_status, validation_snapshot
+        )
+        payload = mongo_service.build_input_payload(
+            input_name=channel_name or tid,
+            status=mongo_status,
+            execution_start_time=input_start,
+            execution_end_time=input_end,
+            result=validation_snapshot,
+            ticket_id=tid,
+            input_url=url or "",
+            partner=content_partner_name or "",
+            html_link=s3_html_url or "",
+            drive_link=drive_link or "",
+        )
+        mongo_service.store_input_result(
+            mongo_service.PIPELINE_NON_SSAI,
+            payload,
+            execution_date=execution_date,
+        )
+        return mongo_service.fetch_and_log_today_input(
+            mongo_service.PIPELINE_NON_SSAI,
+            tid,
+            execution_date=execution_date,
+        )
+    except Exception as exc:
+        logger.error(
+            "Mongo store/fetch failed for ticket_id=%s (non-fatal): %s",
+            ticket_id,
+            exc,
+        )
+        return None
 
 
 def template(url,
@@ -33,6 +90,8 @@ def template(url,
 
     drive_link: str = ""
     s3_html_url: str = ""
+    input_start = datetime.now(timezone.utc)
+    mongo_fetched = None
 
     if url.endswith('.xml'):
         logger.info(f'{ticket_id} XML Template')
@@ -555,6 +614,24 @@ def template(url,
                     logger.info(f'{ticket_id} Validation Output: {Validation_Output}')
                     apply_priorities_to_validation_output(Validation_Output)
                     excel_path = xlsx_report(Validation_Output, report_path)
+
+                    # Push to DB and fetch today's result after Excel, before failed-case separator
+                    mongo_fetched = _store_and_fetch_mongo_non_ssai(
+                        ticket_id=ticket_id,
+                        channel_name=channel_name,
+                        content_partner_name=content_partner_name,
+                        url=url,
+                        pipeline_status="SUCCESS",
+                        input_start=input_start,
+                        drive_link=drive_link,
+                        s3_html_url=s3_html_url,
+                    )
+                    logger.info(
+                        "%s Mongo fetched result returned: %s",
+                        ticket_id,
+                        mongo_fetched,
+                    )
+
                     updated_summary_list = failed_cases_seperator()
                     logger.info(f"filtered_list: {updated_summary_list}")
 
@@ -587,6 +664,16 @@ def template(url,
 
             except Exception as e:
                  logger.error(f'{ticket_id} Exception: {e}')
+                 _store_and_fetch_mongo_non_ssai(
+                     ticket_id=ticket_id,
+                     channel_name=channel_name,
+                     content_partner_name=content_partner_name,
+                     url=url,
+                     pipeline_status="FAILED",
+                     input_start=input_start,
+                     drive_link=drive_link,
+                     s3_html_url=s3_html_url,
+                 )
                  return {"status":"FAILED",
                         "xml_url":url,
                         "drive_link":drive_link,
