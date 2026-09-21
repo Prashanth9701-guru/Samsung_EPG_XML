@@ -19,6 +19,7 @@ from google.oauth2.service_account import Credentials
 logger = logging.getLogger(__name__)
 
 config = yaml.safe_load(open('config.yaml'))
+SA_JSON = os.environ.get("GDRIVE_SA_JSON") or os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
 
 def validate_time(programs, key) ->tuple[bool|str,list] :
     status_fail = []
