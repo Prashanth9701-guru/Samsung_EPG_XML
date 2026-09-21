@@ -125,6 +125,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                             source="auto",
                             target="en"
                         ).translate(title)
+                        time.sleep(0.25)
                         if len(title) > expected_length:
                             value_length.append({asset_id: [len(title), title]})
 
