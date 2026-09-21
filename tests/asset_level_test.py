@@ -131,7 +131,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                                 ).translate(title)
                                 time.sleep(1)
                             except Exception as e:
-                                logger.info(f"Translation failed ": {e}")
+                                logger.info(f"Translation failed: {e}")
                                 wait_time = 5 * (2 ** attempt)
                                 logger.info(f"Waiting {wait_time} seconds before retrying translation...")
                                 time.sleep(wait_time)
