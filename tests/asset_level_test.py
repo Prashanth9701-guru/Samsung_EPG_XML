@@ -9,9 +9,12 @@ import requests
 import math
 from PIL import Image
 from io import BytesIO
-from deep_translator import GoogleTranslator
+#from deep_translator import GoogleTranslator
 
 from tests.fields_test import _content_type_map
+from google.cloud import translate_v2 as translate
+import time
+from google.oauth2.service_account import Credentials
 
 logger = logging.getLogger(__name__)
 
@@ -125,11 +128,26 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                         for attempt in range(5):
                             try:
                                 logger.info(f'Started Transilation')
-                                english_text = GoogleTranslator(
-                                    source="auto",
-                                    target="en"
-                                ).translate(title)
-                                time.sleep(1)
+                                scope = ["https://www.googleapis.com/auth/cloud-translation"]
+
+                                creds = Credentials.from_service_account_file(
+                                    SA_JSON,
+                                    scopes=scope
+                                )
+                    
+                                translate_client = translate.Client(
+                                    credentials=creds
+                                )
+                                english_text = translate_client.translate(
+                                    title,
+                                    target_language="en"
+                                    )
+                                logger.info("Translation successful")
+                                #english_text = GoogleTranslator(
+                                    #source="auto",
+                                    #target="en"
+                                #).translate(title)
+                                #time.sleep(1)
                             except Exception as e:
                                 logger.info(f"Translation failed: {e}")
                                 wait_time = 5 * (2 ** attempt)
