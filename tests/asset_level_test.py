@@ -140,10 +140,13 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                                 translate_client = translate.Client(
                                     credentials=creds
                                 )
-                                english_text = translate_client.translate(
+                                translated_text = translate_client.translate(
                                     title,
                                     target_language="en"
                                     )
+                                logger.info(f'Translated Dict: {translated_text}')
+                                english_text = translated_text.get('translatedText')
+                                logger.info(f'English Text: {english_text}')
                                 logger.info("Translation successful")
                                 #english_text = GoogleTranslator(
                                     #source="auto",
