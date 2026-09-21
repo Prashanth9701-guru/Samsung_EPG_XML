@@ -15,6 +15,7 @@ from tests.fields_test import _content_type_map
 from google.cloud import translate_v2 as translate
 import time
 from google.oauth2.service_account import Credentials
+import os
 
 logger = logging.getLogger(__name__)
 
