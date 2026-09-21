@@ -121,11 +121,20 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                             if not unicodedata.category(char).startswith('C')
                         )
 
-                        english_text = GoogleTranslator(
-                            source="auto",
-                            target="en"
-                        ).translate(title)
-                        time.sleep(1)
+                        english_text = ''
+                        for attempt in range(5):
+                            try:
+                                logger.info(f'Started Transilation')
+                                english_text = GoogleTranslator(
+                                    source="auto",
+                                    target="en"
+                                ).translate(title)
+                                time.sleep(1)
+                            except Exception as e:
+                                logger.info(f"Translation failed " f"(attempt {attempt + 1}/{max_retries}): {e}")
+                                wait_time = 5 * (2 ** attempt)
+                                logger.info(f"Waiting {wait_time} seconds before retrying translation...")
+                                time.sleep(wait_time)
                         if len(title) > expected_length:
                             value_length.append({asset_id: [len(title), title]})
 
