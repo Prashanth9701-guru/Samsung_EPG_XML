@@ -15,3 +15,4 @@ google-auth-oauthlib
 boto3
 deep_translator
 pymongo
+google-cloud-translate
