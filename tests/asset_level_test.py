@@ -20,7 +20,7 @@ import os
 logger = logging.getLogger(__name__)
 
 config = yaml.safe_load(open('config.yaml'))
-SA_JSON = os.environ.get("GDRIVE_SA_JSON") or os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
+SA_JSON_TRANS = os.environ.get("GDRIVE_SA_JSON") or os.environ.get("GOOGLE_TRANSLATOR_JSON")
 
 def validate_time(programs, key) ->tuple[bool|str,list] :
     status_fail = []
@@ -133,7 +133,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                                 scope = ["https://www.googleapis.com/auth/cloud-translation"]
 
                                 creds = Credentials.from_service_account_file(
-                                    SA_JSON,
+                                    SA_JSON_TRANS,
                                     scopes=scope
                                 )
                     
