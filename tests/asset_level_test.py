@@ -148,6 +148,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                                 english_text = translated_text.get('translatedText')
                                 logger.info(f'English Text: {english_text}')
                                 logger.info("Translation successful")
+                                break
                                 #english_text = GoogleTranslator(
                                     #source="auto",
                                     #target="en"
