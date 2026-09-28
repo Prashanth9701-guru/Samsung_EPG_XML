@@ -660,7 +660,56 @@ def template(url,
                     logger.info(f"S3_HTML URL: {s3_html_url}")
                     #filtered_list = failed_cases_seperator()
                     #logger.info(f"filtered_list: {filtered_list}")
+                else:
+                    logger.info(f'{ticket_id} Validation Output when there is no xml data: {Validation_Output}')
+                    apply_priorities_to_validation_output(Validation_Output)
+                    excel_path = xlsx_report(Validation_Output, report_path)
 
+                    # Push to DB and fetch today's result after Excel, before failed-case separator
+                    mongo_fetched = _store_and_fetch_mongo_non_ssai(
+                        ticket_id=ticket_id,
+                        channel_name=channel_name,
+                        content_partner_name=content_partner_name,
+                        url=url,
+                        pipeline_status="SUCCESS",
+                        input_start=input_start,
+                        drive_link=drive_link,
+                        s3_html_url=s3_html_url,
+                    )
+                    logger.info(
+                        "%s Mongo fetched result returned: %s",
+                        ticket_id,
+                        mongo_fetched,
+                    )
+
+                    updated_summary_list = failed_cases_seperator(mongo_fetched)
+                    logger.info(f"filtered_list: {updated_summary_list}")
+
+                    html_path = summary_report_writer(
+                        excel_path,
+                        channel_name=channel_name,
+                        content_partner_name=content_partner_name,
+                        psd=ticket_id,
+                        json_url=url,
+                        updated_summary_list=updated_summary_list,
+                    )
+
+                    zip_file = zip_folder(report_path, report_path)
+                    # drive_link: str = ""
+                    # s3_html_url: str = ""
+                    try:
+                        drive_link = upload_to_drive(zip_file, DRIVE_FOLDER_ID)
+                    except Exception as e:
+                        logger.warning(f"Folder Upload to drive got failed: {e}")
+
+                    try:
+                        s3_result = upload_html_report(html_path)
+                        s3_html_url = s3_result.get("report_url", "")
+                    except Exception as exc:
+                        logger.warning(f"S3 HTML upload failed: {exc}")
+                    logger.info(f"S3_HTML URL: {s3_html_url}")
+                    # filtered_list = failed_cases_seperator()
+                    # logger.info(f"filtered_list: {filtered_list}")
 
             except Exception as e:
                  logger.error(f'{ticket_id} Exception: {e}')
