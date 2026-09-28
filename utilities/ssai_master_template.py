@@ -192,8 +192,8 @@ def ssai_template(
                 helper_fuc(
                     num,
                     "URL",
-                    "Validate now3 Stream URL ID parse",
-                    "Stream URL should contain amg/channel/platform IDs",
+                    "Verify the Stream URL ID format across the seven-day schedule",
+                    "The Stream URL should contain amg, channel, and platform IDs.",
                     "Failed",
                     parsed.get("error") or "parse failed",
                     "",
@@ -241,8 +241,8 @@ def ssai_template(
             helper_fuc(
                 num,
                 "URL",
-                "Validate now3 Stream URL ID parse",
-                "Stream URL should contain amg/channel/platform IDs",
+                "Verify the Stream URL ID format across the seven-day schedule",
+                "The Stream URL should contain amg, channel, and platform IDs.",
                 "Passed",
                 f"Parsed amg_id={parsed['amg_id']} channel_id={parsed['channel_id']} "
                 f"platform_id={parsed['platform_id']}",
@@ -267,8 +267,8 @@ def ssai_template(
                 helper_fuc(
                     num,
                     "URL",
-                    "Validate scheduling API / EPG delivery availability",
-                    "GET /api/programs should return delivery_details.epg",
+                    "Verify EPG data availability across the seven-day schedule",
+                    "EPG data should be available for all days of the seven-day schedule.",
                     "Failed",
                     schedule_result.get("error") or "Data not available",
                     "",
@@ -282,8 +282,8 @@ def ssai_template(
                 helper_fuc(
                     num,
                     "URL",
-                    "Validate scheduling API / EPG delivery availability",
-                    "GET /api/programs should return delivery_details.epg",
+                    "Verify EPG data availability across the seven-day schedule",
+                    "EPG data should be available for all days of the seven-day schedule.",
                     "Passed",
                     f"EPG delivery URLs for dates: {', '.join(sorted(epg_urls.keys()))}",
                     "",

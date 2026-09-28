@@ -243,7 +243,7 @@ def ssai_failed_cases_seperator(mongo_fetched) -> List[Dict[str, Any]]:
             )
             continue
 
-        if "Mandatory" in issue_summary:
+        if "One or more mandatory" in issue_summary:
             for key, values in common_asset_ids.items():
                 duplicate_values = _flat_details(values)
                 updated_summary_list.append(
@@ -251,71 +251,48 @@ def ssai_failed_cases_seperator(mongo_fetched) -> List[Dict[str, Any]]:
                         "Asset ID": key,
                         "Module": module,
                         "Issue Summary": issue_summary.replace(
-                            "Mandatory",
+                            "One or more mandatory",
                             f"In {_dates_csv(values)} day, {', '.join(set(map(str, duplicate_values)))}",
                         ),
                         "Priority": priority,
                     }
                 )
 
-        elif "in-correct length" in issue_summary and "proper-length" in issue_summary:
+        elif issue_summary in (
+            "One or more assets have a start time in an invalid date-time format.",
+            "One or more assets have a start time that is not parseable.",
+        ):
             for key, values in common_asset_ids.items():
                 duplicate_values = _flat_details(values)
-                json_val = duplicate_values[0] if duplicate_values else ""
-                actual_val = duplicate_values[1] if len(duplicate_values) > 1 else ""
-                summary = issue_summary.replace("in-correct length", str(actual_val)).replace(
-                    "proper-length", str(json_val)
-                )
+                example = duplicate_values[0] if duplicate_values else ""
                 updated_summary_list.append(
                     {
                         "Asset ID": key,
                         "Module": module,
-                        "Issue Summary": _with_dates_prefix(summary, values),
+                        "Issue Summary": (
+                            f"In {_dates_csv(values)} day are having, invalid date-time format "
+                            f"(Ex:{example}) which is not expected as per platform standard"
+                        ),
                         "Priority": priority,
                     }
                 )
 
-        elif "in-correct-thumbnail" in issue_summary or "in-correct-length" in issue_summary:
+        elif issue_summary in (
+            "One or more asset thumbnails are not in the required JPEG or JPG format.",
+            "One or more asset thumbnails do not have the required resolution of 1920 × 1080 pixels.",
+        ):
             for key, values in common_asset_ids.items():
                 duplicate_values = _flat_details(values)
                 detail = duplicate_values[0] if duplicate_values else ""
-                if "in-correct-thumbnail" in issue_summary:
-                    summary = issue_summary.replace("in-correct-thumbnail", str(detail))
-                else:
-                    summary = issue_summary.replace("in-correct-length", str(detail))
-                updated_summary_list.append(
-                    {
-                        "Asset ID": key,
-                        "Module": module,
-                        "Issue Summary": _with_dates_prefix(summary, values),
-                        "Priority": priority,
-                    }
-                )
-
-        elif "fields are matching" in issue_summary:
-            for key, values in common_asset_ids.items():
-                updated_summary_list.append(
-                    {
-                        "Asset ID": key,
-                        "Module": module,
-                        "Issue Summary": f"In {_dates_csv(values)} day, {issue_summary}",
-                        "Priority": priority,
-                    }
-                )
-
-        elif "in-correct-rating" in issue_summary or "invalid" in issue_summary.lower():
-            for key, values in common_asset_ids.items():
-                duplicate_values = _flat_details(values)
-                token = "in-correct-rating" if "in-correct-rating" in issue_summary else "invalid"
-                if token in issue_summary:
+                if "resolution" in issue_summary:
                     summary = (
-                        f"In {_dates_csv(values)} day, "
-                        f"{issue_summary.replace(token, ', '.join(set(map(str, duplicate_values))))}"
+                        f"In {_dates_csv(values)} day, Asset thumbnail having {detail}. "
+                        f"But, expected should be 1920 × 1080 pixels"
                     )
                 else:
                     summary = (
-                        f"In {_dates_csv(values)} day, {issue_summary}"
-                        f" ({', '.join(set(map(str, duplicate_values)))})"
+                        f"In {_dates_csv(values)} day, Asset thumbnail is in {detail} format. "
+                        f"But, expected should be JPEG/JPG"
                     )
                 updated_summary_list.append(
                     {
@@ -326,7 +303,163 @@ def ssai_failed_cases_seperator(mongo_fetched) -> List[Dict[str, Any]]:
                     }
                 )
 
-        elif "schedule duration is at least" in scenario.lower():
+        elif issue_summary in (
+            "One or more asset thumbnail URLs exceed the maximum permitted length of 2,000 characters.",
+            "One or more asset IDs exceed the maximum permitted length of 50 characters.",
+        ):
+            for key, values in common_asset_ids.items():
+                duplicate_values = _flat_details(values)
+                detail = duplicate_values[0] if duplicate_values else ""
+                if "thumbnail" in issue_summary:
+                    summary = (
+                        f"In {_dates_csv(values)} day, Asset thumbnail url length is {detail} "
+                        f"characters were exceed the permitted length of 2,000 characters"
+                    )
+                else:
+                    summary = (
+                        f"In {_dates_csv(values)} day, Asset ID length is {detail} "
+                        f"characters were exceed the permitted length of 50 characters"
+                    )
+                updated_summary_list.append(
+                    {
+                        "Asset ID": key,
+                        "Module": module,
+                        "Issue Summary": summary,
+                        "Priority": priority,
+                    }
+                )
+
+        elif issue_summary in (
+            "One or more asset thumbnail requests return an unexpected HTTP status code.",
+            "One or more asset thumbnail requests are redirected and return an unexpected HTTP status code.",
+        ):
+            for key, values in common_asset_ids.items():
+                duplicate_values = _flat_details(values)
+                detail = duplicate_values[0] if duplicate_values else ""
+                if "redirected" in issue_summary:
+                    summary = (
+                        f"In {_dates_csv(values)} day, Asset thumbnail request getting "
+                        f"re-directed with {detail} status code"
+                    )
+                else:
+                    summary = (
+                        f"In {_dates_csv(values)} day, Asset thumbnail request getting "
+                        f"{detail} status code"
+                    )
+                updated_summary_list.append(
+                    {
+                        "Asset ID": key,
+                        "Module": module,
+                        "Issue Summary": summary,
+                        "Priority": priority,
+                    }
+                )
+
+        elif issue_summary in (
+            "One or more asset titles exceed the maximum permitted length of 200 characters.",
+            "One or more asset descriptions exceed the maximum permitted length of 4,000 characters.",
+        ):
+            for key, values in common_asset_ids.items():
+                duplicate_values = _flat_details(values)
+                detail = duplicate_values[0] if duplicate_values else ""
+                if "descriptions" in issue_summary:
+                    summary = (
+                        f"In {_dates_csv(values)} day, Description having {detail} chars "
+                        f"exceed the maximum permitted length of 4,000 characters"
+                    )
+                else:
+                    summary = (
+                        f"In {_dates_csv(values)} day, Asset title having {detail} chars "
+                        f"exceed the maximum permitted length of 200 characters"
+                    )
+                updated_summary_list.append(
+                    {
+                        "Asset ID": key,
+                        "Module": module,
+                        "Issue Summary": summary,
+                        "Priority": priority,
+                    }
+                )
+
+        elif issue_summary in (
+            "The actual thumbnail width does not match the XML_thumbnail_width value for one or more assets.",
+            "The actual thumbnail height does not match the XML_thumbnail_height value for one or more assets.",
+        ):
+            for key, values in common_asset_ids.items():
+                duplicate_values = _flat_details(values)
+                json_val = duplicate_values[0] if duplicate_values else ""
+                actual_val = duplicate_values[1] if len(duplicate_values) > 1 else ""
+                if "width" in issue_summary:
+                    summary = (
+                        f"In {_dates_csv(values)} day, actual asset thumbnail width {actual_val} "
+                        f"does not match with the XML_thumbnail width {json_val}"
+                    )
+                else:
+                    summary = (
+                        f"In {_dates_csv(values)} day, actual asset thumbnail height {actual_val} "
+                        f"does not match with the XML_thumbnail height {json_val}"
+                    )
+                updated_summary_list.append(
+                    {
+                        "Asset ID": key,
+                        "Module": module,
+                        "Issue Summary": summary,
+                        "Priority": priority,
+                    }
+                )
+
+        elif issue_summary == (
+            "One or more assets contain categories that are not included in the Samsung_Supported_Category_List."
+        ):
+            for key, values in common_asset_ids.items():
+                duplicate_values = _flat_details(values)
+                updated_summary_list.append(
+                    {
+                        "Asset ID": key,
+                        "Module": module,
+                        "Issue Summary": _with_dates_prefix(
+                            f"Asset having ({', '.join(set(map(str, duplicate_values)))}) "
+                            f"categories that are not included in the Samsung_Supported_Category_List",
+                            values,
+                        ),
+                        "Priority": priority,
+                    }
+                )
+
+        elif issue_summary in (
+            "One or more assets contain a rating value that is not permitted by the platform standard.",
+            "One or more assets contain a rating value with incorrect capitalization.",
+        ):
+            for key, values in common_asset_ids.items():
+                duplicate_values = _flat_details(values)
+                updated_summary_list.append(
+                    {
+                        "Asset ID": key,
+                        "Module": module,
+                        "Issue Summary": _with_dates_prefix(
+                            f"Asset having ({', '.join(set(map(str, duplicate_values)))}) "
+                            f"rating value that is not permitted by the platform standard",
+                            values,
+                        ),
+                        "Priority": priority,
+                    }
+                )
+
+        elif "identical for one or more assets" in issue_summary:
+            for key, values in common_asset_ids.items():
+                updated_summary_list.append(
+                    {
+                        "Asset ID": key,
+                        "Module": module,
+                        "Issue Summary": f"In {_dates_csv(values)} day, {issue_summary}",
+                        "Priority": priority,
+                    }
+                )
+
+        elif scenario == (
+            "Verify that no asset shorter than 20 minutes (1,200 seconds) "
+            "is scheduled across the seven-day schedule"
+        ):
             for asset_id, details in _iter_schedule_asset_entries(data.get("Asset IDs")):
                 if len(details) < 4:
                     continue
@@ -344,7 +477,10 @@ def ssai_failed_cases_seperator(mongo_fetched) -> List[Dict[str, Any]]:
                     }
                 )
 
-        elif "schedule duration is at most" in scenario.lower():
+        elif scenario == (
+            "Verify that no asset longer than 6 hours (21,600 seconds) "
+            "is scheduled across the seven-day schedule"
+        ):
             for asset_id, details in _iter_schedule_asset_entries(data.get("Asset IDs")):
                 if len(details) < 4:
                     continue
@@ -362,7 +498,9 @@ def ssai_failed_cases_seperator(mongo_fetched) -> List[Dict[str, Any]]:
                     }
                 )
 
-        elif "no schedule gaps" in scenario.lower():
+        elif scenario == (
+            "Verify that there are no scheduling gaps between assets across the seven-day schedule"
+        ):
             for asset_id, summary in _aggregate_schedule_gap_overlap_entries(
                 data.get("Asset IDs"),
                 is_overlap=False,
@@ -376,7 +514,9 @@ def ssai_failed_cases_seperator(mongo_fetched) -> List[Dict[str, Any]]:
                     }
                 )
 
-        elif "no schedule overlaps" in scenario.lower():
+        elif scenario == (
+            "Verify that there are no scheduling overlaps between assets across the seven-day schedule"
+        ):
             for asset_id, summary in _aggregate_schedule_gap_overlap_entries(
                 data.get("Asset IDs"),
                 is_overlap=True,

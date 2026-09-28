@@ -134,8 +134,8 @@ def record_epg_fetch_status(
             helper_fuc(
                 num,
                 "URL",
-                "Validate EPG delivery URLs availability",
-                "delivery_details.epg should provide date/url entries",
+                "Verify EPG data availability across the seven-day schedule",
+                "EPG data should be available for all days of the seven-day schedule.",
                 "Failed",
                 "Data not available",
                 "",
@@ -158,10 +158,10 @@ def record_epg_fetch_status(
             helper_fuc(
                 num,
                 "URL",
-                "Validate EPG day JSON load status for all returned days",
-                "Each delivery EPG URL should load successfully with 200 OK",
+                "Validate the status code of EPG JSON in all 7 days",
+                "EPG JSON should load successfully in all 7 days",
                 "Failed",
-                "One or more EPG day URLs failed to load",
+                "EPG JSON is failed to load",
                 asset_ids,
             )
         )
@@ -170,10 +170,10 @@ def record_epg_fetch_status(
             helper_fuc(
                 num,
                 "URL",
-                "Validate EPG day JSON load status for all returned days",
-                "Each delivery EPG URL should load successfully with 200 OK",
+                "Validate the status code of EPG JSON in all 7 days",
+                "EPG JSON should load successfully in all 7 days",
                 "Passed",
-                f"EPG JSON loaded successfully for days: {', '.join(dates_ok)}",
+                "EPG JSON is loaded successfully with 200 OK status code",
                 "",
             )
         )
@@ -182,8 +182,8 @@ def record_epg_fetch_status(
             helper_fuc(
                 num,
                 "URL",
-                "Validate EPG day JSON load status for all returned days",
-                "Each delivery EPG URL should load successfully with 200 OK",
+                "Validate the status code of EPG JSON in all 7 days",
+                "EPG JSON should load successfully in all 7 days",
                 "Failed",
                 "Data not available",
                 "",
