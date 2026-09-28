@@ -20,7 +20,8 @@ import os
 logger = logging.getLogger(__name__)
 
 config = yaml.safe_load(open('config.yaml'))
-SA_JSON_TRANS = os.environ.get("GDRIVE_SA_JSON") or os.environ.get("GOOGLE_TRANSLATOR_JSON")
+# Dedicated translator SA JSON path — Jenkins must export GOOGLE_TRANSLATOR_JSON.
+SA_JSON_TRANS = os.environ.get("GOOGLE_TRANSLATOR_JSON")
 
 def validate_time(programs, key) ->tuple[bool|str,list] :
     status_fail = []

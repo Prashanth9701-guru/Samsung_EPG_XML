@@ -16,6 +16,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 import yaml
+from google.cloud import translate_v2 as translate
+from google.oauth2.service_account import Credentials
 from PIL import Image
 
 from utilities.helper import Validation_Output, helper_fuc
@@ -28,8 +30,11 @@ _CONFIG_PATH = os.path.join(
     "config_ssai.yaml",
 )
 
+# Dedicated translator SA JSON path — Jenkins must export GOOGLE_TRANSLATOR_JSON.
+SA_JSON_TRANS = os.environ.get("GOOGLE_TRANSLATOR_JSON")
+
 TITLE_SPECIAL_RE = re.compile(r"""^[A-Za-z0-9 _\-?:;,.’"!&/()']+$""")
-DESC_SPECIAL_RE = re.compile(r"""^[A-Za-z0-9 !\-?:;,'’&.%"]+$""")
+DESC_SPECIAL_RE = re.compile(r"""[$&+\\%]""")
 TBA_VALUES = {"tba", "to be announced", "to-be-announced"}
 
 
@@ -169,21 +174,45 @@ def _strip_control_chars(text: str) -> str:
 
 
 def _translate_to_english(text: str) -> str:
-    try:
-        from deep_translator import GoogleTranslator
+    """Translate via Google Cloud Translate v2 using GOOGLE_TRANSLATOR_JSON SA."""
+    english_text = ""
+    if not SA_JSON_TRANS:
+        logger.warning(
+            "GOOGLE_TRANSLATOR_JSON is not set; skipping Cloud Translate"
+        )
+        return english_text
 
-        return GoogleTranslator(source="auto", target="en").translate(text) or text
-    except Exception as exc:
-        logger.debug("translate skipped: %s", exc)
-        return text
+    for attempt in range(5):
+        try:
+            scope = ["https://www.googleapis.com/auth/cloud-translation"]
+            creds = Credentials.from_service_account_file(
+                SA_JSON_TRANS,
+                scopes=scope,
+            )
+            translate_client = translate.Client(credentials=creds)
+            translated_text = translate_client.translate(
+                text, target_language="en"
+            )
+            english_text = translated_text.get("translatedText") or ""
+            logger.info("Translation successful")
+            break
+        except Exception as exc:
+            wait_time = 5 * (2 ** attempt)
+            logger.info("Translation failed: %s", exc)
+            logger.info(
+                "Waiting %s seconds before retrying translation...", wait_time
+            )
+            time.sleep(wait_time)
+    return english_text
 
 
 def _has_special_chars(text: str, kind: str) -> bool:
-    """Return True if text fails the NON_SSAI allow-list regex for title/desc."""
+    """Return True if translated text fails NON-SSAI special-char rules."""
     cleaned = _strip_control_chars(text)
     english = _translate_to_english(cleaned)
-    pattern = DESC_SPECIAL_RE if kind == "desc" else TITLE_SPECIAL_RE
-    return not bool(pattern.search(english))
+    if kind == "desc":
+        return bool(DESC_SPECIAL_RE.search(english))
+    return not bool(TITLE_SPECIAL_RE.search(english))
 
 
 def _format_schedule_iso(dt: datetime) -> str:
