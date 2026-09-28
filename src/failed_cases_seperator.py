@@ -96,7 +96,7 @@ def failed_cases_seperator(mongo_fetched):
                 for key, Values in common_asset_ids.items():
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), data.get('Issue Summary').replace('in-correct-thumbnail', f'{duplicate_values[0]}') if 'in-correct-thumbnail' in data.get('Issue Summary') else data.get('Issue Summary').replace('in-correct-length', f'{duplicate_values[0]}'), priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('in-correct-thumbnail', f'{duplicate_values[0]}')}" if 'in-correct-thumbnail' in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('in-correct-length', f'{duplicate_values[0]}')}", priority))
 
 
             elif 'in-correct_content_type' in data.get('Issue Summary'):
@@ -116,7 +116,7 @@ def failed_cases_seperator(mongo_fetched):
                 for key, Values in common_asset_ids.items():
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), data.get('Issue Summary').replace('in-correct_content_type', f'{duplicate_values[0]}'), priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('in-correct_content_type', f'{duplicate_values[0]}')}", priority))
 
 
 
@@ -137,7 +137,7 @@ def failed_cases_seperator(mongo_fetched):
                 for key, Values in common_asset_ids.items():
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), data.get('Issue Summary').replace('in-correct length', f'{duplicate_values[1]}').replace('proper-length', f'{duplicate_values[0]}'), priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('in-correct length', f'{duplicate_values[1]}').replace('proper-length', f'{duplicate_values[0]}')}", priority))
 
             elif 'lang value' in data.get('Issue Summary') and 'channel_lang_value' in data.get('Issue Summary'):
                 common_asset_ids = {}
@@ -156,7 +156,7 @@ def failed_cases_seperator(mongo_fetched):
                 for key, Values in common_asset_ids.items():
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), data.get('Issue Summary').replace('lang value', f'{duplicate_values[0]}').replace('channel_lang_value', f'{duplicate_values[1]}'), priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('lang value', f'{duplicate_values[0]}').replace('channel_lang_value', f'{duplicate_values[1]}')}", priority))
 
             elif 'invalid' in data.get('Issue Summary'):
                 common_asset_ids = {}
@@ -250,7 +250,7 @@ def failed_cases_seperator(mongo_fetched):
                 for key, Values in common_asset_ids.items():
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), data.get('Issue Summary'), priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary')}", priority))
 
         else:
             updated_summary_list.append(_failure_summary_entry('', data.get('Module'), data.get('Issue Summary'), priority))
