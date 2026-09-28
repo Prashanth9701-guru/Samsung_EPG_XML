@@ -69,25 +69,25 @@ def validate_seven_days_channel_level_data(date_json_data, num, name) -> tuple[i
                 channel_tag_availablity.append({date : 'Tag not available'})
 
     logger.info(f'Finished channel_level_fields availability validation')
-    Validation_Output.append(helper_fuc(num, name, f'Validate availability of channel tag in all 7 days', f'Channel Tag should be available in all 7 days', 'Failed', f'Channel Tag not available in XML', ','.join(map(str, channel_tag_availablity))) if channel_tag_availablity else
-                             helper_fuc(num, name, f'Validate availability of channel tag in all 7 days', f'Channel Tag should be available in all 7 days', 'Passed', f'Channel Tag is available in XML'))
+    Validation_Output.append(helper_fuc(num, name, f'Verify the presence of the channel tag across the seven-day schedule', f'The channel tag should be present for each day of the seven-day schedule.', 'Failed', f'The channel tag is missing from the XML.', ','.join(map(str, channel_tag_availablity))) if channel_tag_availablity else
+                             helper_fuc(num, name, f'Verify the presence of the channel tag across the seven-day schedule', f'The channel tag should be present for each day of the seven-day schedule.', 'Passed', f'The channel tag is present in the XML.'))
 
     num+=1
-    Validation_Output.append(helper_fuc(num, name, f'Validate availability of display-name tag under channel in all 7 days', f'Display-name Tag should be available in all 7 days', 'Failed', f'Display-Name Tag not available in XML', ','.join(map(str, display_tag_availability))) if display_tag_availability else
-                             helper_fuc(num, name, f'Validate availability of display-name tag under channel in all 7 days', f'Display-name Tag should be available in all 7 days', 'Not Tested', f'Channel Tag not available in XML') if channel_tag_availablity else
-                             helper_fuc(num, name, f'Validate availability of display-name tag under channel in all 7 days', f'Display-name Tag should be available in all 7 days', 'Passed', f'Display-Name Tag is available in XML'))
+    Validation_Output.append(helper_fuc(num, name, f'Verify the presence of the display-name tag under the channel tag across the seven-day schedule', f'The display-name tag should be present under the channel tag for each day of the seven-day schedule.', 'Failed', f'The display-name tag is missing from the XML.', ','.join(map(str, display_tag_availability))) if display_tag_availability else
+                             helper_fuc(num, name, f'Verify the presence of the display-name tag under the channel tag across the seven-day schedule', f'The display-name tag should be present under the channel tag for each day of the seven-day schedule.', 'Not Tested', f'The channel tag is missing from the XML.') if channel_tag_availablity else
+                             helper_fuc(num, name, f'Verify the presence of the display-name tag under the channel tag across the seven-day schedule', f'The display-name tag should be present under the channel tag for each day of the seven-day schedule.', 'Passed', f'The display-name tag is present in the XML.'))
 
     num+=1
-    Validation_Output.append(helper_fuc(num, name, f'Validate availability of channel_name in all 7 days', f'Channel Name should be available in all 7 days', 'Failed', f'Channel Name not available in XML', ','.join(map(str, channel_name_availability))) if channel_name_availability else
-                             helper_fuc(num, name, f'Validate availability of channel_name in all 7 days', f'Channel Name should be available in all 7 days', 'Not Tested', f'Channel Tag not available in XML') if channel_tag_availablity else
-                             helper_fuc(num, name, f'Validate availability of channel_name in all 7 days', f'Channel Name should be available in all 7 days', 'Not Tested', f'Display-Name Tag not available in XML') if display_tag_availability else
-                             helper_fuc(num, name, f'Validate availability of channel_name in all 7 days', f'Channel Name should be available in all 7 days', 'Passed', f'Channel Name is available in XML'))
+    Validation_Output.append(helper_fuc(num, name, f'Verify the presence of the channel name across the seven-day schedule', f'The channel name should be available for each day of the seven-day schedule.', 'Failed', f'The channel name is missing from the XML.', ','.join(map(str, channel_name_availability))) if channel_name_availability else
+                             helper_fuc(num, name, f'Verify the presence of the channel name across the seven-day schedule', f'The channel name should be available for each day of the seven-day schedule.', 'Not Tested', f'The channel tag is missing from the XML.') if channel_tag_availablity else
+                             helper_fuc(num, name, f'Verify the presence of the channel name across the seven-day schedule', f'The channel name should be available for each day of the seven-day schedule.', 'Not Tested', f'The display-name tag is missing from the XML.') if display_tag_availability else
+                             helper_fuc(num, name, f'Verify the presence of the channel name across the seven-day schedule', f'The channel name should be available for each day of the seven-day schedule.', 'Passed', f'The channel name is present in the XML.'))
 
     num+=1
-    Validation_Output.append(helper_fuc(num, name, f'Validate availability of channel level language in all 7 days', f'Channel Level Language should be available in all 7 days', 'Failed', f'Channel Level Language not available in XML', ','.join(map(str, channel_level_language_availability))) if channel_level_language_availability else
-                             helper_fuc(num, name, f'Validate availability of channel level language in all 7 days', f'Channel Level Language should be available in all 7 days', 'Not Tested', f'Channel Tag not available in XML') if channel_tag_availablity else
-                             helper_fuc(num, name, f'Validate availability of channel level language in all 7 days', f'Channel Level Language should be available in all 7 days', 'Not Tested', f'Display-Name Tag not available in XML') if display_tag_availability else
-                             helper_fuc(num, name, f'Validate availability of channel level language in all 7 days', f'Channel Level Language should be available in all 7 days', 'Passed', f'Channel Level Language is available in XML'))
+    Validation_Output.append(helper_fuc(num, name, f'Verify the presence of the channel-level language across the seven-day schedule', f'The channel-level language should be specified for each day of the seven-day schedule.', 'Failed', f'The channel-level language is missing from the XML.', ','.join(map(str, channel_level_language_availability))) if channel_level_language_availability else
+                             helper_fuc(num, name, f'Verify the presence of the channel-level language across the seven-day schedule', f'The channel-level language should be specified for each day of the seven-day schedule.', 'Not Tested', f'The channel tag is missing from the XML.') if channel_tag_availablity else
+                             helper_fuc(num, name, f'Verify the presence of the channel-level language across the seven-day schedule', f'The channel-level language should be specified for each day of the seven-day schedule.', 'Not Tested', f'The display-name tag is missing from the XML.') if display_tag_availability else
+                             helper_fuc(num, name, f'Verify the presence of the channel-level language across the seven-day schedule', f'The channel-level language should be specified for each day of the seven-day schedule.', 'Passed', f'The channel-level language is present in the XML.'))
 
     return num+1, channel_level_language
 
@@ -108,13 +108,13 @@ def validate_asset_fields_availability_seven_days(date_json_data, date_xml_data,
                 incorrect_content_type_failed_cases.append({date: incorrect_content_type_fail})
 
     logger.info(f'Finished Asset Level fields availability validation: {failed_cases}')
-    Validation_Output.append(helper_fuc(num, name, f'Validate mandatory fields availability for Assets in all 7 days', f'Mandatory fields should be available for Assets in all 7 days', 'Failed', f'Mandatory Fields are not available', ','.join(map(str, failed_cases))) if failed_cases else
-                             helper_fuc(num, name, f'Validate mandatory fields availability for Assets in all 7 days', f'Mandatory fields should be available for Assets in all 7 days', 'Passed', f'All Mandatory fields are available for episodic assets'))
+    Validation_Output.append(helper_fuc(num, name, f'Verify the presence of mandatory fields for all assets across the seven-day schedule', f'All mandatory fields should be present for every asset in the seven-day schedule.', 'Failed', f'One or more mandatory asset fields are missing.', ','.join(map(str, failed_cases))) if failed_cases else
+                             helper_fuc(num, name, f'Verify the presence of mandatory fields for all assets across the seven-day schedule', f'All mandatory fields should be present for every asset in the seven-day schedule.', 'Passed', f'All mandatory fields are present for every episodic asset.'))
 
     num += 1
     logger.info(f'Incorrect content_type failed cases: {incorrect_content_type_failed_cases}')
-    Validation_Output.append(helper_fuc(num, name, f'Validate assets having in-correct content_type in all 7 days', f'Assets should have proper content_type in all 7 days', 'Failed', f'asset having in-correct_content_type so, sub-title or episode_onscreen fields are not available', ','.join(map(str, incorrect_content_type_failed_cases))) if incorrect_content_type_failed_cases else
-                             helper_fuc(num, name, f'Validate assets having in-correct content_type in all 7 days', f'Assets should have proper content_type in all 7 days', 'Passed', f'No assets having in-correct content_type'))
+    Validation_Output.append(helper_fuc(num, name, f'Verify that all assets have a valid content_type value across the seven-day schedule', f'Every asset should have a valid content_type value throughout the seven-day schedule.', 'Failed', f'One or more assets have an invalid content_type value; as a result, the sub-title or episode_onscreen fields are unavailable.', ','.join(map(str, incorrect_content_type_failed_cases))) if incorrect_content_type_failed_cases else
+                             helper_fuc(num, name, f'Verify that all assets have a valid content_type value across the seven-day schedule', f'Every asset should have a valid content_type value throughout the seven-day schedule.', 'Passed', f'All assets have a valid content_type value.'))
 
     return num+1
 

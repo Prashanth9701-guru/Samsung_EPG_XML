@@ -41,7 +41,7 @@ def failed_cases_seperator(mongo_fetched):
     for data in filtered_list:
         priority = data.get('Priority', '')
         if data.get('Module') not in ['URL', 'Channel_Level']:
-            if 'Mandatory' in data.get('Issue Summary'):
+            if 'One or more mandatory' in data.get('Issue Summary'):
                 common_asset_ids = {}
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
                     for date, ids in asset_ids_data.items():
@@ -58,9 +58,9 @@ def failed_cases_seperator(mongo_fetched):
                 for key, Values in common_asset_ids.items():
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), data.get('Issue Summary').replace('Mandatory', f'In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {', '.join(set(duplicate_values))}'), priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), data.get('Issue Summary').replace('One or more mandatory', f'In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {', '.join(set(duplicate_values))}'), priority))
 
-            elif 'Some assets are having wrong datetime format' in data.get('Issue Summary'):
+            elif data.get('Issue Summary') == 'One or more assets have a start time in an invalid date-time format.' or data.get('Issue Summary') == 'One or more assets have a end time in an invalid date-time format.':
                 common_asset_ids = {}
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
                     for date, ids in asset_ids_data.items():
@@ -77,9 +77,9 @@ def failed_cases_seperator(mongo_fetched):
                 for key, Values in common_asset_ids.items():
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f'In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'} are having, wrong date format (Ex:{duplicate_values[0]}) which is not expected as per platform standard', priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f'In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'} are having, invalid date-time format (Ex:{duplicate_values[0]}) which is not expected as per platform standard', priority))
 
-            elif 'in-correct-thumbnail' in data.get('Issue Summary') or 'in-correct-length' in data.get('Issue Summary') or 'in-correct_content_type' in data.get('Issue Summary'):
+            elif 'in-correct-thumbnail' in data.get('Issue Summary') or 'in-correct-length' in data.get('Issue Summary'):
                 common_asset_ids = {}
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
                     for date, ids in asset_ids_data.items():
@@ -99,7 +99,7 @@ def failed_cases_seperator(mongo_fetched):
                     updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('in-correct-thumbnail', f'{duplicate_values[0]}')}" if 'in-correct-thumbnail' in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('in-correct-length', f'{duplicate_values[0]}')}", priority))
 
 
-            elif 'in-correct_content_type' in data.get('Issue Summary'):
+            elif data.get('Issue Summary') == 'One or more asset thumbnails do not have the required 16:9 aspect ratio.':
                 common_asset_ids = {}
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
                     for date, ids in asset_ids_data.items():
@@ -116,7 +116,121 @@ def failed_cases_seperator(mongo_fetched):
                 for key, Values in common_asset_ids.items():
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('in-correct_content_type', f'{duplicate_values[0]}')}", priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, asset thumbnail having {duplicate_values[0]} aspect ratio. But, expected should be 16:9 aspect-ratio", priority))
+
+
+
+            elif data.get('Issue Summary') == 'One or more asset thumbnails are not in the required JPEG or JPG format.' or data.get('Issue Summary') == 'One or more asset thumbnails do not have the required resolution of 1920 × 1080 pixels.':
+                common_asset_ids = {}
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
+                    for date, ids in asset_ids_data.items():
+                        for asset_ids in ids:
+                            for asset_id, value in asset_ids.items():
+                                if asset_id not in common_asset_ids:
+                                    common_asset_ids[asset_id] = {}
+
+                                if date not in common_asset_ids[asset_id]:
+                                    common_asset_ids[asset_id][date] = []
+
+                                common_asset_ids[asset_id][date].extend(v for v in value if v not in common_asset_ids[asset_id][date])
+
+                for key, Values in common_asset_ids.items():
+                    duplicate_values = []
+                    duplicate_values.extend(i for v in list(Values.values()) for i in v)
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset thumbnail is in {duplicate_values[0]} format. But, expected should be JPEG/JPG" if 'resolution' not in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset thumbnail having {duplicate_values[0]}. But, expected should be 1920 × 1080 pixels", priority))
+
+
+
+
+
+
+
+            elif data.get('Issue Summary') == 'One or more asset thumbnail URLs exceed the maximum permitted length of 2,000 characters.' or data.get('Issue Summary') == 'One or more asset IDs exceed the maximum permitted length of 50 characters.':
+                common_asset_ids = {}
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
+                    for date, ids in asset_ids_data.items():
+                        for asset_ids in ids:
+                            for asset_id, value in asset_ids.items():
+                                if asset_id not in common_asset_ids:
+                                    common_asset_ids[asset_id] = {}
+
+                                if date not in common_asset_ids[asset_id]:
+                                    common_asset_ids[asset_id][date] = []
+
+                                common_asset_ids[asset_id][date].extend(v for v in value if v not in common_asset_ids[asset_id][date])
+
+                for key, Values in common_asset_ids.items():
+                    duplicate_values = []
+                    duplicate_values.extend(i for v in list(Values.values()) for i in v)
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset thumbnail url length is {duplicate_values[0]} characters were exceed the permitted length of 2,000 characters" if 'thumbnail' in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset ID length is {duplicate_values[0]} characters were exceed the permitted length of 50 characters", priority))
+
+
+            elif data.get('Issue Summary') == 'One or more asset thumbnail requests return an unexpected HTTP status code.' or data.get('Issue Summary') == 'One or more asset thumbnail requests are redirected and return an unexpected HTTP status code.':
+                common_asset_ids = {}
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
+                    for date, ids in asset_ids_data.items():
+                        for asset_ids in ids:
+                            for asset_id, value in asset_ids.items():
+                                if asset_id not in common_asset_ids:
+                                    common_asset_ids[asset_id] = {}
+
+                                if date not in common_asset_ids[asset_id]:
+                                    common_asset_ids[asset_id][date] = []
+
+                                common_asset_ids[asset_id][date].extend(v for v in value if v not in common_asset_ids[asset_id][date])
+
+                for key, Values in common_asset_ids.items():
+                    duplicate_values = []
+                    duplicate_values.extend(i for v in list(Values.values()) for i in v)
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset thumbnail request getting {duplicate_values[0]} status code" if 'redirected' not in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset thumbnail request getting re-directed with {duplicate_values[0]} status code", priority))
+
+
+
+
+
+
+
+            elif data.get('Issue Summary') == "One or more asset titles exceed the maximum permitted length of 200 characters." or data.get('Issue Summary') == "One or more asset subtitles exceed the maximum permitted length of 200 characters." or data.get('Issue Summary') == 'One or more asset descriptions exceed the maximum permitted length of 4,000 characters.':
+                common_asset_ids = {}
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
+                    for date, ids in asset_ids_data.items():
+                        for asset_ids in ids:
+                            for asset_id, value in asset_ids.items():
+                                if asset_id not in common_asset_ids:
+                                    common_asset_ids[asset_id] = {}
+
+                                if date not in common_asset_ids[asset_id]:
+                                    common_asset_ids[asset_id][date] = []
+
+                                common_asset_ids[asset_id][date].extend(v for v in value if v not in common_asset_ids[asset_id][date])
+
+                for key, Values in common_asset_ids.items():
+                    duplicate_values = []
+                    duplicate_values.extend(i for v in list(Values.values()) for i in v)
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset title having {duplicate_values[0]} chars exceed the maximum permitted length of 200 characters" if 'subtitles' not in data.get('Issue Summary') and 'descriptions' not in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Description having {duplicate_values[0]} chars exceed the maximum permitted length of 4,000 characters" if 'descriptions' in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset sub-title having {duplicate_values[0]} chars exceed the maximum permitted length of 200 characters", priority))
+
+
+
+
+
+            elif 'invalid content_type' in data.get('Issue Summary'):
+                common_asset_ids = {}
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
+                    for date, ids in asset_ids_data.items():
+                        for asset_ids in ids:
+                            for asset_id, value in asset_ids.items():
+                                if asset_id not in common_asset_ids:
+                                    common_asset_ids[asset_id] = {}
+
+                                if date not in common_asset_ids[asset_id]:
+                                    common_asset_ids[asset_id][date] = []
+
+                                common_asset_ids[asset_id][date].extend(v for v in value if v not in common_asset_ids[asset_id][date])
+
+                for key, Values in common_asset_ids.items():
+                    duplicate_values = []
+                    duplicate_values.extend(i for v in list(Values.values()) for i in v)
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('invalid content_type', f'{duplicate_values[0]}')}", priority))
 
 
 
@@ -139,7 +253,8 @@ def failed_cases_seperator(mongo_fetched):
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
                     updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('in-correct length', f'{duplicate_values[1]}').replace('proper-length', f'{duplicate_values[0]}')}", priority))
 
-            elif 'lang value' in data.get('Issue Summary') and 'channel_lang_value' in data.get('Issue Summary'):
+
+            elif data.get('Issue Summary') == 'The actual thumbnail width does not match the XML_thumbnail_width value for one or more assets.' or data.get('Issue Summary') == 'The actual thumbnail height does not match the XML_thumbnail_height value for one or more assets.':
                 common_asset_ids = {}
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
                     for date, ids in asset_ids_data.items():
@@ -156,7 +271,29 @@ def failed_cases_seperator(mongo_fetched):
                 for key, Values in common_asset_ids.items():
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('lang value', f'{duplicate_values[0]}').replace('channel_lang_value', f'{duplicate_values[1]}')}", priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, actual asset thumbnail width {duplicate_values[1]} does not match with the XML_thumbnail width {duplicate_values[0]}" if 'width' in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, actual asset thumbnail height {duplicate_values[1]} does not match with the XML_thumbnail height {duplicate_values[0]}", priority))
+
+
+
+
+            elif data.get('Issue Summary') == 'The title_language and channel_language values do not match for one or more assets.' or data.get('Issue Summary') == 'The subtitle_language and channel_language values do not match for one or more assets.' or data.get('Issue Summary') == 'The description_language and channel_language values do not match for one or more assets.' or data.get('Issue Summary') == 'The category_language and channel_language values do not match for one or more assets.':
+                common_asset_ids = {}
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
+                    for date, ids in asset_ids_data.items():
+                        for asset_ids in ids:
+                            for asset_id, value in asset_ids.items():
+                                if asset_id not in common_asset_ids:
+                                    common_asset_ids[asset_id] = {}
+
+                                if date not in common_asset_ids[asset_id]:
+                                    common_asset_ids[asset_id][date] = []
+
+                                common_asset_ids[asset_id][date].extend(v for v in value if v not in common_asset_ids[asset_id][date])
+
+                for key, Values in common_asset_ids.items():
+                    duplicate_values = []
+                    duplicate_values.extend(i for v in list(Values.values()) for i in v)
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Title_language node having {duplicate_values[0]} does not match with the channel_level_language having {duplicate_values[1]}" if 'subtitle' not in data.get('Issue Summary') and 'description' not in data.get('Issue Summary') and 'category' not in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, description_language node having {duplicate_values[0]} does not match with the channel_level_language having {duplicate_values[1]}" if 'description' in data.get('Issue Summary') and 'category' not in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Category_language node having {duplicate_values[0]} does not match with the channel_level_language having {duplicate_values[1]}" if 'category' in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Subtitle_language node having {duplicate_values[0]} does not match with the channel_level_language having {duplicate_values[1]}", priority))
 
             elif 'invalid' in data.get('Issue Summary'):
                 common_asset_ids = {}
@@ -176,6 +313,28 @@ def failed_cases_seperator(mongo_fetched):
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
                     updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('invalid', ', '.join(set(duplicate_values)))}", priority))
+
+
+            elif data.get('Issue Summary') == 'One or more assets contain categories that are not included in the Samsung_Supported_Category_List.':
+                common_asset_ids = {}
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
+                    for date, ids in asset_ids_data.items():
+                        for asset_ids in ids:
+                            for asset_id, value in asset_ids.items():
+                                if asset_id not in common_asset_ids:
+                                    common_asset_ids[asset_id] = {}
+
+                                if date not in common_asset_ids[asset_id]:
+                                    common_asset_ids[asset_id][date] = []
+
+                                common_asset_ids[asset_id][date].extend(v for v in value if v not in common_asset_ids[asset_id][date])
+
+                for key, Values in common_asset_ids.items():
+                    duplicate_values = []
+                    duplicate_values.extend(i for v in list(Values.values()) for i in v)
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, asset contain {', '.join(set(duplicate_values))} categories that are not included in Samsung_Supported_Category_List", priority))
+
+
 
             
             elif 'in-correct-rating' in data.get('Issue Summary'):
@@ -198,40 +357,63 @@ def failed_cases_seperator(mongo_fetched):
                     updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('in-correct-rating', ', '.join(set(duplicate_values)))}", priority))
 
 
+            elif data.get('Issue Summary') == 'One or more assets contain a rating source that is not permitted by the platform standards.' or data.get('Issue Summary') == 'One or more assets contain a rating value that is not included in the Samsung_Supported_Rating_Value_List.':
+                common_asset_ids = {}
+                for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
+                    for date, ids in asset_ids_data.items():
+                        for asset_ids in ids:
+                            for asset_id, value in asset_ids.items():
+                                if asset_id not in common_asset_ids:
+                                    common_asset_ids[asset_id] = {}
+
+                                if date not in common_asset_ids[asset_id]:
+                                    common_asset_ids[asset_id][date] = []
+
+                                common_asset_ids[asset_id][date].extend(v for v in value if v not in common_asset_ids[asset_id][date])
+
+                for key, Values in common_asset_ids.items():
+                    duplicate_values = []
+                    duplicate_values.extend(i for v in list(Values.values()) for i in v)
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset having (f{', '.join(set(duplicate_values))}) rating source that is not permitted by the platform standard" if 'rating source' in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset having (f{', '.join(set(duplicate_values))}) rating value that is not permitted by the platform standard", priority))
+
+
+
+
+
                     
 
-            elif data.get('Scenario').strip() == 'Validate less than 20 minutes (1200 seconds) of Assets are not scheduled in all 7 days':
+            elif data.get('Scenario').strip() == 'Verify that no asset shorter than 20 minutes (1,200 seconds) is scheduled across the seven-day schedule':
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
                     for key, value in asset_ids_data.items():
                         date, start_time, dur = value
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {date} day, Scheduled asset duration is {dur} sec which is less than 20 minutes (1200 seconds) (Asset Scheduled Time: {start_time})", priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {date} day, Scheduled asset duration is {dur} sec is less than expected limit of 20 minutes (1200 seconds) (Asset Scheduled Time: {start_time})", priority))
 
 
-            elif data.get('Scenario').strip() == 'Validate greater than 6 hours (21600 seconds) of Assets are not scheduled in all 7 days':
+            elif data.get('Scenario').strip() == 'Verify that no asset longer than 6 hours (21,600 seconds) is scheduled across the seven-day schedule':
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
                     for key, value in asset_ids_data.items():
                         date, start_time, dur = value
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {date} day, Scheduled asset duration is {dur} sec which is greater than 6 hours (21600 seconds) (Asset Scheduled Time: {start_time})", priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {date} day, Scheduled asset duration is {dur} sec is greater than expected limit of 6 hours (21600 seconds) (Asset Scheduled Time: {start_time})", priority))
 
 
-            elif data.get('Scenario').strip() == 'Validate schedule gap between Assets in all 7 days':
+            elif data.get('Scenario').strip() == 'Verify that there are no scheduling gaps between assets across the seven-day schedule':
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
                     for key, value in asset_ids_data.items():
                         date, start_time, next_asset_end_time = value
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {date} day, Current asset start time is {start_time} and Previous Asset End Time {next_asset_end_time} are not matching", priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {date} day, A scheduling gap is exists because an asset's start time({start_time}) does not match the previous asset's end time({next_asset_end_time})", priority))
 
-            elif data.get('Scenario').strip() == 'Validate Asset Duration in minutes match with Minutes Value in all 7 days':
+            elif data.get('Scenario').strip() == 'Verify that each asset duration in minutes matches its minutes value across the seven-day schedule':
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
                     for key, value in asset_ids_data.items():
                         date, xml_min, actual_dur_min = value
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {date} day,Actual asset duration {actual_dur_min} minutes and Duration in XML {xml_min} minutes are not matching", priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {date} day, asset having {xml_min} minutes that does not match the asset duration {actual_dur_min} minutes", priority))
 
 
             elif data.get('Scenario').strip() == 'Validate Asset Duration in seconds match with Seconds Value in all 7 days':
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
                     for key, value in asset_ids_data.items():
                         date, xml_sec, actual_dur_sec = value
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {date} day,Actual asset duration {actual_dur_sec} seconds and Duration in XML {xml_sec} seconds are not matching", priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {date} day, asset having {xml_sec} seconds that does not match the asset duration {actual_dur_sec} seconds", priority))
 
             else:
                 common_asset_ids = {}
