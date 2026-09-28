@@ -553,65 +553,64 @@ def _suite_e_poster(
             _record(buckets["list_type"], date, key, [f"poster not a list: {type(poster).__name__}"])
             continue
 
-        for idx, entry in enumerate(poster):
-            tag = f"poster[{idx}]"
+        for entry in poster:
             if not isinstance(entry, dict):
-                _record(buckets["item_type"], date, key, [f"{tag} not an object"])
+                _record(buckets["item_type"], date, key, ["poster entry not an object"])
                 continue
 
             url = entry.get("url")
             if _is_empty(url):
-                _record(buckets["url_missing"], date, key, [f"{tag}.url missing"])
+                _record(buckets["url_missing"], date, key, ["poster url missing"])
                 continue
             if not isinstance(url, str):
-                _record(buckets["url_type"], date, key, [f"{tag}.url not string: {type(url).__name__}"])
+                _record(buckets["url_type"], date, key, [f"poster url not string: {type(url).__name__}"])
                 continue
             if len(url) > max_url:
-                _record(buckets["url_len"], date, key, [len(url), url, tag])
+                _record(buckets["url_len"], date, key, [len(url), url])
 
             ptype = entry.get("type")
             pwidth = entry.get("width")
             pheight = entry.get("height")
             if _is_empty(ptype):
-                _record(buckets["type_missing"], date, key, [f"{tag}.type missing"])
+                _record(buckets["type_missing"], date, key, ["poster type missing"])
             if _is_empty(pwidth):
-                _record(buckets["width_missing"], date, key, [f"{tag}.width missing"])
+                _record(buckets["width_missing"], date, key, ["poster width missing"])
             if _is_empty(pheight):
-                _record(buckets["height_missing"], date, key, [f"{tag}.height missing"])
+                _record(buckets["height_missing"], date, key, ["poster height missing"])
 
             _response, err, img_fmt, img_w, img_h = _load_image(url)
             if err:
                 if err.startswith("redirect:"):
                     code = err.split(":", 1)[1]
-                    _record(buckets["redirect"], date, key, [code, url, tag])
+                    _record(buckets["redirect"], date, key, [code, url])
                 elif err.startswith("status:"):
                     code = err.split(":", 1)[1]
-                    _record(buckets["status"], date, key, [code, url, tag])
+                    _record(buckets["status"], date, key, [code, url])
                 else:
-                    _record(buckets["status"], date, key, [err, url, tag])
+                    _record(buckets["status"], date, key, [err, url])
                 continue
 
             if img_fmt and img_fmt not in formats and img_fmt not in {"jpeg", "jpg"}:
-                _record(buckets["format"], date, key, [img_fmt, url, tag])
+                _record(buckets["format"], date, key, [img_fmt, url])
             if img_w is not None and img_h is not None and (img_w, img_h) != (exp_w, exp_h):
-                _record(buckets["resolution"], date, key, [f"{img_w}X{img_h}", url, tag])
+                _record(buckets["resolution"], date, key, [f"{img_w}X{img_h}", url])
 
             jw = _coerce_int(pwidth)
             jh = _coerce_int(pheight)
             if pwidth is not None and not _is_empty(pwidth) and jw is None:
-                _record(buckets["width_mismatch"], date, key, ["width not numeric", pwidth, tag])
+                _record(buckets["width_mismatch"], date, key, ["width not numeric", pwidth])
             elif jw is not None and img_w is not None and jw != img_w:
-                _record(buckets["width_mismatch"], date, key, [pwidth, img_w, url, tag])
+                _record(buckets["width_mismatch"], date, key, [pwidth, img_w, url])
             if pheight is not None and not _is_empty(pheight) and jh is None:
-                _record(buckets["height_mismatch"], date, key, ["height not numeric", pheight, tag])
+                _record(buckets["height_mismatch"], date, key, ["height not numeric", pheight])
             elif jh is not None and img_h is not None and jh != img_h:
-                _record(buckets["height_mismatch"], date, key, [pheight, img_h, url, tag])
+                _record(buckets["height_mismatch"], date, key, [pheight, img_h, url])
 
             if not _is_empty(ptype) and img_fmt:
                 ptype_l = str(ptype).lower()
                 if ptype_l not in formats and ptype_l not in {"jpeg", "jpg", "image/jpeg", "image/jpg"}:
                     if ptype_l not in {img_fmt, f"image/{img_fmt}"}:
-                        _record(buckets["format"], date, key, [f"json type={ptype}", img_fmt, url, tag])
+                        _record(buckets["format"], date, key, [f"json type={ptype}", img_fmt, url])
 
     logger.info(f"Completed suite_e_poster for date: {date}")
 
