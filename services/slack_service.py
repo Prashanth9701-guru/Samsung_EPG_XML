@@ -182,11 +182,11 @@ def send_execution_summary(
         # Format: emoji Channel Name — HTML Report for JSON
         # Degrades gracefully when either or both links are unavailable.
         if html_link and json_link:
-            report_part = f"<{html_link}|HTML Report> for <{json_link}|JSON>"
+            report_part = f"<{html_link}|HTML Report> for <{json_link}|XML>"
         elif html_link:
             report_part = f"<{html_link}|HTML Report>"
         elif json_link:
-            report_part = f"<{json_link}|JSON>"
+            report_part = f"<{json_link}|XML>"
         else:
             report_part = "HTML Report (unavailable)"
 
