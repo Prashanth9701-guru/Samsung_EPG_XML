@@ -52,7 +52,8 @@ def _row_inputs(row: Dict[str, Any]) -> Dict[str, str]:
     return {
         "stream_url": _field(row, "Stream URL", "Stream_URL", "STREAM_URL"),
         "ticket_id": _field(row, "Ticket ID", "Ticket_ID", "PSD", "Ticket Id"),
-        "Owner": _field(row, "_field"),
+        "Owner": _field(row, "Owner"),
+        "Engineer": _field(row, "Engineer"),
         "Delivery Type": _field(row, "Delivery Type", "Delivery_Type"),
         "channel_name": _field(row, "Channel Name", "Channel_Name"),
         "content_partner_name": _field(
@@ -123,6 +124,7 @@ def main() -> None:
             stream_url = fields["stream_url"]
             ticket_id = fields["ticket_id"]
             owner = fields["Owner"]
+            engineer = fields["Engineer"]
             delivery_type = fields["Delivery Type"]
             channel_name = fields["channel_name"]
             partner = fields["content_partner_name"]
@@ -168,6 +170,7 @@ def main() -> None:
                         partner,
                         ticket_id,
                         owner,
+                        engineer,
                         delivery_type,
                         epg_delivery,
                         datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
@@ -187,6 +190,7 @@ def main() -> None:
                         "status": "FAILED",
                         "channel": channel_name or f"row_{inx}",
                         'owner': owner,
+                        'engineer': engineer,
                         'delivery type': delivery_type,
                         "html_link": "",
                         "json_link": "",
@@ -215,6 +219,7 @@ def main() -> None:
                     partner,
                     ticket_id,
                     owner,
+                    engineer,
                     delivery_type,
                     epg_delivery,
                     datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
@@ -237,6 +242,9 @@ def main() -> None:
                 {
                     "status": slack_status,
                     "channel": channel_name,
+                    'owner': owner,
+                    'engineer': engineer,
+                    'delivery type': delivery_type,
                     "html_link": s3_html_url,
                     "json_link": drive_link,
                 }
@@ -265,6 +273,7 @@ def main() -> None:
                         fields.get("content_partner_name", ""),
                         fields.get("ticket_id", ""),
                         fields.get("Owner", ""),
+                        fields.get("Engineer", ""),
                         fields.get("Delivery Type", ""),
                         fields.get("epg_delivery", ""),
                         datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
@@ -283,6 +292,9 @@ def main() -> None:
                     {
                         "status": "FAILED",
                         "channel": fields.get("channel_name") or f"row_{inx}",
+                        'owner': fields.get("Owner", ""),
+                        'engineer': fields.get("Engineer", ""),
+                        'delivery type': fields.get("Delivery Type", ""),
                         "html_link": "",
                         "json_link": "",
                     }

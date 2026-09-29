@@ -180,6 +180,7 @@ def send_execution_summary(
         json_link = r.get("json_link") or ""
         owner_name = r.get("owner") or "Owner Not Available"
         delivery_type = (r.get("delivery type") or "Delivery Type not Available").upper()
+        engineer = r.get("engineer") or "Engineer not Available"
 
         # Format: emoji Channel Name — HTML Report for JSON
         # Degrades gracefully when either or both links are unavailable.
@@ -192,7 +193,7 @@ def send_execution_summary(
         else:
             report_part = "HTML Report (unavailable)"
 
-        channel_entries.append(f"{emoji} Channel:*{ch_name}*, Delivery Type: *{delivery_type}*, EM: *{owner_name}* \u2014 {report_part}")
+        channel_entries.append(f"{emoji} Channel:*{ch_name}*, Delivery Type: *{delivery_type}*, EM: *{owner_name}* Engineer: *{engineer}* \u2014 {report_part}")
 
     channel_blocks = _chunk_text_into_blocks(channel_entries)
 
