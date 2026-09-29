@@ -52,6 +52,8 @@ def _row_inputs(row: Dict[str, Any]) -> Dict[str, str]:
     return {
         "stream_url": _field(row, "Stream URL", "Stream_URL", "STREAM_URL"),
         "ticket_id": _field(row, "Ticket ID", "Ticket_ID", "PSD", "Ticket Id"),
+        "Owner": _field(row, "_field"),
+        "Delivery Type": _field(row, "Delivery Type", "Delivery_Type"),
         "channel_name": _field(row, "Channel Name", "Channel_Name"),
         "content_partner_name": _field(
             row, "Content Partner Name", "Content_Partner_Name", "Content Partner"
@@ -80,6 +82,7 @@ def main() -> None:
     session_start = datetime.today()
     execution_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     ticket_data = ssai_jira_fetch()
+    #logger.info(f'Ticket Data: {ticket_data}')
     ssai_appened_data(ticket_data)
     token = get_oauth_token()
     if not token:
