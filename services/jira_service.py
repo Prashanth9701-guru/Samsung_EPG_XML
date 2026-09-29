@@ -87,7 +87,7 @@ def non_ssai_jira_fetch():
                             "Content Partner Name": fields.get('customfield_11296', 'not_available') if fields.get('customfield_11296', 'not_available') else 'not_available',
                             "PSD": f'https://amagiengg.atlassian.net/browse/{issues}',
                             "Owner": fields.get("customfield_10983", "not_available").get('displayName', 'Owner not available') if fields.get('customfield_10983', 'not_available') else 'not_available',
-                            "Delivery Type": fields.get('customfield_12054', 'not_available') if fields.get('customfield_12054', 'not_available') else 'not_available',
+                            "Delivery Type": fields.get('customfield_12054', 'not_available').get('value') if fields.get('customfield_12054', 'not_available') else 'not_available',
                             "ASSET_TYPES_SUPPORTED": "Episode",
                             "RUN/STOP": "RUN"
                         })
@@ -179,7 +179,7 @@ def ssai_jira_fetch():
                             "Content Partner Name": fields.get('customfield_11296', 'not_available') if fields.get('customfield_11296', 'not_available') else 'not_available',
                             "PSD": f'https://amagiengg.atlassian.net/browse/{issues}',
                             "Owner": fields.get("customfield_10983", "not_available").get('displayName', 'Owner not available') if fields.get('customfield_10983', 'not_available') else 'not_available',
-                            "Delivery Type": fields.get('customfield_12054', 'not_available') if fields.get('customfield_12054', 'not_available') else 'not_available',
+                            "Delivery Type": fields.get('customfield_12054', 'not_available').get('value') if fields.get('customfield_12054', 'not_available') else 'not_available',
                             "EPG Delivery": epg_delivery if epg_delivery else 'not_available',
                             "RUN/STOP": "RUN"
                         })
