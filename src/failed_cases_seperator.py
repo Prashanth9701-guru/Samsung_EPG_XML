@@ -448,7 +448,7 @@ def failed_cases_seperator(mongo_fetched):
                     updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {date} day, asset having {xml_min} minutes that does not match the asset duration {actual_dur_min} minutes", priority))
                 logger.info(f'Completed Failed Case Separator 20')
 
-            elif data.get('Scenario').strip() == 'Validate Asset Duration in seconds match with Seconds Value in all 7 days':
+            elif data.get('Scenario').strip() == 'Verify that each asset duration in seconds matches its seconds value across the seven-day schedule':
                 logger.info(f'Started Failed Case Separator 21')
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
                     for key, value in asset_ids_data.items():
