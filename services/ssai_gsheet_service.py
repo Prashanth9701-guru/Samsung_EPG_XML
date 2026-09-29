@@ -134,5 +134,7 @@ def ssai_appened_data(ticket_data):
                                   data.get('Channel Name'),
                                   data.get('Content Partner Name'),
                                   data.get('PSD'),
+                                  data.get('Owner'),
+                                  data.get('Delivery Type'),
                                   data.get('EPG Delivery'),
                                   data.get('RUN/STOP')])

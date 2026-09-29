@@ -119,6 +119,8 @@ def main() -> None:
             fields = _row_inputs(data)
             stream_url = fields["stream_url"]
             ticket_id = fields["ticket_id"]
+            owner = fields["Owner"]
+            delivery_type = fields["Delivery Type"]
             channel_name = fields["channel_name"]
             partner = fields["content_partner_name"]
             epg_delivery = fields["epg_delivery"]
@@ -162,6 +164,8 @@ def main() -> None:
                         channel_name,
                         partner,
                         ticket_id,
+                        owner,
+                        delivery_type,
                         epg_delivery,
                         datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
                         "FAILED",
@@ -179,6 +183,8 @@ def main() -> None:
                     {
                         "status": "FAILED",
                         "channel": channel_name or f"row_{inx}",
+                        'owner': owner,
+                        'delivery type': delivery_type,
                         "html_link": "",
                         "json_link": "",
                     }
