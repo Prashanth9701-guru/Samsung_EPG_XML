@@ -458,6 +458,7 @@ def failed_cases_seperator(mongo_fetched):
             
             else:
                 logger.info(f'Started Failed Case Separator 22')
+                logger.info(f'Data: {data}')
                 common_asset_ids = {}
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
                     for date, ids in asset_ids_data.items():
