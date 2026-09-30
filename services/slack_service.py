@@ -178,9 +178,9 @@ def send_execution_summary(
         ch_name   = r.get("channel") or "Unknown Channel"
         html_link = r.get("html_link") or ""
         json_link = r.get("json_link") or ""
-        owner_name = r.get("owner") or "Owner Not Available"
-        delivery_type = (r.get("delivery type") or "Delivery Type not Available").upper()
-        engineer = r.get("engineer") or "Engineer not Available"
+        owner_name = r.get("owner") or "NA"
+        delivery_type = (r.get("delivery type") or "NA").upper()
+        engineer = r.get("engineer") or "NA"
 
         # Format: emoji Channel Name — HTML Report for JSON
         # Degrades gracefully when either or both links are unavailable.
