@@ -193,7 +193,7 @@ def send_execution_summary(
         else:
             report_part = "HTML Report (unavailable)"
 
-        channel_entries.append(f"{emoji} Channel:*{ch_name}*, Delivery Type: *{delivery_type}*, EM: *@{owner_name}*, Engineer: *@{engineer}* \u2014 {report_part}")
+        channel_entries.append(f"{emoji} Channel - *{ch_name}* | Delivery Type - *{delivery_type}* | EM - *{owner_name}* \u2014 {report_part}")
 
     channel_blocks = _chunk_text_into_blocks(channel_entries)
 
