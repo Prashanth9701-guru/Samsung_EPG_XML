@@ -67,7 +67,7 @@ def ssai_validation_data() -> Tuple[List[dict], Any, int, Any, str, str]:
 
         headers = worksheet.row_values(1)
         today = datetime.now().strftime("%Y-%m-%d")
-        today_format = datetime.now().strftime("%d-%b-%Y")
+        today_format = datetime.now().strftime("%-d-%b-%Y")
         new_column_number = (
             len(headers) + 1
             if str(today) not in headers and str(today_format) not in headers
