@@ -1147,8 +1147,7 @@ def _render_failure_html_card(asset_groups, module_groups):
     if not asset_groups and not module_groups:
         return (
             '<div class="card">'
-            + blurb
-            + '<div class="fs-none">No failures recorded.</div>'
+            '<div class="fs-none">All test cases are passed and there is no any failures</div>'
             '</div>'
         )
 
@@ -1574,7 +1573,10 @@ def _render_grouped_failed_cases_panel(rows):
     )
 
     if not groups:
-        return header + blurb + '<div class="gf-empty">No failures recorded.</div>'
+        return (
+            header
+            + '<div class="gf-empty">All test cases are passed and there is no any failures</div>'
+        )
 
     prepared = []
     for issue_summary, failed_rows in groups.items():
@@ -1620,27 +1622,27 @@ def _render_grouped_failed_cases_panel(rows):
 
 
 def _render_tab_shell(complete_html, failed_html, grouped_html):
-    """Tab navigation + three panels. Default active tab = Failed Cases."""
+    """Tab navigation + three panels. Default active tab = Test Case + Results."""
     return (
         '<div class="tab-bar">'
         '<div class="tab-bar-tabs" role="tablist">'
-        '<button type="button" class="tab-btn" data-tab="complete" role="tab"'
-        ' aria-selected="false">Test Case + Results Section</button>'
-        '<button type="button" class="tab-btn active" data-tab="failed" role="tab"'
-        ' aria-selected="true">Failures Grouped under Asset IDs</button>'
+        '<button type="button" class="tab-btn active" data-tab="complete" role="tab"'
+        ' aria-selected="true">Test Case + Results Section</button>'
+        '<button type="button" class="tab-btn" data-tab="failed" role="tab"'
+        ' aria-selected="false">Failures Grouped under Asset IDs</button>'
         '<button type="button" class="tab-btn" data-tab="grouped" role="tab"'
         ' aria-selected="false">Asset IDs Grouped under Failures</button>'
         '</div>'
         '<div class="tab-bar-actions">'
-        '<button type="button" class="dl-btn dl-btn-tab tab-bar-dl-hidden" id="dl-btn-complete"'
+        '<button type="button" class="dl-btn dl-btn-tab" id="dl-btn-complete"'
         ' onclick="downloadFullReport()">Download as Excel</button>'
-        '<button type="button" class="dl-btn dl-btn-tab" id="dl-btn-failed"'
+        '<button type="button" class="dl-btn dl-btn-tab tab-bar-dl-hidden" id="dl-btn-failed"'
         ' onclick="downloadFailureSummary()">Download Failure Summary</button>'
         '</div>'
         '</div>'
         '<div class="tab-panels">'
-        f'<div class="tab-panel" id="tab-complete" role="tabpanel">{complete_html}</div>'
-        f'<div class="tab-panel active" id="tab-failed" role="tabpanel">{failed_html}</div>'
+        f'<div class="tab-panel active" id="tab-complete" role="tabpanel">{complete_html}</div>'
+        f'<div class="tab-panel" id="tab-failed" role="tabpanel">{failed_html}</div>'
         f'<div class="tab-panel" id="tab-grouped" role="tabpanel">{grouped_html}</div>'
         '</div>'
     )
@@ -1677,8 +1679,8 @@ function initReportTabs(){
       syncDownloadButtons(target);
     });
   });
-  // Default active tab is Failed Cases
-  syncDownloadButtons('failed');
+  // Default active tab is Test Case + Results Section
+  syncDownloadButtons('complete');
 }
 
 function initCompleteFilters(){
@@ -2166,7 +2168,7 @@ def summary_report_writer(
     _fs_b64, _fs_filename = _failure_summary_excel_b64(_fs_ag, _fs_mg, channel_name)
     _full_b64, _full_filename = _full_report_excel_b64(excel_path, channel_name)
 
-    # Tab panels (Failed Cases = existing Failure Summary; default active)
+    # Tab panels (Complete = default active; Failed Cases = existing Failure Summary)
     complete_panel = _render_complete_test_cases_panel(visible_rows, counts)
     failed_panel   = _render_failure_html_card(_fs_ag, _fs_mg)
     grouped_panel  = _render_grouped_failed_cases_panel(visible_rows)
