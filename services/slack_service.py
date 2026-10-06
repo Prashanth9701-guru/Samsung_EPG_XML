@@ -22,11 +22,15 @@ follow-up messages so the integration works safely for 40+ channels.
 
 import logging
 import os
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 _MAX_BLOCK_CHARS   = 2_200   # safe limit per mrkdwn section block
 _MAX_BLOCKS_PER_MSG = 38     # Slack allows 50; stay well under
+
+# Cache: lowercase owner_name -> Slack user ID (or None after a failed lookup)
+_owner_user_id_cache = {}
 
 
 # ---------------------------------------------------------------------------
@@ -59,6 +63,81 @@ def _status_emoji(status):
     if s in ("FAILED", "ERROR"):
         return ":x:"
     return ":large_yellow_circle:"
+
+
+def _user_display_names(user: dict) -> set:
+    """Collect candidate display names for a Slack user (lowercase)."""
+    names = set()
+    profile = user.get("profile") or {}
+    for value in (
+        user.get("name"),
+        user.get("real_name"),
+        profile.get("display_name"),
+        profile.get("display_name_normalized"),
+        profile.get("real_name"),
+        profile.get("real_name_normalized"),
+    ):
+        if value and str(value).strip():
+            names.add(str(value).strip().lower())
+    return names
+
+
+def _get_slack_user_id_by_name(client, owner_name: str) -> Optional[str]:
+    """Resolve a Slack user ID from an owner display name via users.list.
+
+    Returns None for empty/NA names or when no match is found. Results are
+    cached for the process lifetime so repeated owners do not re-hit the API.
+    """
+    name = (owner_name or "").strip()
+    if not name or name.upper() == "NA":
+        return None
+
+    cache_key = name.lower()
+    if cache_key in _owner_user_id_cache:
+        return _owner_user_id_cache[cache_key]
+
+    user_id = None
+    try:
+        cursor = None
+        while True:
+            kwargs = {"limit": 200}
+            if cursor:
+                kwargs["cursor"] = cursor
+            response = client.users_list(**kwargs)
+            if not response.get("ok"):
+                logger.warning(
+                    "Slack users.list failed for owner_name=%s: %s",
+                    name,
+                    response.get("error"),
+                )
+                break
+
+            for user in response.get("members") or []:
+                if not isinstance(user, dict):
+                    continue
+                if user.get("deleted") or user.get("is_bot") or user.get("id") == "USLACKBOT":
+                    continue
+                if cache_key in _user_display_names(user):
+                    user_id = user.get("id")
+                    break
+
+            if user_id:
+                break
+
+            cursor = (response.get("response_metadata") or {}).get("next_cursor") or ""
+            if not cursor:
+                break
+
+        if user_id:
+            logger.info("Resolved Slack user_id=%s for owner_name=%s", user_id, name)
+        else:
+            logger.warning("No Slack user found for owner_name=%s", name)
+    except Exception as exc:
+        logger.error("Slack user lookup failed for owner_name=%s: %s", name, exc)
+        user_id = None
+
+    _owner_user_id_cache[cache_key] = user_id
+    return user_id
 
 
 def _chunk_text_into_blocks(entries, max_chars=_MAX_BLOCK_CHARS):
@@ -171,6 +250,12 @@ def send_execution_summary(
 
     divider = {"type": "divider"}
 
+    try:
+        client = _get_client()
+    except Exception as exc:
+        logger.error("send_execution_summary failed (client init): %s", exc)
+        return
+
     # ── Per-channel entries ───────────────────────────────────────────────────
     channel_entries = []
     for r in results:
@@ -181,6 +266,9 @@ def send_execution_summary(
         owner_name = r.get("owner") or "NA"
         delivery_type = (r.get("delivery type") or "NA").upper()
         engineer = r.get("engineer") or "NA"
+
+        owner_id = _get_slack_user_id_by_name(client, owner_name)
+        owner_mention = f"<@{owner_id}>" if owner_id else f"*{owner_name}*"
 
         # Format: emoji Channel Name — HTML Report for JSON
         # Degrades gracefully when either or both links are unavailable.
@@ -193,14 +281,16 @@ def send_execution_summary(
         else:
             report_part = "HTML Report (unavailable)"
 
-        channel_entries.append(f"{emoji} Channel - *{ch_name}* | Delivery Type - *{delivery_type}* | EM - *{owner_name}* \u2014 {report_part}")
+        channel_entries.append(
+            f"{emoji} Channel - *{ch_name}* | Delivery Type - *{delivery_type}* | "
+            f"EM - {owner_mention} \u2014 {report_part}"
+        )
 
     channel_blocks = _chunk_text_into_blocks(channel_entries)
 
     all_blocks = [header_block, divider] + channel_blocks
 
     try:
-        client = _get_client()
         _send_blocks(client, channel, all_blocks)
         logger.info("Slack summary sent: %d channel entries across %d blocks.", total, len(all_blocks))
     except Exception as exc:
