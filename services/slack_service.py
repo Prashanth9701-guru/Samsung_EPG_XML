@@ -233,12 +233,15 @@ def send_execution_summary(
     # ── Header block ─────────────────────────────────────────────────────────
     bn_text  = f"Build: #{build_number}" if build_number else ""
     bu_text  = f"<{build_url}|{bn_text}>" if (build_url and bn_text) else bn_text
+    type_text = f"Delivery Type: *NON-SSAI HLS*" if "NON-SSAI HLS" in (results[0].get("delivery type")).upper() else f"Delivery Type: *SSAI HLS*"
     ts_text  = f"Started: {build_start_time}" if build_start_time else ""
     counts   = f"Total: {total}\u2003Executed: {executed}\u2003Failed: {failed}\u2003Skipped: {skipped}"
 
     header_lines = [":white_check_mark: *EPG Validation Summary*"]
     if bu_text:
         header_lines.append(bu_text)
+    if type_text:
+        header_lines.append(type_text)   
     if ts_text:
         header_lines.append(ts_text)
     header_lines.append(counts)
@@ -281,10 +284,7 @@ def send_execution_summary(
         else:
             report_part = "HTML Report (unavailable)"
 
-        channel_entries.append(
-            f"{emoji} Channel - *{ch_name}* | Delivery Type - *{delivery_type}* | "
-            f"EM - {owner_mention} \u2014 {report_part}"
-        )
+        channel_entries.append(f"{emoji} Channel - *{ch_name}* |" f"EM - {owner_mention} \u2014 {report_part}")
 
     channel_blocks = _chunk_text_into_blocks(channel_entries)
 
