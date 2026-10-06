@@ -12,7 +12,7 @@ from services.amagi_api_service import get_oauth_token
 
 logger = logging.getLogger(__name__)
 
-PROGRAMS_URL = "https://api-now3.secure.amagi.tv/api/programs"
+PROGRAMS_URL = "https://api.now3.secure.amagi.tv/api/programs"
 DEFAULT_TIMEOUT_SEC = 60
 
 
