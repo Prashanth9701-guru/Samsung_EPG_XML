@@ -169,7 +169,7 @@ def ssai_jira_fetch():
                             Delivery_region = region.get('value', None)
 
                         epg_delivery = ''
-                        if fields.get('customfield_11759') and ((fields.get('customfield_11759')).lower() == 'an3' or 'now3' in (fields.get('customfield_11759')).lower()):
+                        if fields.get('customfield_11759') and 'an3' in ((fields.get('customfield_11759')).lower() or 'now3' in (fields.get('customfield_11759')).lower()):
                             epg_delivery = 'AN3'
                         else:
                             epg_delivery = 'AMGEPG'
