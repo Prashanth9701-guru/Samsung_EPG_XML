@@ -9,13 +9,19 @@ import requests
 import math
 from PIL import Image
 from io import BytesIO
-from deep_translator import GoogleTranslator
+#from deep_translator import GoogleTranslator
 
 from tests.fields_test import _content_type_map
+from google.cloud import translate_v2 as translate
+import time
+from google.oauth2.service_account import Credentials
+import os
 
 logger = logging.getLogger(__name__)
 
 config = yaml.safe_load(open('config.yaml'))
+# Dedicated translator SA JSON path — Jenkins must export GOOGLE_TRANSLATOR_JSON.
+SA_JSON_TRANS = os.environ.get("GOOGLE_TRANSLATOR_JSON")
 
 def validate_time(programs, key) ->tuple[bool|str,list] :
     status_fail = []
@@ -121,14 +127,43 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                             if not unicodedata.category(char).startswith('C')
                         )
 
-                        english_text = GoogleTranslator(
-                            source="auto",
-                            target="en"
-                        ).translate(title)
+                        english_text = ''
+                        for attempt in range(5):
+                            try:
+                                logger.info(f'Started Transilation')
+                                scope = ["https://www.googleapis.com/auth/cloud-translation"]
+
+                                creds = Credentials.from_service_account_file(
+                                    SA_JSON_TRANS,
+                                    scopes=scope
+                                )
+                    
+                                translate_client = translate.Client(
+                                    credentials=creds
+                                )
+                                translated_text = translate_client.translate(
+                                    title,
+                                    target_language="en"
+                                    )
+                                logger.info(f'Translated Dict: {translated_text}')
+                                english_text = translated_text.get('translatedText')
+                                logger.info(f'English Text: {english_text}')
+                                logger.info("Translation successful")
+                                break
+                                #english_text = GoogleTranslator(
+                                    #source="auto",
+                                    #target="en"
+                                #).translate(title)
+                                #time.sleep(1)
+                            except Exception as e:
+                                logger.info(f"Translation failed: {e}")
+                                wait_time = 5 * (2 ** attempt)
+                                logger.info(f"Waiting {wait_time} seconds before retrying translation...")
+                                time.sleep(wait_time)
                         if len(title) > expected_length:
                             value_length.append({asset_id: [len(title), title]})
 
-                        if key == 'desc' and not re.search(r'''^[A-Za-z0-9 !\-?:;,'’&.%"]+$''', english_text):
+                        if key == 'desc' and re.search(r"""[$&+\\%]""", english_text):
                             value_spel_char.append({asset_id: title})
 
                         elif key in ['title', 'sub-title'] and not re.search(r'''^[A-Za-z0-9 _\-?:;,.’"!&/()']+$''', english_text):

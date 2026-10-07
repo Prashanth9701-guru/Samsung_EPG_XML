@@ -56,8 +56,11 @@ def validate_asset_fields_availability(programs, man_fields, mand_child_values, 
 
             if 'episode' in str(effective_ct).lower():
                 asset_keys = list(program.keys())
-                episode_num = next(True for episode in program.get('episode-num') if episode.get('@system') in mand_child_values) if isinstance(program.get('episode-num'), list) else 'episode-num-onscreen'
-
+                logger.info(f'Asset Keys: {asset_keys}')
+                logger.info(f'Episode Num List: {program.get('episode-num')}')
+                episode_num = next(True for episode in program.get('episode-num') if episode.get('@system') in mand_child_values) if isinstance(program.get('episode-num'), list) and 'onscreen' in str(program.get('episode-num')) else 'episode-num-onscreen'
+                logger.info(f'Episode Number: {episode_num}')
+                
                 not_available_keys = [key for key in config.get(config_key) if key not in asset_keys]
                 if not isinstance(episode_num, bool):
                     not_available_keys.append(episode_num)

@@ -27,6 +27,12 @@ from datetime import datetime
 import openpyxl
 from openpyxl.styles import Font, Alignment
 
+from utilities.test_case_priority import (
+    PRIORITY_BLOCKER,
+    PRIORITY_CRITICAL,
+    issue_with_priority_suffix,
+)
+
 #from Input import JSON_URL
 
 # ---------------------------------------------------------------------------
@@ -441,9 +447,12 @@ body.tc-col-resizing { -webkit-user-select: none; }
 .gf-summary {
   display: flex; align-items: center; gap: 10px; padding: 12px 14px;
   background: #FFF8F8; cursor: pointer; user-select: none; list-style: none;
+  text-transform: none; letter-spacing: normal;
 }
 .gf-summary::-webkit-details-marker { display: none; }
 .gf-sc-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: #1E293B; }
+.pri-blocker { color: #DC2626; font-weight: 700; text-transform: uppercase; }
+.pri-critical { color: #38BDF8; font-weight: 700; text-transform: uppercase; }
 .gf-count {
   flex-shrink: 0; background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5;
   border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700;
@@ -1101,6 +1110,10 @@ def _group_failure_rows(rows):
             # Existing path — shared issue text across all extracted asset IDs.
             asset_ids     = _extract_asset_ids_for_grouping(asset_ids_raw)
             display_issue = _normalize_issue_text(issue_text) if issue_text else issue_text
+            display_issue = issue_with_priority_suffix(
+                display_issue,
+                str(row.get('Priority', '') or '').strip(),
+            )
 
             if asset_ids:
                 for aid in asset_ids:
@@ -1134,8 +1147,7 @@ def _render_failure_html_card(asset_groups, module_groups):
     if not asset_groups and not module_groups:
         return (
             '<div class="card">'
-            + blurb
-            + '<div class="fs-none">No failures recorded.</div>'
+            '<div class="fs-none">All test cases are passed and there is no any failures</div>'
             '</div>'
         )
 
@@ -1264,19 +1276,21 @@ def _group_failure_rows_from_updated_summary_list(updated_summary_list):
         asset_id     = str(entry.get('Asset_ID', entry.get('Asset ID', '')) or '').strip()
         module_label = str(entry.get('Module',        '') or '').strip()
         issue_text   = str(entry.get('Issue Summary', '') or '').strip()
+        priority     = str(entry.get('Priority', '') or '').strip()
+        display_issue = issue_with_priority_suffix(issue_text, priority)
 
         if asset_id:
             if asset_id not in asset_groups:
                 asset_groups[asset_id] = {'modules': [], 'issues': []}
             if module_label and module_label not in asset_groups[asset_id]['modules']:
                 asset_groups[asset_id]['modules'].append(module_label)
-            if issue_text and issue_text not in asset_groups[asset_id]['issues']:
-                asset_groups[asset_id]['issues'].append(issue_text)
+            if display_issue and display_issue not in asset_groups[asset_id]['issues']:
+                asset_groups[asset_id]['issues'].append(display_issue)
         else:
             if module_label not in module_groups:
                 module_groups[module_label] = {'issues': []}
-            if issue_text and issue_text not in module_groups[module_label]['issues']:
-                module_groups[module_label]['issues'].append(issue_text)
+            if display_issue and display_issue not in module_groups[module_label]['issues']:
+                module_groups[module_label]['issues'].append(display_issue)
 
     return asset_groups, module_groups
 
@@ -1297,6 +1311,7 @@ _COMPLETE_COLUMNS = (
     ('Scenario', 'tc-col-scenario', 240),
     ('Expected Results', 'tc-col-expected', 220),
     ('Status', 'tc-col-status', 110),
+    ('Priority', 'tc-col-priority', 100),
     ('Issue Summary', 'tc-col-issue', 240),
     ('Asset IDs', 'tc-col-assets', 200),
 )
@@ -1411,6 +1426,7 @@ def _render_complete_test_cases_panel(rows, counts):
             f'<td class="tc-col-scenario">{_esc(r.get("Scenario", ""))}</td>'
             f'<td class="tc-col-expected">{_esc(_truncate(r.get("Expected Results", "") or "", 300))}</td>'
             f'<td class="tc-col-status">{badge}</td>'
+            f'<td class="tc-col-priority">{_esc(r.get("Priority", "") or "")}</td>'
             f'<td class="tc-col-issue">{_esc(issue)}</td>'
             f'<td class="tc-col-assets">{assets_html}</td>'
             '</tr>'
@@ -1531,6 +1547,18 @@ def _render_grouped_asset_ids_body(asset_ids):
     )
 
 
+def _issue_with_priority_suffix_html(issue_text, priority):
+    """Tab 3 accordion title: plain issue text + colored (Blocker|Critical) suffix."""
+    p = (priority or '').strip() or PRIORITY_CRITICAL
+    cls = 'pri-blocker' if p == PRIORITY_BLOCKER else 'pri-critical'
+    if p != PRIORITY_BLOCKER:
+        p = PRIORITY_CRITICAL
+    return (
+        f'{_esc(issue_text)} '
+        f'(<span class="{cls}">{_esc(p)}</span>)'
+    )
+
+
 def _render_grouped_failed_cases_panel(rows):
     """Tab 3: Failed cases accordion grouped by Issue Summary; body shows Asset IDs only.
 
@@ -1545,7 +1573,10 @@ def _render_grouped_failed_cases_panel(rows):
     )
 
     if not groups:
-        return header + blurb + '<div class="gf-empty">No failures recorded.</div>'
+        return (
+            header
+            + '<div class="gf-empty">All test cases are passed and there is no any failures</div>'
+        )
 
     prepared = []
     for issue_summary, failed_rows in groups.items():
@@ -1566,8 +1597,10 @@ def _render_grouped_failed_cases_panel(rows):
 
     items = []
     for issue_summary, failed_rows, asset_ids in prepared:
+        priority = str((failed_rows[0].get('Priority') if failed_rows else '') or '').strip()
+        display_issue_html = _issue_with_priority_suffix_html(issue_summary, priority)
         id_count = len(asset_ids)
-        open_attr = ' open' if id_count <= 3 and id_count > 0 else ''
+        open_attr = ''
 
         if asset_ids:
             body_html = _render_grouped_asset_ids_body(asset_ids)
@@ -1578,7 +1611,7 @@ def _render_grouped_failed_cases_panel(rows):
             f'<details class="gf-item"{open_attr}>'
             f'<summary class="gf-summary">'
             f'<span class="chevron">&#9658;</span>'
-            f'<span class="gf-sc-name">{_esc(issue_summary)}</span>'
+            f'<span class="gf-sc-name">{display_issue_html}</span>'
             f'<span class="gf-count">{id_count} asset{"s" if id_count != 1 else ""}</span>'
             f'</summary>'
             f'<div class="gf-body">{body_html}</div>'
@@ -1589,27 +1622,27 @@ def _render_grouped_failed_cases_panel(rows):
 
 
 def _render_tab_shell(complete_html, failed_html, grouped_html):
-    """Tab navigation + three panels. Default active tab = Failed Cases."""
+    """Tab navigation + three panels. Default active tab = Test Case + Results."""
     return (
         '<div class="tab-bar">'
         '<div class="tab-bar-tabs" role="tablist">'
-        '<button type="button" class="tab-btn" data-tab="complete" role="tab"'
-        ' aria-selected="false">Test Case + Results Section</button>'
-        '<button type="button" class="tab-btn active" data-tab="failed" role="tab"'
-        ' aria-selected="true">Failures Grouped under Asset IDs</button>'
+        '<button type="button" class="tab-btn active" data-tab="complete" role="tab"'
+        ' aria-selected="true">Test Case + Results Section</button>'
+        '<button type="button" class="tab-btn" data-tab="failed" role="tab"'
+        ' aria-selected="false">Failures Grouped under Asset IDs</button>'
         '<button type="button" class="tab-btn" data-tab="grouped" role="tab"'
         ' aria-selected="false">Asset IDs Grouped under Failures</button>'
         '</div>'
         '<div class="tab-bar-actions">'
-        '<button type="button" class="dl-btn dl-btn-tab tab-bar-dl-hidden" id="dl-btn-complete"'
+        '<button type="button" class="dl-btn dl-btn-tab" id="dl-btn-complete"'
         ' onclick="downloadFullReport()">Download as Excel</button>'
-        '<button type="button" class="dl-btn dl-btn-tab" id="dl-btn-failed"'
+        '<button type="button" class="dl-btn dl-btn-tab tab-bar-dl-hidden" id="dl-btn-failed"'
         ' onclick="downloadFailureSummary()">Download Failure Summary</button>'
         '</div>'
         '</div>'
         '<div class="tab-panels">'
-        f'<div class="tab-panel" id="tab-complete" role="tabpanel">{complete_html}</div>'
-        f'<div class="tab-panel active" id="tab-failed" role="tabpanel">{failed_html}</div>'
+        f'<div class="tab-panel active" id="tab-complete" role="tabpanel">{complete_html}</div>'
+        f'<div class="tab-panel" id="tab-failed" role="tabpanel">{failed_html}</div>'
         f'<div class="tab-panel" id="tab-grouped" role="tabpanel">{grouped_html}</div>'
         '</div>'
     )
@@ -1646,8 +1679,8 @@ function initReportTabs(){
       syncDownloadButtons(target);
     });
   });
-  // Default active tab is Failed Cases
-  syncDownloadButtons('failed');
+  // Default active tab is Test Case + Results Section
+  syncDownloadButtons('complete');
 }
 
 function initCompleteFilters(){
@@ -2135,7 +2168,7 @@ def summary_report_writer(
     _fs_b64, _fs_filename = _failure_summary_excel_b64(_fs_ag, _fs_mg, channel_name)
     _full_b64, _full_filename = _full_report_excel_b64(excel_path, channel_name)
 
-    # Tab panels (Failed Cases = existing Failure Summary; default active)
+    # Tab panels (Complete = default active; Failed Cases = existing Failure Summary)
     complete_panel = _render_complete_test_cases_panel(visible_rows, counts)
     failed_panel   = _render_failure_html_card(_fs_ag, _fs_mg)
     grouped_panel  = _render_grouped_failed_cases_panel(visible_rows)
