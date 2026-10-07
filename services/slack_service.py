@@ -303,6 +303,7 @@ def send_execution_summary(
         owner_name = r.get("owner") or "NA"
         delivery_type = (r.get("delivery type") or "NA").upper()
         engineer = r.get("engineer") or "NA"
+        region = r.get("delivery region") or "NA"
 
         owner_id = _get_slack_user_id_by_name(client, owner_name)
         owner_mention = f"<@{owner_id}>" if owner_id else f"*{owner_name}*"
@@ -318,7 +319,7 @@ def send_execution_summary(
         else:
             report_part = "HTML Report (unavailable)"
 
-        channel_entries.append(f"{emoji} Channel - *{ch_name}* |"  f"EM - {owner_mention} \u2014 {report_part}")
+        channel_entries.append(f"{emoji} Channel - *{ch_name}* | Region - *{region}*|"  f" EM - {owner_mention} \u2014 {report_part}")
 
     channel_blocks = _chunk_text_into_blocks(channel_entries)
 

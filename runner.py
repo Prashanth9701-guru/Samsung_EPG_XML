@@ -55,6 +55,7 @@ def main():
                       data.get('PSD'),
                       data.get('Owner'),
                       data.get('Engineer'),
+                      data.get('Delivery Region'),
                       data.get('Delivery Type'),
                       data.get('ASSET_TYPES_SUPPORTED'),
                       datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
@@ -69,6 +70,7 @@ def main():
                                      'channel':data.get('Channel Name'),
                                      'owner': data.get('Owner'),
                                      'engineer': data.get('Engineer'),
+                                     'delivery region': data.get('Delivery Region'),
                                      'delivery type': data.get('Delivery Type'),
                                      'html_link':results.get('s3_html_url'),
                                      'json_link':results.get('drive_link')})
