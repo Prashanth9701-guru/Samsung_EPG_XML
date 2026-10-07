@@ -11,7 +11,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 TOKEN_URL = "https://authserver.nandi.amagi.tv/oauth/token"
-PROGRAMS_URL = "https://api-now3.secure.amagi.tv/api/programs"
+PROGRAMS_URL = "https://api.now3.secure.amagi.tv/api/programs"
 CONTENT_TYPE_MAX_RETRIES = 10
 CONTENT_TYPE_RETRY_DELAY_SEC = 2
 
