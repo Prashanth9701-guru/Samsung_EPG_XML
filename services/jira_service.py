@@ -88,6 +88,7 @@ def non_ssai_jira_fetch():
                             "PSD": f'https://amagiengg.atlassian.net/browse/{issues}',
                             "Owner": fields.get("customfield_11743", "not_available").get('displayName', 'Owner not available') if fields.get('customfield_11743', 'not_available') else 'not_available',
                             "Engineer": fields.get("customfield_11746").get('displayName', 'Engineer not available') if fields.get('customfield_11746', 'not_available') else 'not_available',
+                            "Delivery Region": fields.get('customfield_12278')[0].get('value', 'Region not available') if fields.get('customfield_12278', 'not_available') else 'not_available',
                             "Delivery Type": fields.get('customfield_12054', 'not_available').get('value') if fields.get('customfield_12054', 'not_available') else 'not_available',
                             "ASSET_TYPES_SUPPORTED": "Episode",
                             "RUN/STOP": "RUN"
@@ -169,7 +170,7 @@ def ssai_jira_fetch():
                             Delivery_region = region.get('value', None)
 
                         epg_delivery = ''
-                        if fields.get('customfield_11759') and ((fields.get('customfield_11759')).lower() == 'an3' or 'now3' in (fields.get('customfield_11759')).lower()):
+                        if fields.get('customfield_11759') and 'an3' in ((fields.get('customfield_11759')).lower() or 'now3' in (fields.get('customfield_11759')).lower()):
                             epg_delivery = 'AN3'
                         else:
                             epg_delivery = 'AMGEPG'
@@ -181,6 +182,7 @@ def ssai_jira_fetch():
                             "PSD": f'https://amagiengg.atlassian.net/browse/{issues}',
                             "Owner": fields.get("customfield_11743", "not_available").get('displayName', 'Owner not available') if fields.get('customfield_11743', 'not_available') else 'not_available',
                             "Engineer": fields.get("customfield_11746").get('displayName', 'Engineer not available') if fields.get('customfield_11746', 'not_available') else 'not_available',
+                            "Delivery Region": fields.get('customfield_12278')[0].get('value', 'Region not available') if fields.get('customfield_12278', 'not_available') else 'not_available',
                             "Delivery Type": fields.get('customfield_12054', 'not_available').get('value') if fields.get('customfield_12054', 'not_available') else 'not_available',
                             "EPG Delivery": epg_delivery if epg_delivery else 'not_available',
                             "RUN/STOP": "RUN"

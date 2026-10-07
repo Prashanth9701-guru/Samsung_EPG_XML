@@ -74,6 +74,7 @@ def non_ssai_appened_data(ticket_data):
                                   data.get('PSD'),
                                   data.get('Owner'),
                                   data.get('Engineer'),
+                                  data.get('Delivery Region'),
                                   data.get('Delivery Type'),
                                   data.get('ASSET_TYPES_SUPPORTED'),
                                   data.get('RUN/STOP')])

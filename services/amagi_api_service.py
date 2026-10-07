@@ -226,16 +226,26 @@ def collect_asset_content_types(
     default_content_type: str = "others",
 ) -> list:
     """
-    For amgplt EPG URLs only, collect [{asset_id: content_type}, ...] via API.
+    Collect [{asset_id: content_type}, ...] via API.
     Asset IDs are read from date_xml_data (raw EPG XML).
     Programmes with no asset_id use default_content_type from the Google Sheet.
-    Non-amgplt / missing token / errors return [] without raising.
+    amgplt URLs use the Now3 programs API. Non-amgplt URLs use Amagi EPG.
+    Missing token / errors return [] without raising.
     """
     prefix = f"{ticket_id} " if ticket_id else ""
 
     if "amgplt" not in (url or ""):
-        logger.info(f"{prefix}URL has no amgplt; skipping content_type API collection")
-        return []
+        from services.non_ssai_content_type import collect_non_ssai_asset_content_types
+
+        logger.info(
+            f"{prefix}URL has no amgplt; using NON-SSAI Amagi EPG content_type lookup"
+        )
+        return collect_non_ssai_asset_content_types(
+            url,
+            date_xml_data,
+            default_content_type=default_content_type,
+            ticket_id=ticket_id,
+        )
 
     if not token:
         logger.warning(f"{prefix}No OAuth token available; skipping content_type API collection")

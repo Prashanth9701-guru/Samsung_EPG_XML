@@ -8,7 +8,9 @@ from services.jira_service import non_ssai_jira_fetch
 from utilities.helper import *
 from utilities.logger_setup import *
 from utilities.master_template import *
+import os
 
+HISTORY_SHEET_GID = os.environ.get("HISTORY_SHEET_GID", "653083829")
 
 def _is_non_ssai_eligible(data, today, today_format):
     return data.get('RUN/STOP') == 'RUN' and (
@@ -55,6 +57,7 @@ def main():
                       data.get('PSD'),
                       data.get('Owner'),
                       data.get('Engineer'),
+                      data.get('Delivery Region'),
                       data.get('Delivery Type'),
                       data.get('ASSET_TYPES_SUPPORTED'),
                       datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
@@ -69,13 +72,14 @@ def main():
                                      'channel':data.get('Channel Name'),
                                      'owner': data.get('Owner'),
                                      'engineer': data.get('Engineer'),
+                                     'delivery region': data.get('Delivery Region'),
                                      'delivery type': data.get('Delivery Type'),
                                      'html_link':results.get('s3_html_url'),
                                      'json_link':results.get('drive_link')})
 
             for i in range(10):
                 try:
-                    work_sheet_2 = sheet_service.get_worksheet_by_id('653083829')
+                    work_sheet_2 = sheet_service.get_worksheet_by_id(HISTORY_SHEET_GID)
                     print(work_sheet_2.get_all_records())
                     row = len(work_sheet_2.get_all_records())+2
                     work_sheet_2.update(
