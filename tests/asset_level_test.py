@@ -345,7 +345,7 @@ def validate_thumbnail(programs, key, channel_level_language, content_type, expe
                             gcd = math.gcd(width, height)
                             aspect_ratio = f"{int(width / gcd)}:{int(height / gcd)}"
 
-                            if not str(image.format).lower() in ['jpeg', 'jpg']:
+                            if not str(image.format).lower() in ['jpeg', 'jpg', 'png']:
                                 thum_format.append({asset_id: [image.format, thumbnail_url]})
 
                             if image.size != (1920, 1080):
