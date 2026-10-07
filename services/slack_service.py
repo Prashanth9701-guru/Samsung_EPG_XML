@@ -28,8 +28,13 @@ logger = logging.getLogger(__name__)
 
 _MAX_BLOCK_CHARS   = 2_200   # safe limit per mrkdwn section block
 _MAX_BLOCKS_PER_MSG = 38     # Slack allows 50; stay well under
+_SLACK_HTTP_TIMEOUT_SEC = 120
 
-# Cache: lowercase owner_name -> Slack user ID (or None after a failed lookup)
+# lowercase display/real name -> Slack member ID (U...)
+_slack_users_name_map = None  # None = not loaded yet; dict = loaded (may be empty)
+_slack_users_map_load_failed = False
+
+# Cache successful owner_name -> user_id only (do not cache misses/timeouts)
 _owner_user_id_cache = {}
 
 
@@ -45,10 +50,10 @@ def _get_client():
         raise ImportError("slack-sdk is required: pip install slack-sdk")
 
     token = os.environ.get("SLACK_BOT_TOKEN", "")
-    logger.info(f'Slack Bot Token: {token}')
+    logger.info("Slack Bot Token configured: %s", bool(token))
     if not token:
         raise ValueError("SLACK_BOT_TOKEN environment variable is not set.")
-    return WebClient(token=token)
+    return WebClient(token=token, timeout=_SLACK_HTTP_TIMEOUT_SEC)
 
 
 def _resolve_channel(channel):
@@ -82,11 +87,67 @@ def _user_display_names(user: dict) -> set:
     return names
 
 
-def _get_slack_user_id_by_name(client, owner_name: str) -> Optional[str]:
-    """Resolve a Slack user ID from an owner display name via users.list.
+def _load_slack_users_name_map(client) -> Optional[dict]:
+    """Paginate users.list once and build lowercase-name -> user_id map.
 
-    Returns None for empty/NA names or when no match is found. Results are
-    cached for the process lifetime so repeated owners do not re-hit the API.
+    Returns the map on success, or None on failure. A failed load is not
+    retried for the rest of the process (avoids N timeouts for N owners).
+    """
+    global _slack_users_name_map, _slack_users_map_load_failed
+
+    if _slack_users_name_map is not None:
+        return _slack_users_name_map
+    if _slack_users_map_load_failed:
+        return None
+
+    name_map = {}
+    try:
+        cursor = None
+        page = 0
+        while True:
+            kwargs = {"limit": 200}
+            if cursor:
+                kwargs["cursor"] = cursor
+            page += 1
+            logger.info("Fetching Slack users.list page=%s", page)
+            response = client.users_list(**kwargs)
+            if not response.get("ok"):
+                logger.warning("Slack users.list failed: %s", response.get("error"))
+                _slack_users_map_load_failed = True
+                return None
+
+            for user in response.get("members") or []:
+                if not isinstance(user, dict):
+                    continue
+                if user.get("deleted") or user.get("is_bot") or user.get("id") == "USLACKBOT":
+                    continue
+                user_id = user.get("id")
+                if not user_id:
+                    continue
+                for name in _user_display_names(user):
+                    # Prefer first-seen mapping; do not overwrite with empties
+                    name_map.setdefault(name, user_id)
+
+            cursor = (response.get("response_metadata") or {}).get("next_cursor") or ""
+            if not cursor:
+                break
+
+        _slack_users_name_map = name_map
+        _slack_users_map_load_failed = False
+        logger.info("Loaded Slack users name map size=%s", len(name_map))
+        return name_map
+    except Exception as exc:
+        logger.error("Failed to load Slack users.list: %s", exc)
+        _slack_users_map_load_failed = True
+        _slack_users_name_map = None
+        return None
+
+
+def _get_slack_user_id_by_name(client, owner_name: str) -> Optional[str]:
+    """Resolve a Slack member ID from an owner display name.
+
+    Uses a single process-wide users.list map. Successful lookups are cached;
+    timeouts / API failures are not cached as permanent misses.
     """
     name = (owner_name or "").strip()
     if not name or name.upper() == "NA":
@@ -96,47 +157,20 @@ def _get_slack_user_id_by_name(client, owner_name: str) -> Optional[str]:
     if cache_key in _owner_user_id_cache:
         return _owner_user_id_cache[cache_key]
 
-    user_id = None
-    try:
-        cursor = None
-        while True:
-            kwargs = {"limit": 200}
-            if cursor:
-                kwargs["cursor"] = cursor
-            response = client.users_list(**kwargs)
-            if not response.get("ok"):
-                logger.warning(
-                    "Slack users.list failed for owner_name=%s: %s",
-                    name,
-                    response.get("error"),
-                )
-                break
+    name_map = _load_slack_users_name_map(client)
+    if name_map is None:
+        logger.warning(
+            "Slack user map unavailable; skipping mention for owner_name=%s",
+            name,
+        )
+        return None
 
-            for user in response.get("members") or []:
-                if not isinstance(user, dict):
-                    continue
-                if user.get("deleted") or user.get("is_bot") or user.get("id") == "USLACKBOT":
-                    continue
-                if cache_key in _user_display_names(user):
-                    user_id = user.get("id")
-                    break
-
-            if user_id:
-                break
-
-            cursor = (response.get("response_metadata") or {}).get("next_cursor") or ""
-            if not cursor:
-                break
-
-        if user_id:
-            logger.info("Resolved Slack user_id=%s for owner_name=%s", user_id, name)
-        else:
-            logger.warning("No Slack user found for owner_name=%s", name)
-    except Exception as exc:
-        logger.error("Slack user lookup failed for owner_name=%s: %s", name, exc)
-        user_id = None
-
-    _owner_user_id_cache[cache_key] = user_id
+    user_id = name_map.get(cache_key)
+    if user_id:
+        logger.info("Resolved Slack user_id=%s for owner_name=%s", user_id, name)
+        _owner_user_id_cache[cache_key] = user_id
+    else:
+        logger.warning("No Slack user found for owner_name=%s", name)
     return user_id
 
 
@@ -284,7 +318,7 @@ def send_execution_summary(
         else:
             report_part = "HTML Report (unavailable)"
 
-        channel_entries.append(f"{emoji} Channel - *{ch_name}* | EM - {owner_mention} \u2014 {report_part}")
+        channel_entries.append(f"{emoji} Channel - *{ch_name}* |"  f"EM - {owner_mention} \u2014 {report_part}")
 
     channel_blocks = _chunk_text_into_blocks(channel_entries)
 
