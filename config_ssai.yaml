@@ -38,6 +38,7 @@ thumbnail:
   formats:
     - jpg
     - jpeg
+    - png
 
 # Feed genres are lowercase (e.g. thriller, comedy); include Title Case for allow-list compatibility
 genres:
