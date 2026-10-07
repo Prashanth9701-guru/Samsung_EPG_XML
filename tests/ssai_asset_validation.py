@@ -513,7 +513,7 @@ def _suite_e_poster(
     max_url = lengths.get("poster_url", 2000)
     exp_w = int(thumb.get("width", 1920))
     exp_h = int(thumb.get("height", 1080))
-    formats = {str(f).lower() for f in (thumb.get("formats") or ["jpg", "jpeg"])}
+    formats = {str(f).lower() for f in (thumb.get("formats") or ["jpg", "jpeg", "png"])}
     image_cache: Dict[str, Tuple[Optional[Any], Optional[str], Optional[str], Optional[int], Optional[int]]] = {}
 
     def _load_image(url: str):
@@ -590,7 +590,7 @@ def _suite_e_poster(
                     _record(buckets["status"], date, key, [err, url])
                 continue
 
-            if img_fmt and img_fmt not in formats and img_fmt not in {"jpeg", "jpg"}:
+            if img_fmt and img_fmt not in formats and img_fmt not in {"jpeg", "jpg", "png"}:
                 _record(buckets["format"], date, key, [img_fmt, url])
             if img_w is not None and img_h is not None and (img_w, img_h) != (exp_w, exp_h):
                 _record(buckets["resolution"], date, key, [f"{img_w}X{img_h}", url])
@@ -608,7 +608,7 @@ def _suite_e_poster(
 
             if not _is_empty(ptype) and img_fmt:
                 ptype_l = str(ptype).lower()
-                if ptype_l not in formats and ptype_l not in {"jpeg", "jpg", "image/jpeg", "image/jpg"}:
+                if ptype_l not in formats and ptype_l not in {"jpeg", "jpg", "png", "image/png", "image/jpeg", "image/jpg"}:
                     if ptype_l not in {img_fmt, f"image/{img_fmt}"}:
                         _record(buckets["format"], date, key, [f"json type={ptype}", img_fmt, url])
 
@@ -1394,10 +1394,10 @@ def run_ssai_day_validations(
     num = _append_row(
         num, mod,
         "Verify the thumbnail format for all assets across the seven-day schedule",
-        "Every asset thumbnail should be in JPEG or JPG format throughout the seven-day schedule.",
+        "Every asset thumbnail should be in JPEG or JPG or PNG format throughout the seven-day schedule.",
         poster_buckets["format"], empty_nt,
-        "Every asset thumbnail is in the required JPEG or JPG format.",
-        "One or more asset thumbnails are not in the required JPEG or JPG format.",
+        "Every asset thumbnail is in the required JPEG or JPG or PNG format.",
+        "One or more asset thumbnails are not in the required JPEG or JPG or PNG format.",
         "",
     )
     num = _append_row(
