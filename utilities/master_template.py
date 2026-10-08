@@ -90,6 +90,7 @@ def template(url,
 
     drive_link: str = ""
     s3_html_url: str = ""
+    status: str = ""
     input_start = datetime.now(timezone.utc)
     mongo_fetched = None
 
@@ -658,6 +659,7 @@ def template(url,
                     except Exception as exc:
                         logger.warning(f"S3 HTML upload failed: {exc}")
                     logger.info(f"S3_HTML URL: {s3_html_url}")
+                    status = "FAILED" if 'Failed' in str(Validation_Output) else "SUCCESS"
                     #filtered_list = failed_cases_seperator()
                     #logger.info(f"filtered_list: {filtered_list}")
                 else:
@@ -708,6 +710,7 @@ def template(url,
                     except Exception as exc:
                         logger.warning(f"S3 HTML upload failed: {exc}")
                     logger.info(f"S3_HTML URL: {s3_html_url}")
+                    status = "FAILED" if 'Failed' in str(Validation_Output) else "SUCCESS"
                     # filtered_list = failed_cases_seperator()
                     # logger.info(f"filtered_list: {filtered_list}")
 
@@ -784,7 +787,7 @@ def template(url,
     else:
         Validation_Output.append(helper_fuc(sequence_number, 'URL', 'Verify the URL content format', 'The URL should point to content in XML format.', 'Failed','The URL points to content not in XML format.'))
 
-    return {"status":"SUCCESS",
+    return {"status": status,
             "xml_url":url,
             "drive_link":drive_link,
             "s3_html_url":s3_html_url}
