@@ -64,11 +64,11 @@ def _resolve_channel(channel):
 def _status_emoji(status):
     s = str(status or "").upper()
     if s == "SUCCESS":
-        return ":white_check_mark:"
+        return ":large_green_circle:"
     if s == "FAILED_ORANGE":
-        return ":orange_x:"    
+        return ":large_orange_circle:"    
     if s in ("FAILED", "ERROR"):
-        return ":x:"
+        return ":red_circle:"
     return ":large_yellow_circle:"
 
 
