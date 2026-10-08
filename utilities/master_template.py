@@ -778,6 +778,7 @@ def template(url,
             except Exception as exc:
                 logger.warning(f"S3 HTML upload failed: {exc}")
             logger.info(f"S3_HTML URL: {s3_html_url}")
+            status = "FAILED" if 'Failed' in str(Validation_Output) else "SUCCESS"
             # filtered_list = failed_cases_seperator()
             # logger.info(f"filtered_list: {filtered_list}")
     elif url.endswith('.json'):
