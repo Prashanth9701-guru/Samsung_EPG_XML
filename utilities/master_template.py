@@ -661,7 +661,7 @@ def template(url,
                     logger.info(f"S3_HTML URL: {s3_html_url}")
                     failed_filters = [out_1 for out_1 in Validation_Output if out_1.get('Status') == 'Failed']
 
-                    status = "FAILED_ORANGE" if failed_filters and 'Critical' in str(failed_filters) else "FAILED" if failed_filters and 'Blocker' in str(failed_filters) else "SUCCESS"
+                    status = "FAILED" if failed_filters and 'Blocker' in str(failed_filters) else "FAILED_ORANGE" if failed_filters and 'Critical' in str(failed_filters) else "SUCCESS"
                     #filtered_list = failed_cases_seperator()
                     #logger.info(f"filtered_list: {filtered_list}")
                 else:
@@ -714,7 +714,7 @@ def template(url,
                     logger.info(f"S3_HTML URL: {s3_html_url}")
                     failed_filters = [out_1 for out_1 in Validation_Output if out_1.get('Status') == 'Failed']
 
-                    status = "FAILED_ORANGE" if failed_filters and 'Critical' in str(failed_filters) else "FAILED" if failed_filters and 'Blocker' in str(failed_filters) else "SUCCESS"
+                    status = "FAILED" if failed_filters and 'Blocker' in str(failed_filters) else "FAILED_ORANGE" if failed_filters and 'Critical' in str(failed_filters) else "SUCCESS"
                     # filtered_list = failed_cases_seperator()
                     # logger.info(f"filtered_list: {filtered_list}")
 
@@ -911,7 +911,7 @@ def template(url,
             logger.info(f"S3_HTML URL: {s3_html_url}")
             failed_filters = [out_1 for out_1 in Validation_Output if out_1.get('Status') == 'Failed']
 
-            status = "FAILED_ORANGE" if failed_filters and 'Critical' in str(failed_filters) else "FAILED" if failed_filters and 'Blocker' in str(failed_filters) else "SUCCESS"
+            status = "FAILED" if failed_filters and 'Blocker' in str(failed_filters) else "FAILED_ORANGE" if failed_filters and 'Critical' in str(failed_filters) else "SUCCESS"
             # filtered_list = failed_cases_seperator()
             # logger.info(f"filtered_list: {filtered_list}")
     elif url.endswith('.json'):
