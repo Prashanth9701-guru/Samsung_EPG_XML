@@ -5,8 +5,6 @@ import requests
 import yaml
 import logging
 
-from selenium.webdriver.support.expected_conditions import element_selection_state_to_be
-
 from tests.asset_level_test import validate_thumbnail, validate_rating
 from tests.channel_level_test import capture_channel_level_lang
 from utilities.helper import *
