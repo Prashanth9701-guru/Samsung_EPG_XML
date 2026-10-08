@@ -5,6 +5,8 @@ import requests
 import yaml
 import logging
 
+from selenium.webdriver.support.expected_conditions import element_selection_state_to_be
+
 from tests.asset_level_test import validate_thumbnail, validate_rating
 from tests.channel_level_test import capture_channel_level_lang
 from utilities.helper import *
@@ -659,7 +661,9 @@ def template(url,
                     except Exception as exc:
                         logger.warning(f"S3 HTML upload failed: {exc}")
                     logger.info(f"S3_HTML URL: {s3_html_url}")
-                    status = "FAILED" if 'Failed' in str(Validation_Output) else "SUCCESS"
+                    failed_filters = [out_1 for out_1 in Validation_Output if out_1.get('Status') == 'Failed']
+
+                    status = "FAILED" if failed_filters and 'Blocker' in str(failed_filters) else "FAILED_ORANGE" if failed_filters and 'Critical' in str(failed_filters) else "SUCCESS"
                     #filtered_list = failed_cases_seperator()
                     #logger.info(f"filtered_list: {filtered_list}")
                 else:
@@ -710,7 +714,9 @@ def template(url,
                     except Exception as exc:
                         logger.warning(f"S3 HTML upload failed: {exc}")
                     logger.info(f"S3_HTML URL: {s3_html_url}")
-                    status = "FAILED" if 'Failed' in str(Validation_Output) else "SUCCESS"
+                    failed_filters = [out_1 for out_1 in Validation_Output if out_1.get('Status') == 'Failed']
+
+                    status = "FAILED" if failed_filters and 'Blocker' in str(failed_filters) else "FAILED_ORANGE" if failed_filters and 'Critical' in str(failed_filters) else "SUCCESS"
                     # filtered_list = failed_cases_seperator()
                     # logger.info(f"filtered_list: {filtered_list}")
 
@@ -905,7 +911,9 @@ def template(url,
             except Exception as exc:
                 logger.warning(f"S3 HTML upload failed: {exc}")
             logger.info(f"S3_HTML URL: {s3_html_url}")
-            status = "FAILED" if 'Failed' in str(Validation_Output) else "SUCCESS"
+            failed_filters = [out_1 for out_1 in Validation_Output if out_1.get('Status') == 'Failed']
+
+            status = "FAILED" if failed_filters and 'Blocker' in str(failed_filters) else "FAILED_ORANGE" if failed_filters and 'Critical' in str(failed_filters) else "SUCCESS"
             # filtered_list = failed_cases_seperator()
             # logger.info(f"filtered_list: {filtered_list}")
     elif url.endswith('.json'):

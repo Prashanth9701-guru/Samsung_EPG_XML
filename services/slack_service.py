@@ -65,6 +65,8 @@ def _status_emoji(status):
     s = str(status or "").upper()
     if s == "SUCCESS":
         return ":white_check_mark:"
+    if s == "FAILED_ORANGE":
+        return ":orange_x:"    
     if s in ("FAILED", "ERROR"):
         return ":x:"
     return ":large_yellow_circle:"
