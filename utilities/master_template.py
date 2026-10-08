@@ -731,6 +731,133 @@ def template(url,
                         "drive_link":drive_link,
                         "s3_html_url":s3_html_url}
         else:
+            Validation_Output.append(helper_fuc(sequence_number, 'URL', f'Validate the status code of url in all 7 days', f'url should load successfully in all 7 days', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Channel_Level', f'Verify the presence of the channel tag across the seven-day schedule', f'The channel tag should be present for each day of the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Channel_Level', f'Verify the presence of the display-name tag under the channel tag across the seven-day schedule', f'The display-name tag should be present under the channel tag for each day of the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Channel_Level', f'Verify the presence of the channel name across the seven-day schedule', f'The channel name should be available for each day of the seven-day schedule.', 'Not Tested', 'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Channel_Level', f'Verify the presence of the channel-level language across the seven-day schedule', f'The channel-level language should be specified for each day of the seven-day schedule.', 'Not Tested', 'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of mandatory fields for all assets across the seven-day schedule', f'All mandatory fields should be present for every asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that all assets have a valid content_type value across the seven-day schedule', f'Every asset should have a valid content_type value throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the start-time format for all assets across the seven-day schedule', f'The start time of every asset should use the expected date-time format throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the end-time format for all assets across the seven-day schedule', f'The end time of every asset should use the expected date-time format throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Verify that no asset shorter than 20 minutes (1,200 seconds) is scheduled across the seven-day schedule', f'Every scheduled asset should have a duration of at least 20 minutes (1,200 seconds) throughout the seven-day schedule.', 'Not Tested', 'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Verify that no asset longer than 6 hours (21,600 seconds) is scheduled across the seven-day schedule', f'Every scheduled asset should have a duration of no more than 6 hours (21,600 seconds) throughout the seven-day schedule.', 'Not Tested', 'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Verify that there are no scheduling gaps between assets across the seven-day schedule', f"Each asset's stop time should match the next asset's start time throughout the seven-day schedule.", 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Verify the presence of the minutes attribute for all assets across the seven-day schedule', f'The minutes attribute should be present for every asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Verify the presence of a minutes value for all assets across the seven-day schedule', f'A minutes value should be specified for every asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Verify that each asset duration in minutes matches its minutes value across the seven-day schedule', f"Each asset's duration in minutes should match its minutes value throughout the seven-day schedule.", 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Verify the presence of the seconds attribute for all assets across the seven-day schedule', f'The seconds attribute should be present for every asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Verify the presence of a seconds value for all assets across the seven-day schedule', f'A seconds value should be specified for every asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Schedule', f'Verify that each asset duration in seconds matches its seconds value across the seven-day schedule', f"Each asset's duration in seconds should match its seconds value throughout the seven-day schedule.", 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of a title for all assets across the seven-day schedule', f'A title should be present for every asset in the seven-day schedule.', 'Not Tested', f"Dependent test cases are Failed. Hence, this test case not tested"))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f"Verify that no asset title contains 'To Be Announced' across the seven-day schedule", f"No asset title should contain 'To Be Announced' in the seven-day schedule.", 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that asset titles and descriptions are not identical across the seven-day schedule', f"An asset's title and description should not be identical anywhere in the seven-day schedule.", 'Not Tested', f"Dependent test cases are Failed. Hence, this test case not tested"))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the title length for all assets across the seven-day schedule', f'No asset title should exceed 200 characters in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that asset titles do not contain prohibited special characters across the seven-day schedule', f'Asset titles should not contain special characters prohibited by the platform standards.', 'Not Tested', f"Dependent test cases are Failed. Hence, this test case not tested"))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of a language attribute in all title tags across the seven-day schedule', f'Every title tag should include a language attribute throughout the seven-day schedule.', 'Not Tested', f"Dependent test cases are Failed. Hence, this test case not tested"))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that title_language matches channel_language across the seven-day schedule', f'The title_language value should match the channel_language value throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of a subtitle for all applicable assets across the seven-day schedule', f'A subtitle should be present for every applicable asset in the seven-day schedule.', 'Not Tested', 'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that asset subtitles and titles are not identical across the seven-day schedule', f"An asset's subtitle and title should not be identical anywhere in the seven-day schedule.", 'Not Tested', 'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that asset subtitles and descriptions are not identical across the seven-day schedule', f"An asset's subtitle and description should not be identical anywhere in the seven-day schedule.", 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the subtitle length for all assets across the seven-day schedule', f'No asset subtitle should exceed 200 characters in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that asset subtitles do not contain prohibited special characters across the seven-day schedule', f'Asset subtitles should not contain special characters prohibited by the platform standards.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of a language attribute in all subtitle tags across the seven-day schedule', f'Every subtitle tag should include a language attribute throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that subtitle_language matches channel_language across the seven-day schedule', f'The subtitle_language value should match the channel_language value throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of a description for all assets across the seven-day schedule', f'A description should be present for every asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the description length for all assets across the seven-day schedule', f'No asset description should exceed 4,000 characters in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that asset descriptions do not contain prohibited special characters across the seven-day schedule', f'Asset descriptions should not contain special characters prohibited by the platform standards.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of a language attribute in all description tags across the seven-day schedule', f'Every description tag should include a language attribute throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that description_language matches channel_language across the seven-day schedule', f'The description_language value should match the channel_language value throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of a category for all assets across the seven-day schedule', f'A category should be present for every asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of a language attribute in all category tags across the seven-day schedule', f'Every category tag should include a language attribute throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that category_language matches channel_language across the seven-day schedule', f'The category_language value should match the channel_language value throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that all categories comply with Samsung standards across the seven-day schedule', f'Every category should be included in the Samsung_Supported_Category_List throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of the asset language for all assets across the seven-day schedule', f'The asset language should be specified for every asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that asset_language matches channel_language across the seven-day schedule', f'The asset_language value should match the channel_language value throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of the original language for all assets across the seven-day schedule', f'The original language should be specified for every asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that asset orig_language matches channel_language across the seven-day schedule', f'The asset orig_language value should match the channel_language value throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the availability of thumbnails for all assets across the seven-day schedule', f'A thumbnail should be available for every asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of the thumbnail width for all assets across the seven-day schedule', f'The thumbnail width should be specified for every asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of the thumbnail height for all assets across the seven-day schedule', f'The thumbnail height should be specified for every asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the thumbnail URL length for all assets across the seven-day schedule', f'No asset thumbnail URL should exceed 2,000 characters in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the HTTP response status of all asset thumbnails across the seven-day schedule', f'Every asset thumbnail URL should return an HTTP 200 OK response throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the thumbnail format for all assets across the seven-day schedule', f'Every asset thumbnail should be in JPEG or JPG or PNG format throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the thumbnail resolution for all assets across the seven-day schedule', f'Every asset thumbnail should have a resolution of 1920 × 1080 pixels throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that each actual thumbnail width matches its XML_thumbnail_width value across the seven-day schedule', f"Each asset thumbnail's actual width should match the XML_thumbnail_width value throughout the seven-day schedule.", 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that each actual thumbnail height matches its XML_thumbnail_height value across the seven-day schedule', f"Each asset thumbnail's actual height should match the XML_thumbnail_height value throughout the seven-day schedule.", 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the thumbnail aspect ratio for all assets across the seven-day schedule', f'Every asset thumbnail should have a 16:9 aspect ratio throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of a rating source for all assets across the seven-day schedule', f'A rating source should be specified for every asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Validate Rating Source as per Samsung standard in all 7 days', f'Rating Source should present in Samsung_Supported_Rating_Source_List in all 7 days', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of a rating value for all assets across the seven-day schedule', f'A rating value should be specified for every asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify that all rating values comply with Samsung standards across the seven-day schedule', f'Every rating value should be included in the Samsung_Supported_Rating_Value_List throughout the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of an asset ID for all assets across the seven-day schedule', f'An asset ID should be present for every asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the asset ID length across the seven-day schedule', f'No asset ID should exceed 50 characters in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            Validation_Output.append(helper_fuc(sequence_number, 'Asset_Level', f'Verify the presence of an episode number for all applicable assets across the seven-day schedule', f'An episode number should be specified for every applicable asset in the seven-day schedule.', 'Not Tested', f'Dependent test cases are Failed. Hence, this test case not tested'))
+            sequence_number += 1
+            
+
+
             logger.info(f'{ticket_id} Validation Output when there is no xml data: {Validation_Output}')
             apply_priorities_to_validation_output(Validation_Output)
             excel_path = xlsx_report(Validation_Output, report_path)
