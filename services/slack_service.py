@@ -273,7 +273,7 @@ def send_execution_summary(
     ts_text  = f"Started: {build_start_time}" if build_start_time else ""
     counts   = f"Total: {total}\u2003Executed: {executed}\u2003Failed: {failed}\u2003Skipped: {skipped}"
 
-    header_lines = [":white_check_mark: *EPG Validation Summary*"]
+    header_lines = [":rotating_light: *EPG Validation Summary*"]
     if bu_text:
         header_lines.append(bu_text)
     if type_text:
