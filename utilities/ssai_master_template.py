@@ -366,7 +366,7 @@ def ssai_template(
         # remain in Excel/HTML and do not drive this status.
         #status = "PASSED"
         failed_filters = [out_1 for out_1 in Validation_Output if out_1.get('Status') == 'Failed']
-        status = "FAILED" if failed_filters and 'Blocker' in str(failed_filters) else "FAILED_ORANGE" if failed_filters and 'Critical' in str(failed_filters) else "SUCCESS"
+        status = "FAILED_ORANGE" if failed_filters and 'Critical' in str(failed_filters) else "FAILED" if failed_filters and 'Blocker' in str(failed_filters) else "SUCCESS"
 
         logger.info(
             "%s ssai_template done status=%s drive=%s s3=%s path=%s",
