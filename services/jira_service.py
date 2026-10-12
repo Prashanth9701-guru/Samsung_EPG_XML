@@ -8,7 +8,7 @@ from atlassian import Jira
 import re
 
 from requests.auth import HTTPBasicAuth
-
+from urllib.parse import urlparse
 
 config = yaml.safe_load(open('config.yaml'))
 
@@ -172,8 +172,21 @@ def ssai_jira_fetch():
                         epg_delivery = ''
                         if fields.get('customfield_11759') and 'an3' in ((fields.get('customfield_11759')).lower() or 'now3' in (fields.get('customfield_11759')).lower()):
                             epg_delivery = 'AN3'
+                        elif fields.get('customfield_11759') and (fields.get('customfield_11759').startswith('https://') or 'amagi.tv' in fields.get('customfield_11759')):
+                            result = urlparse(fields.get('customfield_11759'))
+                            fragments = result.fragment.split('/')
+                            customer_id = next((fra for fra in fragments if fra and fra.isdigit()), None)
+                            epg_delivery = customer_id
+                            #epg_delivery = 'AMGEPG'
+
+                        elif fields.get('customfield_11759') and fields.get('customfield_11759').isdigit():
+                            epg_delivery = fields.get('customfield_11759')
+
+                        elif fields.get('customfield_11759'):
+                            epg_delivery = 'EPG_ID not added as per Automation Expected Format'
+
                         else:
-                            epg_delivery = 'AMGEPG'
+                            epg_delivery = 'EPG_ID not available'
 
                         ticket_data.append({
                             "Stream URL": fields.get('customfield_12569', 'not_available') if fields.get('customfield_12569', 'not_available') else 'not_available',

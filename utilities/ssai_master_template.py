@@ -11,6 +11,8 @@ from typing import Any, Dict, Optional
 from urllib.parse import urlsplit
 
 from services import mongo_service
+from services.amgepg_api import AMGEPGAPIError
+from services.amgepg_schedule import fetch_amgepg_schedules
 from services.ssai_gsheet_service import SSAI_DRIVE_FOLDER_ID
 from services.ssai_schedule_api import fetch_schedule_with_token_retry
 from services.xlsx_service import xlsx_report
@@ -399,6 +401,221 @@ def ssai_template(
         return {
             "status": "FAILED",
             "stream_url": stream_url,
+            "drive_link": drive_link,
+            "s3_html_url": s3_html_url,
+            "report_path": report_path,
+        }
+
+
+def _finalize_ssai_reports(
+    *,
+    ticket_id: str,
+    channel_name: str,
+    content_partner_name: str,
+    stream_url: str,
+    report_path: str,
+    input_start: datetime,
+    pipeline_status: str = "PASSED",
+) -> Dict[str, Any]:
+    """Shared Excel / Mongo / HTML / Drive / S3 / status for AN3 and AMGEPG."""
+    drive_link = ""
+    s3_html_url = ""
+    excel_path = None
+    html_path = None
+    mongo_fetched = None
+
+    try:
+        if Validation_Output:
+            apply_priorities_to_validation_output(Validation_Output)
+            excel_path = xlsx_report(Validation_Output, report_path) if report_path else None
+            logger.info("%s Excel report: %s", ticket_id, excel_path)
+    except Exception as exc:
+        logger.warning("%s Excel report failed: %s", ticket_id, exc)
+
+    mongo_fetched = _store_and_fetch_mongo_ssai(
+        ticket_id=ticket_id,
+        channel_name=channel_name,
+        content_partner_name=content_partner_name,
+        stream_url=stream_url,
+        pipeline_status=pipeline_status,
+        input_start=input_start,
+        drive_link=drive_link,
+        s3_html_url=s3_html_url,
+    )
+    logger.info("%s Mongo fetched result returned: %s", ticket_id, mongo_fetched)
+
+    try:
+        updated_summary_list = ssai_failed_cases_seperator(mongo_fetched)
+        if excel_path:
+            html_path = _write_html_report(
+                excel_path,
+                channel_name,
+                content_partner_name,
+                ticket_id,
+                stream_url,
+                updated_summary_list=updated_summary_list,
+            )
+            logger.info("%s HTML report: %s", ticket_id, html_path)
+    except Exception as exc:
+        logger.warning("%s HTML report failed: %s", ticket_id, exc)
+
+    zip_file = _zip_report_folder(report_path) if report_path else None
+    drive_link = _upload_drive(zip_file) if zip_file else ""
+    s3_html_url = _upload_s3_html(html_path)
+
+    failed_filters = [out_1 for out_1 in Validation_Output if out_1.get("Status") == "Failed"]
+    status = (
+        "FAILED"
+        if failed_filters and "Blocker" in str(failed_filters)
+        else "FAILED_ORANGE"
+        if failed_filters and "Critical" in str(failed_filters)
+        else "PASSED"
+    )
+    return {
+        "status": status,
+        "stream_url": stream_url,
+        "drive_link": drive_link,
+        "s3_html_url": s3_html_url,
+        "report_path": report_path,
+    }
+
+
+def amgepg_template(
+    customer_id: Any,
+    delivery_region: str,
+    ticket_id: str,
+    channel_name: str,
+    content_partner_name: str,
+    stream_url: str = "",
+    sequence_number: int = 1,
+) -> Dict[str, Any]:
+    """
+    Fetch AMGEPG schedules for the sheet customer_id, then run the same AN3
+    day validators and reporting. Does not use the AN3 schedule API.
+    """
+    drive_link = ""
+    s3_html_url = ""
+    report_path = ""
+    input_start = datetime.now(timezone.utc)
+    feed_url = (stream_url or "").strip() or f"amgepg://customer/{customer_id}"
+
+    try:
+        Validation_Output.clear()
+        num = sequence_number
+        report_path = create_ssai_report_dir(ticket_id)
+
+        Validation_Output.append(
+            helper_fuc(
+                num,
+                "URL",
+                "Verify AMGEPG customer_id and delivery region for schedule fetch",
+                "customer_id and delivery_region should be present for AMGEPG schedule fetch.",
+                "Passed",
+                f"customer_id={customer_id} delivery_region={delivery_region}",
+                "",
+            )
+        )
+        num += 1
+
+        try:
+            fetch_result = fetch_amgepg_schedules(
+                customer_id=customer_id,
+                delivery_region=delivery_region,
+                report_path=report_path,
+                ticket_id=ticket_id,
+            )
+        except AMGEPGAPIError as exc:
+            logger.error("%s AMGEPG fetch failed: %s", ticket_id, exc)
+            fetch_result = {
+                "ok": False,
+                "by_date": {},
+                "failed_days": [{"date": None, "status_code": None, "error": str(exc)}],
+                "dates_ok": [],
+                "dates_failed": [],
+                "error": str(exc),
+            }
+
+        if not fetch_result.get("ok"):
+            err = fetch_result.get("error") or "AMGEPG schedule data not available"
+            Validation_Output.append(
+                helper_fuc(
+                    num,
+                    "URL",
+                    "Verify EPG data availability across the seven-day schedule",
+                    "EPG data should be available for all days of the seven-day schedule.",
+                    "Failed",
+                    err,
+                    "",
+                )
+            )
+            num += 1
+            num = record_epg_fetch_status(
+                num,
+                fetch_result,
+                ticket_id=ticket_id,
+                epg_urls_empty=not (fetch_result.get("dates_ok") or fetch_result.get("failed_days")),
+            )
+        else:
+            dates_ok = fetch_result.get("dates_ok") or []
+            Validation_Output.append(
+                helper_fuc(
+                    num,
+                    "URL",
+                    "Verify EPG data availability across the seven-day schedule",
+                    "EPG data should be available for all days of the seven-day schedule.",
+                    "Passed",
+                    f"AMGEPG EPG dates: {', '.join(sorted(dates_ok))} "
+                    f"(channel={fetch_result.get('channel_code')} "
+                    f"platform={fetch_result.get('platform_id')})",
+                    "",
+                )
+            )
+            num += 1
+            num = record_epg_fetch_status(num, fetch_result, ticket_id=ticket_id)
+            by_date = fetch_result.get("by_date") or {}
+            if by_date:
+                num = run_ssai_day_validations(
+                    by_date=by_date,
+                    stream_url=feed_url,
+                    sequence_number=num,
+                    ticket_id=ticket_id,
+                )
+            else:
+                logger.warning("%s No successful AMGEPG EPG days to validate", ticket_id)
+
+        result = _finalize_ssai_reports(
+            ticket_id=ticket_id,
+            channel_name=channel_name,
+            content_partner_name=content_partner_name,
+            stream_url=feed_url,
+            report_path=report_path,
+            input_start=input_start,
+            pipeline_status="PASSED",
+        )
+        logger.info(
+            "%s amgepg_template done status=%s drive=%s s3=%s",
+            ticket_id,
+            result.get("status"),
+            bool(result.get("drive_link")),
+            bool(result.get("s3_html_url")),
+        )
+        return result
+
+    except Exception as exc:
+        logger.error("%s amgepg_template unexpected error: %s", ticket_id, exc)
+        _store_and_fetch_mongo_ssai(
+            ticket_id=ticket_id,
+            channel_name=channel_name,
+            content_partner_name=content_partner_name,
+            stream_url=feed_url,
+            pipeline_status="FAILED",
+            input_start=input_start,
+            drive_link=drive_link,
+            s3_html_url=s3_html_url,
+        )
+        return {
+            "status": "FAILED",
+            "stream_url": feed_url,
             "drive_link": drive_link,
             "s3_html_url": s3_html_url,
             "report_path": report_path,
