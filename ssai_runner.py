@@ -237,7 +237,7 @@ def main() -> None:
                 ],
             )
 
-            mark = "✔" if status == "PASSED" else "❌"
+            mark = "✔" if s3_html_url else "❌"
             update_ssai_current_day_status(
                 worksheet, inx, new_column_number, mark, today_header=today_format
             )
