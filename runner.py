@@ -88,7 +88,7 @@ def main():
                     )
         
                     today_date = datetime.today().strftime("%d-%b-%Y")
-                    if results.get('html_link'):
+                    if results.get('s3_html_url'):
                         work_sheet.update_cell(1, new_column_number, today_date)
                         work_sheet.update_cell(inx+2, new_column_number, "✔")
                     else:
