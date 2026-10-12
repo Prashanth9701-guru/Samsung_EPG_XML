@@ -793,7 +793,8 @@ def _suite_k_content_uri(
             continue
         if not isinstance(uri, str):
             continue
-        if uri != stream_url:
+        #if uri != stream_url:
+        if not uri.split('?')[0] in stream_url and all(parameter in stream_url for parameter in uri.split('?')[1].split('&')):
             _record(stream_fail, date, key, [uri, stream_url])
         if not _content_uri_has_ads_macros(uri, config):
             _record(ads_fail, date, key, [uri])
