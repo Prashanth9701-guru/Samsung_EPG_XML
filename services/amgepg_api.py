@@ -232,7 +232,7 @@ class AMGEPGClient:
             )
             response = requests.get(
                 url,
-                headers={"Accept": "application/json"},
+                headers=self._auth_headers(),
                 timeout=self.timeout,
             )
         except requests.RequestException as exc:
