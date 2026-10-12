@@ -301,6 +301,8 @@ def _content_uri_has_ads_macros(uri: str, config: dict) -> bool:
     markers = config.get("content_uri_required_markers") or ["ads."]
     macro_keys = config.get("content_uri_macro_keys") or []
     url_parser_list = urlparse(uri).query.split('&')
+    logger.info(f'Stream URL: {uri}')
+    logger.info(f'{all(marker in url_parser for url_parser in url_parser_list for marker in markers)}')
     if not all(marker in url_parser for url_parser in url_parser_list for marker in markers):
     #if not all(marker in uri for marker in markers):
         return False
@@ -308,6 +310,7 @@ def _content_uri_has_ads_macros(uri: str, config: dict) -> bool:
 
     for url_parser in url_parser_list:
         if not url_parser.split('=')[1].isdigit():
+            logger.info(f'Encoded: {url_parser.split('=')[1]}')
             if not url_parser.split('=')[1].startswith('%7B') and not url_parser.split('=')[1].endswith('%7D'):
                 return False
     return True
