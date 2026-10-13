@@ -389,7 +389,7 @@ def failed_cases_seperator(mongo_fetched):
                     updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, {data.get('Issue Summary').replace('in-correct-rating', ', '.join(set(duplicate_values)))}", priority))
                 logger.info(f'Completed Failed Case Separator 15')
 
-            elif data.get('Issue Summary') == 'One or more assets contain a rating source that is not permitted by the platform standards.' or data.get('Issue Summary') == 'One or more assets contain a rating value that is not included in the Samsung_Supported_Rating_Value_List.':
+            elif data.get('Issue Summary') == 'One or more assets contain a rating source that is not permitted by the platform standards.' or data.get('Issue Summary') == 'One or more assets contain a rating value that is not permitted by the platform standard.':
                 logger.info(f'Started Failed Case Separator 16')
                 common_asset_ids = {}
                 for asset_ids_data in list(ast.literal_eval(f"[{data.get('Asset IDs')}]")):
@@ -408,10 +408,8 @@ def failed_cases_seperator(mongo_fetched):
                 for key, Values in common_asset_ids.items():
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset having (f{', '.join(set(duplicate_values))}) rating source that is not permitted by the platform standard" if 'rating source' in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset having (f{', '.join(set(duplicate_values))}) rating value that is not permitted by the platform standard", priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset having ({', '.join(set(duplicate_values))}) rating source that is not permitted by the platform standard" if 'rating source' in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset having (f{', '.join(set(duplicate_values))}) rating value that is not permitted by the platform standard", priority))
                 logger.info(f'Completed Failed Case Separator 16')
-
-
 
 
                     
