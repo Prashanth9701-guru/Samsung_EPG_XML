@@ -408,7 +408,7 @@ def failed_cases_seperator(mongo_fetched):
                 for key, Values in common_asset_ids.items():
                     duplicate_values = []
                     duplicate_values.extend(i for v in list(Values.values()) for i in v)
-                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset having ({', '.join(set(duplicate_values))}) rating source that is not permitted by the platform standard" if 'rating source' in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset having (f{', '.join(set(duplicate_values))}) rating value that is not permitted by the platform standard", priority))
+                    updated_summary_list.append(_failure_summary_entry(key, data.get('Module'), f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset having ({', '.join(set(duplicate_values))}) rating source that is not permitted by the platform standard" if 'rating source' in data.get('Issue Summary') else f"In {', '.join(list(Values.keys()))} {'days' if len(list(Values.keys())) > 1 else 'day'}, Asset having ({', '.join(set(duplicate_values))}) rating value that is not permitted by the platform standard", priority))
                 logger.info(f'Completed Failed Case Separator 16')
 
 
