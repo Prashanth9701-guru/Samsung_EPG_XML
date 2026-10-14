@@ -20,6 +20,7 @@ import yaml
 from google.cloud import translate_v2 as translate
 from google.oauth2.service_account import Credentials
 from PIL import Image
+import html
 
 from utilities.helper import Validation_Output, helper_fuc
 
@@ -194,7 +195,7 @@ def _translate_to_english(text: str) -> str:
             translated_text = translate_client.translate(
                 text, target_language="en"
             )
-            english_text = translated_text.get("translatedText") or ""
+            english_text = html.unescape(translated_text.get("translatedText")) or ""
             logger.info("Translation successful")
             break
         except Exception as exc:
