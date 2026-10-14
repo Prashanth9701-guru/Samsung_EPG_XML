@@ -16,6 +16,7 @@ from google.cloud import translate_v2 as translate
 import time
 from google.oauth2.service_account import Credentials
 import os
+import html
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +147,7 @@ def validate_asset_title(programs, key, channel_level_language, content_type, ex
                                     target_language="en"
                                     )
                                 logger.info(f'Translated Dict: {translated_text}')
-                                english_text = translated_text.get('translatedText')
+                                english_text = html.unescape(translated_text.get('translatedText'))
                                 logger.info(f'English Text: {english_text}')
                                 logger.info("Translation successful")
                                 break
