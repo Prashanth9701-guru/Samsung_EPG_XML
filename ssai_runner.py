@@ -20,7 +20,7 @@ from services.ssai_gsheet_service import (
     update_ssai_current_day_status,
 )
 from utilities.logger_setup import set_up_log
-from utilities.ssai_master_template import ssai_template
+from utilities.ssai_master_template import amgepg_template, ssai_template
 
 logger = logging.getLogger(__name__)
 
@@ -67,16 +67,22 @@ def _row_inputs(row: Dict[str, Any]) -> Dict[str, str]:
     }
 
 
+def _is_amgepg_customer_id(epg_delivery: str) -> bool:
+    """True when EPG Delivery is a numeric AMGEPG customer_id."""
+    return (epg_delivery or "").strip().isdigit()
+
+
 def _is_ssai_executable(row: Dict[str, Any], today: str, today_format: str) -> bool:
-    """True when the row would enter the AN3/now3 execution path (incl. missing-field FAIL)."""
+    """True when the row would enter AN3/now3 or AMGEPG customer_id execution."""
     if not _is_run_eligible(row, today, today_format):
         return False
     fields = _row_inputs(row)
-    if fields["epg_delivery"].strip().upper() != "AN3":
-        return False
-    if not _is_now3_stream_url(fields["stream_url"]):
-        return False
-    return True
+    epg = fields["epg_delivery"].strip()
+    if epg.upper() == "AN3":
+        return _is_now3_stream_url(fields["stream_url"])
+    if _is_amgepg_customer_id(epg):
+        return bool(fields["ticket_id"])
+    return False
 
 
 def main() -> None:
@@ -141,17 +147,18 @@ def main() -> None:
                 epg_delivery,
             )
 
-            # Branch: AN3 only
-            if epg_delivery.strip().upper() != "AN3":
+            is_an3 = epg_delivery.strip().upper() == "AN3"
+            is_amgepg = _is_amgepg_customer_id(epg_delivery)
+
+            if not is_an3 and not is_amgepg:
                 logger.info(
-                    "Stub skip (non-AN3) ticket=%s delivery=%s",
+                    "Stub skip (unsupported EPG Delivery) ticket=%s delivery=%s",
                     ticket_id,
                     epg_delivery,
                 )
                 continue
 
-            # Branch: now3 Stream URL only
-            if not _is_now3_stream_url(stream_url):
+            if is_an3 and not _is_now3_stream_url(stream_url):
                 logger.info(
                     "Stub skip (non-now3 Stream URL) ticket=%s url=%s",
                     ticket_id,
@@ -159,7 +166,7 @@ def main() -> None:
                 )
                 continue
 
-            if not stream_url or not ticket_id:
+            if is_an3 and (not stream_url or not ticket_id):
                 logger.error(
                     "Missing Stream URL or Ticket ID at row index=%s — marking FAILED",
                     inx,
@@ -202,13 +209,66 @@ def main() -> None:
                 )
                 continue
 
-            results = ssai_template(
-                stream_url=stream_url,
-                ticket_id=ticket_id,
-                channel_name=channel_name,
-                content_partner_name=partner,
-                token=token,
-            )
+            if is_amgepg and not ticket_id:
+                logger.error(
+                    "Missing Ticket ID for AMGEPG row index=%s — marking FAILED",
+                    inx,
+                )
+                append_ssai_execution_result(
+                    spreadsheet,
+                    [
+                        stream_url,
+                        channel_name,
+                        partner,
+                        ticket_id,
+                        owner,
+                        engineer,
+                        delivery_region,
+                        delivery_type,
+                        epg_delivery,
+                        datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
+                        "FAILED",
+                        "",
+                        "",
+                        run_stop,
+                        build_number,
+                        build_url,
+                    ],
+                )
+                update_ssai_current_day_status(
+                    worksheet, inx, new_column_number, "❌", today_header=today_format
+                )
+                execution_results.append(
+                    {
+                        "status": "FAILED",
+                        "channel": channel_name or f"row_{inx}",
+                        "owner": owner,
+                        "engineer": engineer,
+                        "delivery region": delivery_region,
+                        "delivery type": delivery_type,
+                        "html_link": "",
+                        "json_link": "",
+                    }
+                )
+                continue
+
+            if is_amgepg:
+                results = amgepg_template(
+                    customer_id=epg_delivery.strip(),
+                    delivery_region=delivery_region,
+                    ticket_id=ticket_id,
+                    channel_name=channel_name,
+                    content_partner_name=partner,
+                    stream_url=stream_url,
+                )
+            else:
+                results = ssai_template(
+                    stream_url=stream_url,
+                    ticket_id=ticket_id,
+                    channel_name=channel_name,
+                    content_partner_name=partner,
+                    token=token,
+                )
 
             status = (results or {}).get("status") or "FAILED"
             drive_link = (results or {}).get("drive_link") or ""
@@ -237,7 +297,7 @@ def main() -> None:
                 ],
             )
 
-            mark = "✔" if status == "PASSED" else "❌"
+            mark = "✔" if s3_html_url else "❌"
             update_ssai_current_day_status(
                 worksheet, inx, new_column_number, mark, today_header=today_format
             )

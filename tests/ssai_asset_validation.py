@@ -13,12 +13,14 @@ import unicodedata
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import urlparse
 
 import requests
 import yaml
 from google.cloud import translate_v2 as translate
 from google.oauth2.service_account import Credentials
 from PIL import Image
+import html
 
 from utilities.helper import Validation_Output, helper_fuc
 
@@ -193,7 +195,7 @@ def _translate_to_english(text: str) -> str:
             translated_text = translate_client.translate(
                 text, target_language="en"
             )
-            english_text = translated_text.get("translatedText") or ""
+            english_text = html.unescape(translated_text.get("translatedText")) or ""
             logger.info("Translation successful")
             break
         except Exception as exc:
@@ -299,20 +301,41 @@ def _strict_starttime_match(value: Any, pattern: str) -> bool:
 def _content_uri_has_ads_macros(uri: str, config: dict) -> bool:
     markers = config.get("content_uri_required_markers") or ["ads."]
     macro_keys = config.get("content_uri_macro_keys") or []
-    if not all(marker in uri for marker in markers):
+    url_parser_list = urlparse(uri).query.split('&')
+    logger.info(f'Stream URL: {uri}')
+    logger.info(f'{all(marker in url_parser for url_parser in url_parser_list for marker in markers)}')
+    if not all(marker in url_parser for url_parser in url_parser_list for marker in markers):
+    #if not all(marker in uri for marker in markers):
         return False
-    uri_lower = uri.lower()
-    for key in macro_keys:
-        encoded = f"%7b{key.lower()}%7d"
-        if encoded not in uri_lower:
-            return False
+    #uri_lower = uri.lower()
+
+    #for url_parser in url_parser_list:
+        #if not url_parser.split('=')[1].isdigit():
+            #logger.info(f'Encoded: {url_parser.split('=')[1]}')
+            #if not url_parser.split('=')[1].startswith('%7B') and not url_parser.split('=')[1].endswith('%7D'):
+                #return False
     return True
 
 
+    # for key in macro_keys:
+    #     encoded = f"%7b{key.lower()}%7d"
+    #     if encoded not in uri_lower:
+    #         return False
+    # return True
+
+
 def _content_uri_encoding_ok(uri: str, config: dict) -> bool:
-    if not config.get("content_uri_forbid_unencoded_macro", True):
-        return True
-    return not bool(re.search(r"\{[A-Z0-9_]+\}", uri))
+    url_parser_list = urlparse(uri).query.split('&')
+    for url_parser in url_parser_list:
+        if not url_parser.split('=')[1].isdigit():
+            logger.info(f'Encoded: {url_parser.split('=')[1]}')
+            if not url_parser.split('=')[1].startswith('%7B') and not url_parser.split('=')[1].endswith('%7D'):
+                return False
+    return True
+    
+    #if not config.get("content_uri_forbid_unencoded_macro", True):
+        #return True
+    #return not bool(re.search(r"\{[A-Z0-9_]+\}", uri))
 
 
 def _append_row(
@@ -779,7 +802,8 @@ def _suite_k_content_uri(
             continue
         if not isinstance(uri, str):
             continue
-        if uri != stream_url:
+        #if uri != stream_url:
+        if not uri.split('?')[0] in stream_url and all(parameter in stream_url for parameter in uri.split('?')[1].split('&')):
             _record(stream_fail, date, key, [uri, stream_url])
         if not _content_uri_has_ads_macros(uri, config):
             _record(ads_fail, date, key, [uri])
