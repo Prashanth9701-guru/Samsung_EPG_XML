@@ -325,6 +325,7 @@ def _content_uri_has_ads_macros(uri: str, config: dict) -> bool:
 
 
 def _content_uri_encoding_ok(uri: str, config: dict) -> bool:
+    url_parser_list = urlparse(uri).query.split('&')
     for url_parser in url_parser_list:
         if not url_parser.split('=')[1].isdigit():
             logger.info(f'Encoded: {url_parser.split('=')[1]}')
