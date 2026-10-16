@@ -309,11 +309,11 @@ def _content_uri_has_ads_macros(uri: str, config: dict) -> bool:
         return False
     #uri_lower = uri.lower()
 
-    for url_parser in url_parser_list:
-        if not url_parser.split('=')[1].isdigit():
-            logger.info(f'Encoded: {url_parser.split('=')[1]}')
-            if not url_parser.split('=')[1].startswith('%7B') and not url_parser.split('=')[1].endswith('%7D'):
-                return False
+    #for url_parser in url_parser_list:
+        #if not url_parser.split('=')[1].isdigit():
+            #logger.info(f'Encoded: {url_parser.split('=')[1]}')
+            #if not url_parser.split('=')[1].startswith('%7B') and not url_parser.split('=')[1].endswith('%7D'):
+                #return False
     return True
 
 
@@ -325,9 +325,16 @@ def _content_uri_has_ads_macros(uri: str, config: dict) -> bool:
 
 
 def _content_uri_encoding_ok(uri: str, config: dict) -> bool:
-    if not config.get("content_uri_forbid_unencoded_macro", True):
-        return True
-    return not bool(re.search(r"\{[A-Z0-9_]+\}", uri))
+    for url_parser in url_parser_list:
+        if not url_parser.split('=')[1].isdigit():
+            logger.info(f'Encoded: {url_parser.split('=')[1]}')
+            if not url_parser.split('=')[1].startswith('%7B') and not url_parser.split('=')[1].endswith('%7D'):
+                return False
+    return True
+    
+    #if not config.get("content_uri_forbid_unencoded_macro", True):
+        #return True
+    #return not bool(re.search(r"\{[A-Z0-9_]+\}", uri))
 
 
 def _append_row(
